@@ -30,10 +30,10 @@ const NavBar = () => {
 
         <div className="text-[14px]">
           <p>
-            <strong>Usuario:</strong> {'accounts[0]?.name' || 'No disponible'}
+            <strong>Usuario:</strong> {'accounts[0]?.name'}
           </p>
           <p>
-            <strong>Correo:</strong> {'accounts[0]?.username' || 'No disponible'}
+            <strong>Correo:</strong> {'accounts[0]?.username'}
           </p>
         </div>
       </div>
