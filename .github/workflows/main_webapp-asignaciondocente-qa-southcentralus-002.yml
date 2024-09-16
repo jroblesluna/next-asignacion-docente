@@ -59,4 +59,4 @@ jobs:
           app-name: 'webapp-asignaciondocente-qa-southcentralus-002'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_AEC789137BFB419AA5FBCDC764BA4BB2 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B9AE1CFEAC3748539E67D5AF652A7874 }}
