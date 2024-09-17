@@ -1,12 +1,16 @@
 'use client';
-
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import React from 'react';
+import { useMsal } from '@azure/msal-react';
 
 function Page() {
-  const router = useRouter();
+  const { instance } = useMsal();
 
+  const handleLogin = () => {
+    instance.loginRedirect({
+      scopes: ['user.read'],
+    });
+  };
   return (
     <main className="flex flex-row min-h-[100vh] max-lg:flex-col">
       <div className="flex flex-col gap-20 items-start text-black w-[60%] p-10 max-lg:w-full">
@@ -28,7 +32,7 @@ function Page() {
 
           <button
             className="bg-secundary py-2 px-10 text-white font-semibold hover:bg-secundary_ligth mx-auto"
-            onClick={() => router.push('/home')}
+            onClick={handleLogin}
           >
             Iniciar Sesión
           </button>
