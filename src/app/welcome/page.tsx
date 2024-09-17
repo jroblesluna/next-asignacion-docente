@@ -2,14 +2,23 @@
 import Image from 'next/image';
 import React from 'react';
 import { useMsal } from '@azure/msal-react';
+import { BrowserAuthError } from '@azure/msal-browser';
 
 function Page() {
   const { instance } = useMsal();
 
   const handleLogin = () => {
-    instance.loginRedirect({
-      scopes: ['user.read'],
-    });
+    try {
+      instance.loginRedirect({
+        scopes: ['user.read'],
+      });
+    } catch (error) {
+      if (error instanceof BrowserAuthError && error.errorCode === 'interaction_in_progress') {
+        console.log('Interacción de autenticación ya en progreso.');
+      } else {
+        console.log('Otro error ocurrió:', error);
+      }
+    }
   };
   return (
     <main className="flex flex-row min-h-[100vh] max-lg:flex-col">

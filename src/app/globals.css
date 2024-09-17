@@ -1,27 +1,59 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+.react-datepicker__triangle {
+  display: none;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-} */
+.react-datepicker__month-container {
+  width: 400px; /* Ajusta el ancho del calendario */
+}
+
+.react-datepicker__day {
+  width: 2.5rem; /* Ajusta el tamaño de los días */
+  height: 2.5rem;
+  line-height: 2.5rem;
+}
+.custom-calendar .react-datepicker__day {
+  color: rebeccapurple; /* Oculta el texto de los días */
+}
+
+.custom-calendar .react-datepicker__day--in-range {
+  background-color: transparent; /* Fondo para los días dentro del rango */
+  color: black; /* Oculta el texto de los días dentro del rango */
+}
+
+.custom-calendar .react-datepicker__day--range-start {
+  background-color: green; /* Fondo para el rango */
+}
+
+.custom-calendar .react-datepicker__day--range-end {
+  background-color: red; /* Fondo para el rango */
+}
+
+.custom-calendar .react-datepicker__day--disabled {
+  color: black; /* Oculta el texto de los días deshabilitados */
+}
+
+.custom-calendar .react-datepicker__header {
+  background-color: crimson; /* Estilo del encabezado del calendario */
+  border-bottom: 1px solid #ccc; /* Borde inferior */
+  padding: 0.5rem; /* Espaciado */
+}
+
+.react-datepicker__input-container input {
+  border: 2px solid #a4a5a5; /* Change border color and width */
+  border-radius: 4px; /* Optional: rounded corners */
+  padding: 6px; /* Optional: padding inside the input */
+  font-size: 14px; /* Optional: font size */
+  max-width: 120px;
+  text-align: center;
+  opacity: 60%;
+}

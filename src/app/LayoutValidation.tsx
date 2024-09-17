@@ -31,6 +31,20 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    instance.clearCache();
+    sessionStorage.clear();
+    localStorage.clear();
+
+    instance
+      .logoutRedirect({
+        onRedirectNavigate: () => false,
+      })
+      .then(() => {
+        window.location.href = '/welcome';
+      })
+      .catch((e) => {
+        console.error(e);
+      });
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
@@ -40,9 +54,7 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
             </h2>
             <GrSecure className="size-16" />
             <p className="text-gray-600">Usted no tiene permiso para ingresar</p>
-            <button className="bg-secundary py-2 text-white font-semibold hover:bg-secundary_ligth w-48">
-              Ir al Inicio
-            </button>
+            <p className="text-gray-600">Redirigiendo al Inicio...</p>
           </div>
         </div>
       </div>

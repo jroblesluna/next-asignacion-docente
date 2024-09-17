@@ -15,7 +15,7 @@ import {
   ContextAssignmentReportProvider,
 } from '../../components/MyContexts';
 import { locationData } from '../../constants/data';
-
+import LayoutValidation from '@/app/LayoutValidation';
 const ReportAssignments = () => {
   const { id } = useParams();
   const [inputValue, setInputValue] = useState('');
@@ -73,152 +73,154 @@ const ReportAssignments = () => {
     );
 
   return (
-    <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8">
-      <NavBar />
-      <ReturnTitle name="Tabla de Asignaciones" />
-      <div className="w-[95%] flex gap-5 justify-center mx-auto flex-col  ">
-        <div className="w-full flex flex-row gap-5 items-end -mt-10">
-          <div className="w-1/4 relative text-black border rounded-md">
-            <input
-              placeholder={'Seleccione y busque '}
-              className={'w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs'}
-              onChange={handleInputChange}
-            />
-            <PiMagnifyingGlass
-              className="absolute right-3 font-extrabold top-2 cursor-pointer text-primary hover:text-gray-500"
-              size={'25px'}
-            />
-          </div>
-
-          <select
-            className="select select-bordered w-full max-w-32"
-            value={filterOption}
-            onChange={handleFilterOptionChange}
-          >
-            <option value="Curso">Curso</option>
-            <option value="Profesor">Profesor</option>
-            <option value="Aula">Aula</option>
-          </select>
-
-          <div className="form-control max-w-32 border rounded-lg px-1 ">
-            <label className="label cursor-pointer flex flex-row justify-around gap-3 ">
+    <LayoutValidation>
+      <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8">
+        <NavBar />
+        <ReturnTitle name="Tabla de Asignaciones" />
+        <div className="w-[95%] flex gap-5 justify-center mx-auto flex-col  ">
+          <div className="w-full flex flex-row gap-5 items-end -mt-10">
+            <div className="w-1/4 relative text-black border rounded-md">
               <input
-                type="checkbox"
-                className="checkbox"
-                checked={onlyUnassigned}
-                onChange={handleUnassignedChange}
+                placeholder={'Seleccione y busque '}
+                className={'w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs'}
+                onChange={handleInputChange}
               />
-              <span className="label-text text-xs">Solo cursos sin asignar</span>
-            </label>
-          </div>
-          <div className="form-control max-w-28 border rounded-lg px-1 ">
-            <label className="label cursor-pointer flex flex-row justify-around gap-3 ">
-              <input
-                type="checkbox"
-                className="checkbox"
-                checked={onlyLocked}
-                onChange={handleOnlyLockedChange}
+              <PiMagnifyingGlass
+                className="absolute right-3 font-extrabold top-2 cursor-pointer text-primary hover:text-gray-500"
+                size={'25px'}
               />
-              <span className="label-text text-xs">Solo Editados</span>
-            </label>
-          </div>
-
-          <label className="form-control w-full max-w-32">
-            <div className="label">
-              <span className="label-text text-xs">Sede</span>
             </div>
+
             <select
-              className="select select-bordered text-xs capitalize"
-              value={selectedSede}
-              onChange={handleSedeChange}
+              className="select select-bordered w-full max-w-32"
+              value={filterOption}
+              onChange={handleFilterOptionChange}
             >
-              <option value="Todas">Todas</option>
-              {locationData.map((item, index) => {
-                return (
-                  <option value={item} key={index}>
-                    {item.toLowerCase()}
-                  </option>
-                );
-              })}
+              <option value="Curso">Curso</option>
+              <option value="Profesor">Profesor</option>
+              <option value="Aula">Aula</option>
             </select>
-          </label>
 
-          <button className="bg-[#50B403] font-roboto py-2 px-6 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center ">
-            <MdOutlineFileDownload className="text-white size-7" />
-            Descargar Reporte
-          </button>
+            <div className="form-control max-w-32 border rounded-lg px-1 ">
+              <label className="label cursor-pointer flex flex-row justify-around gap-3 ">
+                <input
+                  type="checkbox"
+                  className="checkbox"
+                  checked={onlyUnassigned}
+                  onChange={handleUnassignedChange}
+                />
+                <span className="label-text text-xs">Solo cursos sin asignar</span>
+              </label>
+            </div>
+            <div className="form-control max-w-28 border rounded-lg px-1 ">
+              <label className="label cursor-pointer flex flex-row justify-around gap-3 ">
+                <input
+                  type="checkbox"
+                  className="checkbox"
+                  checked={onlyLocked}
+                  onChange={handleOnlyLockedChange}
+                />
+                <span className="label-text text-xs">Solo Editados</span>
+              </label>
+            </div>
 
-          <button
-            className={`font-roboto py-2 px-6 text-[14px] text-white font-semibold flex flex-row items-center gap-1 mx-auto ${
-              modifications.length === 0
-                ? 'bg-[#7C7C7C] pointer-events-none'
-                : 'bg-secundary hover:bg-secundary_ligth '
-            }`}
-            onClick={() => {
-              const modal = document.getElementById('my_modal_5');
-              if (modal) {
-                (modal as HTMLDialogElement).showModal();
-              }
-            }}
-          >
-            <BiSolidEdit className="text-white text-[28px]" />
-            Realizar Cambios
-          </button>
+            <label className="form-control w-full max-w-32">
+              <div className="label">
+                <span className="label-text text-xs">Sede</span>
+              </div>
+              <select
+                className="select select-bordered text-xs capitalize"
+                value={selectedSede}
+                onChange={handleSedeChange}
+              >
+                <option value="Todas">Todas</option>
+                {locationData.map((item, index) => {
+                  return (
+                    <option value={item} key={index}>
+                      {item.toLowerCase()}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+
+            <button className="bg-[#50B403] font-roboto py-2 px-6 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center ">
+              <MdOutlineFileDownload className="text-white size-7" />
+              Descargar Reporte
+            </button>
+
+            <button
+              className={`font-roboto py-2 px-6 text-[14px] text-white font-semibold flex flex-row items-center gap-1 mx-auto ${
+                modifications.length === 0
+                  ? 'bg-[#7C7C7C] pointer-events-none'
+                  : 'bg-secundary hover:bg-secundary_ligth '
+              }`}
+              onClick={() => {
+                const modal = document.getElementById('my_modal_5');
+                if (modal) {
+                  (modal as HTMLDialogElement).showModal();
+                }
+              }}
+            >
+              <BiSolidEdit className="text-white text-[28px]" />
+              Realizar Cambios
+            </button>
+          </div>
+          <div className="flex flex-row gap-10 items-center">
+            <p>
+              <strong>ID: </strong> {id}
+            </p>
+            <p>
+              <strong>Periodo: </strong> Agosto del 2022
+            </p>
+            <p>
+              <strong>Fecha:</strong> 01/08/2022 - 31/08/2022
+            </p>
+          </div>
+          <ModalWarning
+            onConfirm={() => router.push('/history')}
+            subtitle="Esta acción es irreversible."
+            title="¿Está seguro de realizar los cambios? "
+            idModal="my_modal_5"
+          />
         </div>
-        <div className="flex flex-row gap-10 items-center">
-          <p>
-            <strong>ID: </strong> {id}
-          </p>
-          <p>
-            <strong>Periodo: </strong> Agosto del 2022
-          </p>
-          <p>
-            <strong>Fecha:</strong> 01/08/2022 - 31/08/2022
-          </p>
-        </div>
-        <ModalWarning
-          onConfirm={() => router.push('/history')}
-          subtitle="Esta acción es irreversible."
-          title="¿Está seguro de realizar los cambios? "
-          idModal="my_modal_5"
-        />
-      </div>
-      <table className="w-full ">
-        <thead>
-          <tr className="text-black">
-            <th className="py-2 font-inter">
-              <p className="text-transparent">●</p>
-            </th>
-            <th className="py-2 uppercase max-w-16 overflow-hidden font-inter text-start">
-              SEDE
-            </th>
-            <th className="py-2 uppercase font-inter">CURSO</th>
-            <th className="py-2 uppercase font-inter">HORARIO</th>
-            <th className="py-2 uppercase font-inter">FRECUENCIA</th>
-            <th className="py-2 uppercase font-inter">AULA</th>
-            <th className="py-2 uppercase font-inter text-start">PROFESOR</th>
-            <th className="py-2 uppercase font-inter">N° DE ALUMNOS</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredAssignments.map((assignment) => (
-            <ReportAsigmnentTable
-              key={assignment.assignmentId}
-              location={assignment.location}
-              assignmentId={assignment.assignmentId}
-              classroom={assignment.classroom}
-              course={assignment.course}
-              frequency={assignment.frequency}
-              isRoomClosed={assignment.isRoomClosed}
-              isTeacherClosed={assignment.isTeacherClosed}
-              numberOfStudents={assignment.numberOfStudents}
-              schedule={assignment.schedule}
-              teacher={assignment.teacher}
-            />
-          ))}
-        </tbody>
-      </table>
-    </main>
+        <table className="w-full ">
+          <thead>
+            <tr className="text-black">
+              <th className="py-2 font-inter">
+                <p className="text-transparent">●</p>
+              </th>
+              <th className="py-2 uppercase max-w-16 overflow-hidden font-inter text-start">
+                SEDE
+              </th>
+              <th className="py-2 uppercase font-inter">CURSO</th>
+              <th className="py-2 uppercase font-inter">HORARIO</th>
+              <th className="py-2 uppercase font-inter">FRECUENCIA</th>
+              <th className="py-2 uppercase font-inter">AULA</th>
+              <th className="py-2 uppercase font-inter text-start">PROFESOR</th>
+              <th className="py-2 uppercase font-inter">N° DE ALUMNOS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredAssignments.map((assignment) => (
+              <ReportAsigmnentTable
+                key={assignment.assignmentId}
+                location={assignment.location}
+                assignmentId={assignment.assignmentId}
+                classroom={assignment.classroom}
+                course={assignment.course}
+                frequency={assignment.frequency}
+                isRoomClosed={assignment.isRoomClosed}
+                isTeacherClosed={assignment.isTeacherClosed}
+                numberOfStudents={assignment.numberOfStudents}
+                schedule={assignment.schedule}
+                teacher={assignment.teacher}
+              />
+            ))}
+          </tbody>
+        </table>
+      </main>
+    </LayoutValidation>
   );
 };
 
