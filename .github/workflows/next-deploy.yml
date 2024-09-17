@@ -8,7 +8,7 @@ on:
 
 env:
   APPLICATION_PUBLISH_PROFILE: ${{ secrets.APP_PUBLISH_PROFILE }}
-  WEBAPP_NAME: "medium-next-app-service-deploy"
+  WEBAPP_NAME: "next-asignacion-docente"
 
 jobs:
   build:
