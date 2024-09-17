@@ -51,7 +51,7 @@ jobs:
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'webapp-asignaciondocente-qa-southcentralus-002'
+          app-name: 'webapp-asignaciondocente-qa-southcentralus-001'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C4791DEC321A4FFC8BC6ACF738022A21 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B56CBD3751D2498A9A4DB91ACC4DCEBF }}
