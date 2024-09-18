@@ -1,16 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
-import teacherService from '../services/teacher';
+import eventService from '../services/evento';
 
 function Page() {
   const loadDataTest = async () => {
-    const res = await teacherService.getAll();
+    const res = await eventService.getAll('2');
     setData(JSON.stringify(res, null, 2));
   };
 
   useEffect(() => {
     loadDataTest();
-  });
+  }, []);
 
   const [data, setData] = useState('');
 

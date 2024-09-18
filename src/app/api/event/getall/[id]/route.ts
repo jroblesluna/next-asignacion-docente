@@ -2,34 +2,26 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../lib/db';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
-
-  if (!id) {
-    return NextResponse.json({
-      message: 'ID de periodo académico no proporcionado',
-      data: false,
-    });
-  }
-
   try {
+    const { id } = params;
+
+    if (!id) {
+      return NextResponse.json(
+        { message: 'ID de periodo académico no proporcionado' },
+        { status: 400 }
+      );
+    }
     const pool = await connectToDatabase();
 
     const result = await pool
       .request()
       .input('id', id)
-      .query('SELECT * FROM Periodo WHERE idPeriodo  = @id');
-
-    if (!result) {
-      return NextResponse.json({
-        message: `Perido con ${id} no  encontrada `,
-        data: false,
-      });
-    }
+      .query('SELECT * FROM Evento WHERE idPeriodo = @id');
 
     pool.close();
 
     return NextResponse.json({
-      message: 'Período encontrado correctamente',
+      message: `Eventos del periodo ${id} encontrados correctamente`,
       data: result.recordset,
     });
   } catch (error) {

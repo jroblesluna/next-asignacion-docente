@@ -1,44 +1,42 @@
+// const { id } = req.query;
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../lib/db';
 
 export async function PATCH(request: Request) {
   try {
-    const { id, estado } = await request.json();
+    const { id, data } = await request.json();
 
-    if (!id || !estado) {
+    if (!id || !data) {
       return NextResponse.json({ message: 'Faltan campos en el body', data: false });
-    }
-    if (
-      estado !== 'ACTIVO' &&
-      estado !== 'CARGANDO' &&
-      estado !== 'NO ACTIVO' &&
-      estado !== 'CERRADO'
-    ) {
-      return NextResponse.json({ message: 'Tipo de estado no valido', data: false });
     }
 
     const pool = await connectToDatabase();
 
-    // Verifica si el periodo existe
     const checkResult = await pool
       .request()
       .input('id', id)
-      .query('SELECT estado FROM Periodo WHERE idPeriodo  = @id');
+      .query('SELECT * FROM Periodo WHERE idPeriodo  = @id');
 
     if (!checkResult) {
       return NextResponse.json({ message: 'Período académico no encontrado', data: false });
     }
 
-    // Actualiza el estado del periodo a Activo
-    await pool
-      .request()
-      .input('id', id)
-      .query(`UPDATE Periodo SET estado = '${estado}' WHERE idPeriodo  = @id`);
+    for (const row of data) {
+      await pool
+        .request()
+        .input('idAula', row.idAula)
+        .input('idDocente', row.idDocente)
+        .input('idVersion', row.idVersion)
+        .input('id', id)
+        .query(
+          'UPDATE AsignacionDocente SET idAula = @idAula   idDocente = @idDocente  WHERE idPeriodo  = @id and idVersion= @idVersion'
+        );
+    }
 
     pool.close();
 
     return NextResponse.json({
-      message: `Estado del periodo ${id} actualizado correctamente`,
+      message: `Campos de asignación docente, para el periodo ${id} actualizado correctamente`,
       data: true,
     });
   } catch (error) {

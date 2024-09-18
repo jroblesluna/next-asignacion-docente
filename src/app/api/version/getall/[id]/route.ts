@@ -6,7 +6,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
   if (!id) {
     return NextResponse.json({
-      message: 'ID de periodo académico no proporcionado',
+      message: 'ID del periodo académico no proporcionado',
       data: false,
     });
   }
@@ -14,22 +14,27 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   try {
     const pool = await connectToDatabase();
 
-    const result = await pool
+    const resultCheck = await pool
       .request()
       .input('id', id)
-      .query('SELECT * FROM Periodo WHERE idPeriodo  = @id');
+      .query('SELECT * FROM Periodo WHERE idPeriodo   = @id');
 
-    if (!result) {
+    if (!resultCheck) {
       return NextResponse.json({
-        message: `Perido con ${id} no  encontrada `,
+        message: `Periodo con id ${id} no encontrado`,
         data: false,
       });
     }
 
+    const result = await pool
+      .request()
+      .input('id', id)
+      .query('SELECT * FROM Version WHERE idPeriodo   = @id');
+
     pool.close();
 
     return NextResponse.json({
-      message: 'Período encontrado correctamente',
+      message: 'Versión encontrada correctamente',
       data: result.recordset,
     });
   } catch (error) {

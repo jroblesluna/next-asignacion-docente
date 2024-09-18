@@ -1,14 +1,31 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../lib/db';
 
-export async function GET() {
+export async function PATCH(request: Request) {
   try {
+    const { id } = await request.json();
+
+    if (!id) {
+      return NextResponse.json({ message: 'Faltan campos en el body', data: false });
+    }
+
     const pool = await connectToDatabase();
 
-    const result = await pool.request().query('SELECT * FROM test');
+    await pool
+      .request()
+      .input('id', id)
+      .query(
+        `UPDATE Evento SET estado = 'EJECUTADO' WHERE idPeriodo  = @id and estado = 'NO INICIADO'`
+      );
 
     pool.close();
-    return NextResponse.json({ data: result.recordset });
+
+    // ejecutar eventos
+
+    return NextResponse.json({
+      message: `Los Eventos se han ${id} ejecutado correctamente`,
+      data: true,
+    });
   } catch (error) {
     console.error('Error en la API:', error);
     return NextResponse.json({ message: 'Error en la consulta', error }, { status: 500 });
