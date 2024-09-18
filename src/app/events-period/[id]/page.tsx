@@ -137,7 +137,7 @@ const Page = () => {
         <ReturnTitle name="Registro de Eventos " />
         <div className="w-[90%] flex justify-center mx-auto flex-col">
           <div className="w-[95%] flex flex-row gap-5 justify-end -mt-8">
-            <button className="bg-[#7C7C7C] font-roboto py-2 px-8 text-[14px] text-white font-semibold hover:opacity-80 flex flex-row items-center gap-1">
+            <button className="bg-secundary font-roboto py-2 px-8 text-[14px] text-white font-semibold hover:bg-secundary_ligth flex flex-row items-center gap-1">
               <BiSolidEdit className="text-white size-7" />
               Incorporar Cambios
             </button>

@@ -81,7 +81,7 @@ const ReportAssignments = () => {
           <div className="w-full flex flex-row gap-5 items-end -mt-10">
             <div className="w-1/4 relative text-black border rounded-md">
               <input
-                placeholder={'Seleccione y busque '}
+                placeholder={'Seleccione el tipo y busque '}
                 className={'w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs'}
                 onChange={handleInputChange}
               />
@@ -184,41 +184,47 @@ const ReportAssignments = () => {
             idModal="my_modal_5"
           />
         </div>
-        <table className="w-full ">
-          <thead>
-            <tr className="text-black">
-              <th className="py-2 font-inter">
-                <p className="text-transparent">●</p>
-              </th>
-              <th className="py-2 uppercase max-w-16 overflow-hidden font-inter text-start">
-                SEDE
-              </th>
-              <th className="py-2 uppercase font-inter">CURSO</th>
-              <th className="py-2 uppercase font-inter">HORARIO</th>
-              <th className="py-2 uppercase font-inter">FRECUENCIA</th>
-              <th className="py-2 uppercase font-inter">AULA</th>
-              <th className="py-2 uppercase font-inter text-start">PROFESOR</th>
-              <th className="py-2 uppercase font-inter">N° DE ALUMNOS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAssignments.map((assignment) => (
-              <ReportAsigmnentTable
-                key={assignment.assignmentId}
-                location={assignment.location}
-                assignmentId={assignment.assignmentId}
-                classroom={assignment.classroom}
-                course={assignment.course}
-                frequency={assignment.frequency}
-                isRoomClosed={assignment.isRoomClosed}
-                isTeacherClosed={assignment.isTeacherClosed}
-                numberOfStudents={assignment.numberOfStudents}
-                schedule={assignment.schedule}
-                teacher={assignment.teacher}
-              />
-            ))}
-          </tbody>
-        </table>
+        <div className="w-full overflow-auto min-h-[52vh] max-h-[52vh]  ">
+          <table className="w-full ">
+            <thead>
+              <tr className="text-black bg-white">
+                <th className="py-2 font-inter sticky top-0 bg-white">
+                  <p className="text-transparent">●</p>
+                </th>
+                <th className="py-2 uppercase max-w-16 overflow-hidden font-inter text-start sticky top-0 bg-white">
+                  SEDE
+                </th>
+                <th className="py-2 uppercase font-inter sticky top-0 bg-white">CURSO</th>
+                <th className="py-2 uppercase font-inter sticky top-0 bg-white ">HORARIO</th>
+                <th className="py-2 uppercase font-inter sticky top-0 bg-white">FRECUENCIA</th>
+                <th className="py-2 uppercase font-inter sticky top-0 bg-white z-10 ">AULA</th>
+                <th className="py-2 uppercase font-inter text-start sticky top-0 bg-white z-10">
+                  PROFESOR
+                </th>
+                <th className="py-2 uppercase font-inter sticky top-0  bg-white">
+                  N° DE ALUMNOS
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAssignments.map((assignment) => (
+                <ReportAsigmnentTable
+                  key={assignment.assignmentId}
+                  location={assignment.location}
+                  assignmentId={assignment.assignmentId}
+                  classroom={assignment.classroom}
+                  course={assignment.course}
+                  frequency={assignment.frequency}
+                  isRoomClosed={assignment.isRoomClosed}
+                  isTeacherClosed={assignment.isTeacherClosed}
+                  numberOfStudents={assignment.numberOfStudents}
+                  schedule={assignment.schedule}
+                  teacher={assignment.teacher}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </main>
     </LayoutValidation>
   );

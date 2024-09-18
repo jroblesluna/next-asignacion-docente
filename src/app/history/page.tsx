@@ -31,8 +31,8 @@ function Page() {
   const historyData = [
     {
       idPeriod: '202301',
-      startDate: '01/01/2023',
-      endDate: '30/06/2023',
+      startDate: '01/08/2024',
+      endDate: '30/08/2024',
       codePeriod: '10520156',
       isActive: true,
     },

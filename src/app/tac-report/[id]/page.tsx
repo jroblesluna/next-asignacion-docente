@@ -13,6 +13,7 @@ import { numberCompare, frecuencyData } from '../../constants/data';
 import { TableTacReport } from '../../components/Rows';
 import { evaluateExpression } from '../../utils/managmentTime';
 import LayoutValidation from '@/app/LayoutValidation';
+import { locationData } from '../../constants/data';
 const Page = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedState, setSelectedState] = useState('Todas');
@@ -44,50 +45,96 @@ const Page = () => {
   // data de ejempplo
   const tacData = [
     {
-      teacher: 'OSTOS RIOS, OLGA DEL CARMEN',
+      teacher: 'SALAZAR QUISPE, MARIO ENRIQUE',
       location: 'LIMA',
       status: 'FT',
       classSchedule: [
-        { frecuency: 'LMV', schedule: '8:00 - 12:00', room: 'A213' },
-        { frecuency: 'LV', schedule: '14:00 - 16:00', room: 'A230' },
-        { frecuency: 'SD', schedule: '10:00 - 12:00', room: 'A214' },
+        { frecuency: 'LMV', schedule: '10:00 - 12:00', room: 'A301' },
+        { frecuency: 'MJ', schedule: '10:00 - 13:00', room: 'A302' },
+        { frecuency: 'S', schedule: '14:00 - 16:00', room: 'A303' },
       ],
     },
     {
-      teacher: 'FERNANDEZ PEREZ, JUAN CARLOS',
-      location: 'AREQUIPA',
+      teacher: 'PEREZ SANDOVAL, LUZ ELENA',
+      location: 'CALLAO',
       status: 'PT',
       classSchedule: [
-        { frecuency: 'LMV', schedule: '14:00 - 18:00', room: 'A215' },
-        { frecuency: 'S', schedule: '9:00 - 13:00', room: 'A216' },
+        { frecuency: 'LMV', schedule: '16:00 - 18:00', room: 'B101' },
+        { frecuency: 'S', schedule: '10:00 - 12:00', room: 'B102' },
       ],
     },
     {
-      teacher: 'GARCIA LOPEZ, ANA MARIA',
-      location: 'CUSCO',
+      teacher: 'RAMIREZ CASTRO, EDUARDO MANUEL',
+      location: 'INDEPENDENCIA',
       status: 'FT',
       classSchedule: [
-        { frecuency: 'LMV', schedule: '10:00 - 12:00', room: 'A217' },
-        { frecuency: 'SD', schedule: '8:00 - 10:00', room: 'A218' },
+        { frecuency: 'LMV', schedule: '8:00 - 10:00', room: 'B103' },
+        { frecuency: 'SD', schedule: '10:00 - 12:00', room: 'B104' },
       ],
     },
     {
-      teacher: 'HUAMAN TORRES, CARLOS ALBERTO',
-      location: 'TRUJILLO',
+      teacher: 'ROJAS PAREDES, VICTOR MANUEL',
+      location: 'LIMA',
       status: 'PT',
       classSchedule: [
-        { frecuency: 'MJ', schedule: '18:00 - 20:00', room: 'A218' },
-        { frecuency: 'S', schedule: '14:00 - 16:00', room: 'A219' },
+        { frecuency: 'MJ', schedule: '18:00 - 20:00', room: 'C201' },
+        { frecuency: 'S', schedule: '14:00 - 16:00', room: 'C202' },
       ],
     },
     {
-      teacher: 'MENDOZA RAMOS, LAURA ELENA',
+      teacher: 'CAMACHO HUERTA, SUSANA BEATRIZ',
+      location: 'HUARAL',
+      status: 'FT',
+      classSchedule: [
+        { frecuency: 'LMV', schedule: '12:00 - 14:00', room: 'C203' },
+        { frecuency: 'MJ', schedule: '8:00 - 10:00', room: 'C204' },
+        { frecuency: 'S', schedule: '16:00 - 18:00', room: 'C205' },
+      ],
+    },
+    {
+      teacher: 'DIAZ VARGAS, ANDRES ALFONSO',
+      location: 'CALLAO',
+      status: 'PT',
+      classSchedule: [
+        { frecuency: 'MJ', schedule: '10:00 - 12:00', room: 'D101' },
+        { frecuency: 'LMV', schedule: '14:00 - 16:00', room: 'D102' },
+      ],
+    },
+    {
+      teacher: 'ESPINOZA MORALES, JAVIER ANTONIO',
       location: 'LIMA',
       status: 'FT',
       classSchedule: [
-        { frecuency: 'MJ', schedule: '8:00 - 10:00', room: 'A220' },
-        { frecuency: 'LMV', schedule: '12:00 - 14:00', room: 'A221' },
-        { frecuency: 'SD', schedule: '12:00 - 14:00', room: 'A222' },
+        { frecuency: 'LMV', schedule: '16:00 - 18:00', room: 'D103' },
+        { frecuency: 'SD', schedule: '10:00 - 12:00', room: 'D104' },
+      ],
+    },
+    {
+      teacher: 'FLORES CASTILLO, MARIA JOSE',
+      location: 'INDEPENDENCIA',
+      status: 'PT',
+      classSchedule: [
+        { frecuency: 'MJ', schedule: '8:00 - 10:00', room: 'E101' },
+        { frecuency: 'S', schedule: '12:00 - 14:00', room: 'E102' },
+      ],
+    },
+    {
+      teacher: 'GONZALEZ ZAPATA, ANA ROSA',
+      location: 'HUARAL',
+      status: 'FT',
+      classSchedule: [
+        { frecuency: 'LMV', schedule: '8:00 - 10:00', room: 'E103' },
+        { frecuency: 'MJ', schedule: '12:00 - 14:00', room: 'E104' },
+        { frecuency: 'S', schedule: '14:00 - 16:00', room: 'E105' },
+      ],
+    },
+    {
+      teacher: 'HERRERA AGUIRRE, LUIS ALFREDO',
+      location: 'LIMA',
+      status: 'PT',
+      classSchedule: [
+        { frecuency: 'LMV', schedule: '10:00 - 12:00', room: 'F101' },
+        { frecuency: 'S', schedule: '16:00 - 18:00', room: 'F102' },
       ],
     },
   ];
@@ -131,7 +178,7 @@ const Page = () => {
 
   return (
     <LayoutValidation>
-      <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8">
+      <main className="flex flex-col gap-5 w-full min-h-[100vh] px-8 pt-8">
         <NavBar />
         <ReturnTitle name="Reporte TAC" />
         <div className="w-[95%] flex gap-5 justify-center mx-auto flex-col  ">
@@ -156,14 +203,14 @@ const Page = () => {
                   <span className="label-text text-xs">Sede</span>
                 </div>
                 <select
-                  className="select select-bordered text-xs"
+                  className="select select-bordered text-xs capitalize"
                   value={selectedLocation}
                   onChange={handleLocationChange}
                 >
                   <option selected>Todas</option>
-                  <option>Lima</option>
-                  <option>Miraflores</option>
-                  <option>La Molina</option>
+                  {locationData.map((item, index) => {
+                    return <option key={index}> {item.toLowerCase()}</option>;
+                  })}
                 </select>
               </label>
               <label className="form-control w-full max-w-28 -mt-9">
@@ -311,23 +358,23 @@ const Page = () => {
               </div>
             </div>
           </div>
-          <div className="w-full max-w-[100vw] overflow-auto">
+          <div className="w-full max-w-[100vw] max-h-[27vw] min-h-[27vw]  overflow-auto">
             <table className="w-full ">
               <thead>
                 <tr className="text-black">
-                  <th className="py-2 uppercase max-w-16 overflow-hidden font-inter  bg-[#19B050] text-white min-w-80">
+                  <th className="py-2.5 uppercase max-w-16 overflow-hidden font-inter sticky top-0 bg-[#19B050] text-white min-w-80">
                     PROFESOR
                   </th>
-                  <th className="py-2 uppercase font-inter border bg-[#19B050] text-white min-w-32">
+                  <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-32">
                     SEDE
                   </th>
-                  <th className="py-2 uppercase font-inter border bg-[#19B050] text-white min-w-24">
+                  <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-24">
                     ESTADO
                   </th>
                   {timeDaily.map((time, index) => (
                     <th
                       key={`daily-${index}`}
-                      className="py-2 uppercase font-inter border bg-[#062060] text-white min-w-24"
+                      className="py-2.5 uppercase font-inter border bg-[#062060] sticky top-0 text-white min-w-24"
                     >
                       {time}
                     </th>
@@ -335,12 +382,12 @@ const Page = () => {
                   {timeWeekend.map((time, index) => (
                     <th
                       key={`weekend-${index}`}
-                      className="py-2 uppercase font-inter border bg-[#19B0F0] text-white min-w-24"
+                      className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24"
                     >
                       {time}
                     </th>
                   ))}
-                  <th className="py-2 uppercase font-inter border bg-[#19B0F0] text-white min-w-24">
+                  <th className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24">
                     Todas
                   </th>
                 </tr>
