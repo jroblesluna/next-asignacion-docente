@@ -337,7 +337,7 @@ const Page = () => {
                 {/* se debe mapear */}
                 <div
                   className={
-                    'absolute w-64 min-h-60 h-60 bg-[#ffffff] px-5 border flex flex-col gap-2 items-center p-3 right-[90%] top-8 rounded-md ' +
+                    'absolute w-64 min-h-60 h-60 bg-[#ffffff] px-5 border flex flex-col gap-2 items-center p-3 right-[90%] top-8 rounded-md z-20  ' +
                     (showHistoryVersion ? 'block' : 'hidden')
                   }
                 >
