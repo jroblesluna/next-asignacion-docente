@@ -8,7 +8,7 @@ import { ReturnTitle } from '../../components/Titles';
 import { PiMagnifyingGlass } from 'react-icons/pi';
 import { ModalWarning } from '../../components/Modals';
 import { MdOutlineFileDownload } from 'react-icons/md';
-import { BiSolidEdit } from 'react-icons/bi';
+// import { BiSolidEdit } from 'react-icons/bi';
 import { ReportAsigmnentTable } from '../../components/Rows';
 import {
   ContextAssignmentReport,
@@ -49,7 +49,7 @@ const ReportAssignments = () => {
   if (!context) {
     throw new Error('DisplayComponent debe ser usado dentro de MyContextProvider');
   }
-  const { assignments, modifications } = context;
+  const { assignments } = context;
 
   const filteredAssignments = assignments
     .filter((assignment) => {
@@ -149,8 +149,8 @@ const ReportAssignments = () => {
               Descargar Reporte
             </button>
 
-            <button
-              className={`font-roboto py-2 px-6 text-[14px] text-white font-semibold flex flex-row items-center gap-1 mx-auto ${
+            {/* <button
+              className={` hidden font-roboto py-2 x-6 text-[14px] text-white font-semibold flex flex-row items-center gap-1 mx-auto ${
                 modifications.length === 0
                   ? 'bg-[#7C7C7C] pointer-events-none'
                   : 'bg-secundary hover:bg-secundary_ligth '
@@ -164,7 +164,7 @@ const ReportAssignments = () => {
             >
               <BiSolidEdit className="text-white text-[28px]" />
               Realizar Cambios
-            </button>
+            </button> */}
           </div>
           <div className="flex flex-row gap-10 items-center">
             <p>
