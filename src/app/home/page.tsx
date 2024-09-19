@@ -1,4 +1,3 @@
-'use client';
 import React from 'react';
 import { ButtonOptionMain } from '../components/Buttons';
 import { GrDocumentTime } from 'react-icons/gr';

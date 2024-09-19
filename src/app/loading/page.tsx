@@ -2,11 +2,10 @@
 import { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
 import { MdCheckCircle } from 'react-icons/md';
-import { useRouter } from 'next/navigation';
 import LayoutValidation from '../LayoutValidation';
+import Link from 'next/link';
 
 function Page() {
-  const router = useRouter();
   const [isloadingComplete, setIsLoadingComplete] = useState(false);
 
   useEffect(() => {
@@ -33,12 +32,12 @@ function Page() {
             <p className="text-5xl font-bold leading-tight  mx-auto w-[70%] ">
               La asignación docente se ha completado exitosamente.
             </p>
-            <button
+            <Link
               className="bg-secundary py-2 px-10 text-white font-semibold hover:bg-secundary_ligth mx-auto mt-5"
-              onClick={() => router.push('/assignments-report/123456')}
+              href={'/assignments-report/123456'}
             >
               Ir al reporte de asignación
-            </button>
+            </Link>
           </div>
         )}
       </main>

@@ -1,18 +1,14 @@
+import Link from 'next/link';
 import { PiWarningCircleFill } from 'react-icons/pi';
 
 interface ModalProps {
-  onConfirm: () => void;
+  linkTo: string;
   title: string;
   subtitle: string;
   idModal: string;
 }
 
-export const ModalWarning: React.FC<ModalProps> = ({
-  onConfirm,
-  title,
-  subtitle,
-  idModal,
-}) => {
+export const ModalWarning: React.FC<ModalProps> = ({ linkTo, title, subtitle, idModal }) => {
   return (
     <dialog id={idModal} className="modal overflow-hidden">
       <div className="modal-box py-14 px-10">
@@ -26,13 +22,13 @@ export const ModalWarning: React.FC<ModalProps> = ({
 
         <div className="modal-action">
           <form method="dialog" className="flex justify-around w-full">
-            <button
+            <Link
               type="button"
               className="bg-primary py-2 text-white font-semibold hover:bg-primary_light w-48"
-              onClick={onConfirm}
+              href={linkTo}
             >
               Aceptar
-            </button>
+            </Link>
             <button className="bg-secundary py-2 text-white font-semibold hover:bg-secundary_ligth w-48">
               Salir
             </button>

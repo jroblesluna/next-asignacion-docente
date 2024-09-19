@@ -3,7 +3,6 @@ import NavBar from '../components/NavBar';
 import { ReturnTitle } from '../components/Titles';
 import { getCurrentMonthDetails } from '../utils/managmentDate';
 import { ModalWarning } from '../components/Modals';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { PiMagnifyingGlass } from 'react-icons/pi';
 import { TableActiveTeacher } from '../components/Rows';
@@ -13,7 +12,6 @@ import { locationData, stateData } from '../constants/data';
 import LayoutValidation from '../LayoutValidation';
 const Page = () => {
   const { period, startDate, endDate } = getCurrentMonthDetails();
-  const router = useRouter();
   const [inputValue, setInputValue] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('Todas');
   const [selectedState, setSelectedState] = useState('Todas');
@@ -62,7 +60,7 @@ const Page = () => {
               </p>
 
               <ModalWarning
-                onConfirm={() => router.push('/loading')}
+                linkTo={'/loading'}
                 subtitle="Esta acción realizará el primer procesamiento de asignación docente."
                 title="¿Está seguro de crear un nuevo período?"
                 idModal="my_modal_1"

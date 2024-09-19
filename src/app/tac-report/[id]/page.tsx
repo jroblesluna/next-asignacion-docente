@@ -409,7 +409,7 @@ const Page = () => {
           </div>
 
           <ModalWarning
-            onConfirm={() => alert('Cierre de periodo')}
+            linkTo={'/history'}
             subtitle="Esta acción es irreversible."
             title="¿Está seguro de cerrar el período?"
             idModal="my_modal_3"

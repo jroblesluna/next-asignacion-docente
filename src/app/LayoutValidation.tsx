@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect, ReactNode } from 'react';
-// import { useRouter } from 'next/router';
 import { useMsal } from '@azure/msal-react';
 import { GrSecure } from 'react-icons/gr';
 

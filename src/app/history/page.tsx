@@ -1,5 +1,4 @@
 'use client';
-import { useRouter } from 'next/navigation';
 import React from 'react';
 import { useState } from 'react';
 import NavBar from '../components/NavBar';
@@ -14,7 +13,6 @@ import { es } from 'date-fns/locale';
 import LayoutValidation from '../LayoutValidation';
 
 function Page() {
-  const router = useRouter();
   const [inputValue, setInputValue] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(new Date());
@@ -163,13 +161,13 @@ function Page() {
           </div>
 
           <ModalWarning
-            onConfirm={() => router.push('/loading')}
+            linkTo={'/loading'}
             subtitle="Se perderán las asignaciones manuales guardadas."
             title="¿Está seguro de reprocesar las asignaciones?"
             idModal="my_modal_2"
           />
           <ModalWarning
-            onConfirm={() => alert('Cierre de periodo')}
+            linkTo={'/history'}
             subtitle="Esta acción es irreversible."
             title="¿Está seguro de cerrar el período?"
             idModal="my_modal_3"

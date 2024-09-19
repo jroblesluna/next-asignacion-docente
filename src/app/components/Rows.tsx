@@ -1,5 +1,4 @@
 import { VscDebugBreakpointLog } from 'react-icons/vsc';
-import { useRouter } from 'next/navigation';
 import { SlOptionsVertical } from 'react-icons/sl';
 interface HistoryTableInterface {
   idPeriod: string;
@@ -16,8 +15,6 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
   startDate,
   isActive,
 }) => {
-  const router = useRouter();
-
   return (
     <tr className="text-[#050505]   border-b-[0.5px]  border-[#a1c2f1] ">
       <td className="py-3.5 flex items-center justify-center ">
@@ -32,28 +29,28 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
       <td className="py-3.5 text-center font-bold font-roboto">{codePeriod}</td>
       <td className="py-3.5 text-center max-w-28 font-medium font-inter">{`${startDate} - ${endDate}`}</td>
       <td className="py-3.5 text-center">
-        <a
+        <Link
           className="hover:underline cursor-pointer hover:opacity-80 text-primary_ligth font-medium font-inter"
-          onClick={() => router.push(`/assignments-report/${idPeriod}`)}
+          href={`/assignments-report/${idPeriod}`}
         >
           Asignaciones
-        </a>
+        </Link>
       </td>
       <td className="py-3.5 text-center">
-        <a
+        <Link
           className="hover:underline cursor-pointer hover:opacity-80 text-primary_ligth font-medium font-inter"
-          onClick={() => router.push(`/balance-report/${idPeriod}`)}
+          href={`/balance-report/${idPeriod}`}
         >
           Ver Balance
-        </a>
+        </Link>
       </td>
       <td className="py-3.5 text-center">
-        <a
+        <Link
           className="hover:underline cursor-pointer hover:opacity-80 text-primary_ligth font-medium font-inter"
-          onClick={() => router.push(`/tac-report/${idPeriod}`)}
+          href={`/tac-report/${idPeriod}`}
         >
           Reporte TAC
-        </a>
+        </Link>
       </td>
       <td>
         {isActive && (
@@ -69,9 +66,9 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
               className="dropdown-content menu rounded-box z-[1] w-40  p-1 mb-2  shadow  bg-white hover:opacity-80 border-none"
             >
               <li>
-                <button className="" onClick={() => router.push(`/events-period/${idPeriod}`)}>
+                <Link className="" href={`/events-period/${idPeriod}`}>
                   Ver Eventos
-                </button>
+                </Link>
               </li>
               <li>
                 <button
@@ -232,6 +229,7 @@ interface TeacherAssignment {
 
 import { timeDaily, timeWeekend } from '../constants/data';
 import { isTimeInRange, containsDaysOfWeek } from '../utils/managmentTime';
+import Link from 'next/link';
 export const TableTacReport: React.FC<TeacherAssignment> = ({
   classSchedule,
   location,

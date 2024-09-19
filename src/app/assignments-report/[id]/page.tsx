@@ -1,6 +1,4 @@
 'use client';
-
-import { useParams, useRouter } from 'next/navigation';
 import React from 'react';
 import { useContext, useState } from 'react';
 import NavBar from '../../components/NavBar';
@@ -8,7 +6,6 @@ import { ReturnTitle } from '../../components/Titles';
 import { PiMagnifyingGlass } from 'react-icons/pi';
 import { ModalWarning } from '../../components/Modals';
 import { MdOutlineFileDownload } from 'react-icons/md';
-// import { BiSolidEdit } from 'react-icons/bi';
 import { ReportAsigmnentTable } from '../../components/Rows';
 import {
   ContextAssignmentReport,
@@ -16,13 +13,14 @@ import {
 } from '../../components/MyContexts';
 import { locationData } from '../../constants/data';
 import LayoutValidation from '@/app/LayoutValidation';
+import { useParams } from 'next/navigation';
+
 const ReportAssignments = () => {
   const { id } = useParams();
   const [inputValue, setInputValue] = useState('');
   const [selectedSede, setSelectedSede] = useState('Todas');
   const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [onlyLocked, setOnlyLocked] = useState(false);
-  const router = useRouter();
   const [filterOption, setFilterOption] = useState('Curso');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,7 +176,7 @@ const ReportAssignments = () => {
             </p>
           </div>
           <ModalWarning
-            onConfirm={() => router.push('/history')}
+            linkTo={'/history'}
             subtitle="Esta acción es irreversible."
             title="¿Está seguro de realizar los cambios? "
             idModal="my_modal_5"

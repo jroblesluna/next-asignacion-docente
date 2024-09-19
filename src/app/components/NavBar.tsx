@@ -4,11 +4,10 @@ import { useMsal } from '@azure/msal-react';
 
 import { TbUserSquareRounded } from 'react-icons/tb';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { msalInstance } from '../lib/msalConfig';
+import Link from 'next/link';
 
 const NavBar = () => {
-  const router = useRouter();
   const { accounts } = useMsal();
   const [userAccount, setUserAccount] = useState({ name: '', username: '' });
 
@@ -24,10 +23,8 @@ const NavBar = () => {
   const logout = async () => {
     try {
       await msalInstance.logoutRedirect();
-      router.push('/welcome');
     } catch (error) {
       console.error('Error during logout:', error);
-      router.push('/error');
     }
   };
 
@@ -45,9 +42,9 @@ const NavBar = () => {
             className="dropdown-content menu rounded-box z-[1] w-36 p-0.5 shadow bg-transparent hover:opacity-80"
           >
             <li>
-              <button className="p-2" onClick={logout}>
+              <Link className="p-2" onClick={logout} href={'/welcome'}>
                 Cerrar sesión
-              </button>
+              </Link>
             </li>
           </ul>
         </div>
@@ -67,14 +64,15 @@ const NavBar = () => {
           </div>
         </div>
       </div>
-      <Image
-        src="/icpna-icon.svg"
-        alt="logo icpna"
-        className="cursor-pointer hover:opacity-80 w-60 max-[600px]:mx-auto"
-        onClick={() => router.push('/home')}
-        width={80}
-        height={80}
-      />
+      <Link href={'/home'}>
+        <Image
+          src="/icpna-icon.svg"
+          alt="logo icpna"
+          className="cursor-pointer hover:opacity-80 w-60 max-[600px]:mx-auto"
+          width={80}
+          height={80}
+        />
+      </Link>
     </div>
   );
 };
