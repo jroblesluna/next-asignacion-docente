@@ -4,9 +4,10 @@ import { ReturnTitle } from '../components/Titles';
 import { getCurrentMonthDetails } from '../utils/managmentDate';
 import { ModalWarning } from '../components/Modals';
 import { useState } from 'react';
-import { PiMagnifyingGlass } from 'react-icons/pi';
 import { TableActiveTeacher } from '../components/Rows';
 // Import de Datos de Ejemplo
+import Image from 'next/image';
+
 import { professorTable } from '../constants/dataExample';
 import { locationData, stateData } from '../constants/data';
 import LayoutValidation from '../LayoutValidation';
@@ -91,9 +92,12 @@ const Page = () => {
                   }
                   onChange={handleInputChange}
                 />
-                <PiMagnifyingGlass
-                  className="absolute right-3 font-extrabold top-2 cursor-pointer text-primary hover:text-gray-500"
-                  size={'25px'}
+                <Image
+                  className="absolute right-3 font-extrabold top-2 cursor-pointer  hover:opacity-80 size-[25px]"
+                  width={20}
+                  alt="img"
+                  height={20}
+                  src={'/search-icon.svg'}
                 />
               </div>
               <label className="form-control w-full max-w-32 -mt-9">

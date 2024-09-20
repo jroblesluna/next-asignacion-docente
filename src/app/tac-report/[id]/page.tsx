@@ -2,18 +2,16 @@
 import { ChangeEvent, useState } from 'react';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
-import { PiMagnifyingGlass } from 'react-icons/pi';
 import { ModalWarning } from '../../components/Modals';
-import { MdOutlineFileDownload } from 'react-icons/md';
 import { useParams } from 'next/navigation';
-import { IoMdArrowDropdown } from 'react-icons/io';
-import { LuHistory } from 'react-icons/lu';
 import { singsCompare, timeDaily, timeWeekend } from '../../constants/data';
 import { numberCompare, frecuencyData } from '../../constants/data';
 import { TableTacReport } from '../../components/Rows';
 import { evaluateExpression } from '../../utils/managmentTime';
 import LayoutValidation from '@/app/LayoutValidation';
 import { locationData } from '../../constants/data';
+import Image from 'next/image';
+
 const Page = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedState, setSelectedState] = useState('Todas');
@@ -192,9 +190,13 @@ const Page = () => {
                   }
                   onChange={handleInputChange}
                 />
-                <PiMagnifyingGlass
-                  className="absolute right-3 font-extrabold top-2 cursor-pointer text-primary hover:text-gray-500"
-                  size={'25px'}
+
+                <Image
+                  className="absolute right-3 font-extrabold top-2 cursor-pointer  hover:opacity-80 size-[25px]"
+                  width={20}
+                  alt="img"
+                  height={20}
+                  src={'/search-icon.svg'}
                 />
               </div>
 
@@ -277,7 +279,14 @@ const Page = () => {
 
               <div className="dropdown dropdown-bottom ml-5">
                 <div tabIndex={0} role="button" className="btn bg-white flex flex-row gap-3">
-                  Frecuencia <IoMdArrowDropdown />
+                  Frecuencia
+                  <Image
+                    className="absolute right-3 font-extrabold top-2 cursor-pointer  hover:opacity-80 size-[25px]"
+                    width={20}
+                    alt="img"
+                    height={20}
+                    src={'/arrow-down-icon.svg'}
+                  />
                 </div>
                 <ul
                   tabIndex={0}
@@ -306,7 +315,13 @@ const Page = () => {
               </div>
             </div>
             <button className="bg-[#50B403] font-roboto py-2 px-8 w-64 text-[14px] text-white font-semibold hover:opacity-80  flex flex-row items-center ">
-              <MdOutlineFileDownload className="text-white size-7" />
+              <Image
+                className="size-7"
+                width={20}
+                alt="img"
+                height={20}
+                src={'/download-icon.svg'}
+              />
               Descargar Reporte
             </button>
           </div>
@@ -328,10 +343,14 @@ const Page = () => {
                 <strong>Versión: </strong> N° 2
               </p>
 
-              <div className="relative   ">
-                <LuHistory
+              <div className="relative ">
+                <Image
                   className="size-7  cursor-pointer hover:opacity-60"
                   onClick={() => setShowHistoryVersion(!showHistoryVersion)}
+                  width={20}
+                  alt="img"
+                  height={20}
+                  src={'/clock-history-icon.svg'}
                 />
 
                 {/* se debe mapear */}

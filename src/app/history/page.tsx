@@ -3,14 +3,13 @@ import React from 'react';
 import { useState } from 'react';
 import NavBar from '../components/NavBar';
 import { ReturnTitle } from '../components/Titles';
-import { PiMagnifyingGlass } from 'react-icons/pi';
 import { HistoryTable } from '../components/Rows';
-import { RiArrowDropLeftLine, RiArrowDropRightLine } from 'react-icons/ri';
 import { ModalWarning } from '../components/Modals';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { es } from 'date-fns/locale';
 import LayoutValidation from '../LayoutValidation';
+import Image from 'next/image';
 
 function Page() {
   const [inputValue, setInputValue] = useState('');
@@ -117,9 +116,12 @@ function Page() {
                 className={'w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs'}
                 onChange={handleInputChange}
               />
-              <PiMagnifyingGlass
-                className="absolute right-3 font-extrabold top-2 cursor-pointer text-primary hover:text-gray-500"
-                size={'25px'}
+              <Image
+                className="absolute right-3 font-extrabold top-2 cursor-pointer  hover:opacity-80 size-[25px]"
+                width={20}
+                alt="img"
+                height={20}
+                src={'/search-icon.svg'}
               />
             </div>
 
@@ -207,17 +209,26 @@ function Page() {
                   {filteredData.length}
                 </p>
                 <div className="flex items-center justify-center flex-row">
-                  <RiArrowDropLeftLine
+                  <Image
                     className={`size-8 cursor-pointer hover:opacity-80 ${
-                      currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : ''
+                      currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     onClick={() => handlePageChange('prev')}
+                    width={20}
+                    alt="img"
+                    height={20}
+                    src={'/arrow-left-icon.svg'}
                   />
-                  <RiArrowDropRightLine
+
+                  <Image
                     className={`size-8 cursor-pointer hover:opacity-80 ${
-                      currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : ''
+                      currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     onClick={() => handlePageChange('next')}
+                    width={20}
+                    alt="img"
+                    height={20}
+                    src={'/arrow-rigth-icon.svg'}
                   />
                 </div>
               </div>

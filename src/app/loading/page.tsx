@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
-import { MdCheckCircle } from 'react-icons/md';
 import LayoutValidation from '../LayoutValidation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function Page() {
   const [isloadingComplete, setIsLoadingComplete] = useState(false);
@@ -28,7 +28,14 @@ function Page() {
           </div>
         ) : (
           <div className="w-[95%]  mx-auto flex flex-col items-center min-h-[60vh]  gap-2 justify-end p-6 ">
-            <MdCheckCircle className="size-72 text-primary_ligth" />
+            <Image
+              alt="img"
+              src={'/check-loading-icon.svg'}
+              width={20}
+              height={20}
+              className="size-72"
+            />
+
             <p className="text-5xl font-bold leading-tight  mx-auto w-[70%] ">
               La asignación docente se ha completado exitosamente.
             </p>

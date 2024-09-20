@@ -1,8 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useMsal } from '@azure/msal-react';
-
-import { TbUserSquareRounded } from 'react-icons/tb';
 import Image from 'next/image';
 import { msalInstance } from '../lib/msalConfig';
 import Link from 'next/link';
@@ -32,11 +30,16 @@ const NavBar = () => {
     <div className="w-full flex justify-around items-center">
       <div className="w-3/4 flex flex-row items-center gap-2">
         <div className="dropdown dropdown-bottom bg-transparent">
-          <TbUserSquareRounded
+          <Image
+            alt="img"
+            src={'/user-icon.svg'}
+            width={20}
+            height={20}
             tabIndex={0}
             role="button"
-            className="text-primary hover:opacity-80 cursor-pointer size-12"
+            className="hover:opacity-80 cursor-pointer size-12"
           />
+
           <ul
             tabIndex={0}
             className="dropdown-content menu rounded-box z-[1] w-36 p-0.5 shadow bg-transparent hover:opacity-80"

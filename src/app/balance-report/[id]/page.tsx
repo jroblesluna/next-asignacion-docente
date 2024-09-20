@@ -3,7 +3,7 @@ import { useState } from 'react';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
 import { ModalWarning } from '../../components/Modals';
-import { MdOutlineFileDownload } from 'react-icons/md';
+import Image from 'next/image';
 import { locationData } from '../../constants/data';
 import { balanceData, schedules } from '../../constants/dataExample';
 // import { useParams } from 'next/navigation';
@@ -107,7 +107,13 @@ const Page = () => {
             </label>
           </div>
           <button className="bg-[#50B403] font-roboto py-2 px-8 w-56 text-[14px] text-white font-semibold hover:opacity-80  flex flex-row items-center ">
-            <MdOutlineFileDownload className="text-white size-7" />
+            <Image
+              className="size-7"
+              width={20}
+              alt="img"
+              height={20}
+              src={'/download-icon.svg'}
+            />
             Descargar Reporte
           </button>
           <ModalWarning

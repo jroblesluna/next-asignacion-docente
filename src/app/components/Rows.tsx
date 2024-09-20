@@ -1,5 +1,6 @@
-import { VscDebugBreakpointLog } from 'react-icons/vsc';
-import { SlOptionsVertical } from 'react-icons/sl';
+// import { VscDebugBreakpointLog } from 'react-icons/vsc';
+import Image from 'next/image';
+
 interface HistoryTableInterface {
   idPeriod: string;
   startDate: string;
@@ -19,11 +20,13 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
     <tr className="text-[#050505]   border-b-[0.5px]  border-[#a1c2f1] ">
       <td className="py-3.5 flex items-center justify-center ">
         {isActive ? (
-          <div className="bg-[#43D010] text-white font-inter font-semibold text-xs py-1 px-2 rounded-lg">
+          <div className="bg-[#43D010] text-white font-inter font-semibold text-[11px] py-1 px-2 rounded-lg  text-center  min-w-[75px]  max-w-[75px]">
             <p> ● Activo</p>
           </div>
         ) : (
-          <VscDebugBreakpointLog className="text-primary " />
+          <div className="bg-secundary_ligth text-white font-inter font-semibold text-[11px] py-1 px-2 rounded-lg max-w-[75px]">
+            <p> ● Cerrado</p>
+          </div>
         )}
       </td>
       <td className="py-3.5 text-center font-bold font-roboto">{codePeriod}</td>
@@ -55,10 +58,14 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
       <td>
         {isActive && (
           <div className="dropdown dropdown-top dropdown-end   bg-white">
-            <SlOptionsVertical
+            <Image
+              className="cursor-pointer hover:opacity-80 text-gray-500"
               tabIndex={0}
               role="button"
-              className="cursor-pointer hover:opacity-80 text-gray-500"
+              width={20}
+              alt="img"
+              height={20}
+              src={'/option-icon.svg'}
             />
 
             <ul
@@ -103,7 +110,6 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
     </tr>
   );
 };
-import { HiLockClosed } from 'react-icons/hi';
 
 interface ReportAsigmnentTableInterface {
   assignmentId: string;
@@ -143,7 +149,14 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
     >
       <td>
         {isRoomClosed || isTeacherClosed ? (
-          <HiLockClosed onClick={() => alert(assignmentId)} />
+          <Image
+            className="size-[15px] opacity-70"
+            width={20}
+            alt="img"
+            height={20}
+            src={'/locked-icon.svg'}
+            onClick={() => alert(assignmentId)}
+          />
         ) : (
           <p className="text-transparent">●</p>
         )}

@@ -1,5 +1,4 @@
 'use client';
-import { BiSolidEdit } from 'react-icons/bi';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
 import { ModalWarning } from '../../components/Modals';
@@ -7,6 +6,7 @@ import { TableEventReport } from '../../components/Rows';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import LayoutValidation from '@/app/LayoutValidation';
+import Image from 'next/image';
 
 const Page = () => {
   const { id } = useParams();
@@ -138,7 +138,13 @@ const Page = () => {
         <div className="w-[90%] flex justify-center mx-auto flex-col">
           <div className="w-[95%] flex flex-row gap-5 justify-end -mt-8">
             <button className="bg-secundary font-roboto py-2 px-8 text-[14px] text-white font-semibold hover:bg-secundary_ligth flex flex-row items-center gap-1">
-              <BiSolidEdit className="text-white size-7" />
+              <Image
+                alt="img"
+                src={'/edit-icon.svg'}
+                width={20}
+                height={20}
+                className="text-white size-7"
+              />
               Incorporar Cambios
             </button>
           </div>

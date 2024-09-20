@@ -3,9 +3,8 @@ import React from 'react';
 import { useContext, useState } from 'react';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
-import { PiMagnifyingGlass } from 'react-icons/pi';
+import Image from 'next/image';
 import { ModalWarning } from '../../components/Modals';
-import { MdOutlineFileDownload } from 'react-icons/md';
 import { ReportAsigmnentTable } from '../../components/Rows';
 import {
   ContextAssignmentReport,
@@ -83,9 +82,12 @@ const ReportAssignments = () => {
                 className={'w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs'}
                 onChange={handleInputChange}
               />
-              <PiMagnifyingGlass
-                className="absolute right-3 font-extrabold top-2 cursor-pointer text-primary hover:text-gray-500"
-                size={'25px'}
+              <Image
+                className="absolute right-3 font-extrabold top-2 cursor-pointer  hover:opacity-80 size-[25px]"
+                width={20}
+                alt="img"
+                height={20}
+                src={'/search-icon.svg'}
               />
             </div>
 
@@ -143,7 +145,13 @@ const ReportAssignments = () => {
             </label>
 
             <button className="bg-[#50B403] font-roboto py-2 px-6 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center ">
-              <MdOutlineFileDownload className="text-white size-7" />
+              <Image
+                className="size-7"
+                width={20}
+                alt="img"
+                height={20}
+                src={'/download-icon.svg'}
+              />
               Descargar Reporte
             </button>
 

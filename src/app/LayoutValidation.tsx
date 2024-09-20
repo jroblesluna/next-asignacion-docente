@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, ReactNode } from 'react';
 import { useMsal } from '@azure/msal-react';
-import { GrSecure } from 'react-icons/gr';
+import Image from 'next/image';
 
 interface LayoutValidationProps {
   children: ReactNode;
@@ -51,7 +51,13 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
             <h2 className="text-2xl font-semibold text-gray-800 mb-2">
               Usuario No Autenticado
             </h2>
-            <GrSecure className="size-16" />
+            <Image
+              alt="img"
+              src={'/locked-page.svg'}
+              width={20}
+              height={20}
+              className="size-16"
+            />
             <p className="text-gray-600">Usted no tiene permiso para ingresar</p>
             <p className="text-gray-600">Redirigiendo al Inicio...</p>
           </div>

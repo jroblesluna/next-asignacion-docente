@@ -1,4 +1,4 @@
-import { IoArrowBackCircleSharp } from 'react-icons/io5';
+import Image from 'next/image';
 
 interface BasicTitleProps {
   name: string;
@@ -15,7 +15,11 @@ export const BasicTitle: React.FC<BasicTitleProps> = ({ name }) => {
 export const ReturnTitle: React.FC<BasicTitleProps> = ({ name }) => {
   return (
     <div className="w-[95%] mx-auto flex flex-row gap-2 items-center mt-5 ">
-      <IoArrowBackCircleSharp
+      <Image
+        alt="img"
+        src={'/arrow-back-icon.svg'}
+        width={20}
+        height={20}
         className="text-secundary size-14 cursor-pointer hover:opacity-80"
         onClick={() => {
           window.history.back();
