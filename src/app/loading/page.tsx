@@ -16,18 +16,18 @@ function Page() {
 
   return (
     <LayoutValidation>
-      <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
+      <main className="flex flex-col gap-5 w-full min-h-[100vh] py-8  ">
         <NavBar></NavBar>
         {!isloadingComplete ? (
-          <div className="w-[95%]  mx-auto flex flex-col items-center min-h-[75vh]  gap-20 justify-end p-6 ">
-            <span className="loading loading-spinner text-info w-52 mx-auto"></span>
-            <p className="text-5xl font-bold leading-tight  mx-auto w-[90%] ">
+          <div className="w-[90%]  mx-auto flex flex-col items-center min-h-[75vh]  gap-20 justify-end py-6 ">
+            <span className="loading loading-spinner text-info w-52 "></span>
+            <p className="text-5xl font-bold leading-tight  mx-auto  w-[90%]  ml-24 ">
               Estamos procesando la asignación docente. Puede cerrar esta ventana; se le
               notificará por correo electrónico cuando el proceso esté finalizado.
             </p>
           </div>
         ) : (
-          <div className="w-[95%]  mx-auto flex flex-col items-center min-h-[60vh]  gap-2 justify-end p-6 ">
+          <div className="w-[90%]   mx-auto flex flex-col items-center min-h-[60vh]  gap-2 justify-end py-6 ">
             <Image
               alt="img"
               src={'/check-loading-icon.svg'}

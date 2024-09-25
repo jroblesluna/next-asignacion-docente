@@ -137,7 +137,15 @@ const Page = () => {
         <ReturnTitle name="Registro de Eventos " />
         <div className="w-[90%] flex justify-center mx-auto flex-col">
           <div className="w-[95%] flex flex-row gap-5 justify-end -mt-8">
-            <button className="bg-secundary font-roboto py-2 px-8 text-[14px] text-white font-semibold hover:bg-secundary_ligth flex flex-row items-center gap-1">
+            <button
+              className="bg-secundary font-roboto py-2 px-8 text-[14px] text-white font-semibold hover:bg-secundary_ligth flex flex-row items-center gap-1"
+              onClick={() => {
+                const modal = document.getElementById('my_modal_6');
+                if (modal) {
+                  (modal as HTMLDialogElement).showModal();
+                }
+              }}
+            >
               <Image
                 alt="img"
                 src={'/edit-icon.svg'}
@@ -160,9 +168,9 @@ const Page = () => {
             </p>
           </div>
           <ModalWarning
-            linkTo={'/history'}
+            linkTo={'/loading'}
             subtitle="Esta acción es irreversible."
-            title="¿Está seguro de realizar los cambios? "
+            title="¿Está seguro de incorporar los eventos? "
             idModal="my_modal_6"
           />
         </div>

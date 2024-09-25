@@ -74,6 +74,7 @@ const NavBar = () => {
           className="cursor-pointer hover:opacity-80 w-60 max-[600px]:mx-auto"
           width={80}
           height={80}
+          priority={true}
         />
       </Link>
     </div>

@@ -67,7 +67,7 @@ const Page = () => {
             <p className="w-48">
               <strong>Periodo: </strong> Agosto del 2022
             </p>
-            <p className="w-56">
+            <p className="w-56 text-[14px]">
               <strong>Fecha:</strong> 01/08/2022 - 31/08/2022
             </p>
             <div className="flex flex-row items-center ">

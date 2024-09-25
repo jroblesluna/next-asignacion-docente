@@ -233,7 +233,7 @@ const Page = () => {
               </label>
               <div className="form-control w-full max-w-28 -mt-9 ">
                 <div className="label">
-                  <span className="label-text text-[10px] -mb-2">N° de clases Asignadas</span>
+                  <span className="label-text text-[9px] -mb-2">N° de clases Asignadas</span>
                 </div>
                 <div className="flex flex-row gap-4 border  rounded-md w-36 px-2 py-1 items-center ">
                   <label className="form-control w-full max-w-28 ">
@@ -278,10 +278,14 @@ const Page = () => {
               </div>
 
               <div className="dropdown dropdown-bottom ml-5">
-                <div tabIndex={0} role="button" className="btn bg-white flex flex-row gap-3">
-                  Frecuencia
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="btn bg-white flex flex-row   gap-5   text-start w-[140px] justify-center  align-middle"
+                >
+                  <p>Frecuencia</p>
                   <Image
-                    className="absolute right-3 font-extrabold top-2 cursor-pointer  hover:opacity-80 size-[25px]"
+                    className="absolute right-1.5 font-extrabold top-4 cursor-pointer  hover:opacity-80 size-[20px] items-center "
                     width={20}
                     alt="img"
                     height={20}

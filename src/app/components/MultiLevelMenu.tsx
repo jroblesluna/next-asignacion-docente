@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { ContextAssignmentReport } from './MyContexts';
 import useHover from '../utils/useHover';
+import { ModalFormTeacher } from './Modals';
 interface MultiLevelMenuClassroomProps {
   idRow: string;
   classRoom: string;
@@ -52,10 +53,14 @@ export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = (
             tabIndex={0}
             className="dropdown-content menu bg-base-100  z-[1] w-52 p-0 ml-2 shadow rounded-none"
           >
-            <li onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-              <a>
+            <li
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              className="rounded-none"
+            >
+              <a className="rounded-none selection:bg-transparent">
                 <p>CAMBIAR ASIGNACIÓN A</p>
-                <div className="absolute left-full top-0 bg-white border border-gray-300 mt-1 shadow-lg  ">
+                <div className="absolute left-full top-0 bg-white border border-gray-300 mt-1 shadow-lg   ">
                   {data.map((item) => (
                     <div
                       className={
@@ -102,12 +107,6 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
     handleMouseEnter: handleMouseEnter2,
     handleMouseLeave: handleMouseLeave2,
     isHovered: isHovered2,
-  } = useHover();
-
-  const {
-    handleMouseEnter: handleMouseEnter3,
-    handleMouseLeave: handleMouseLeave3,
-    isHovered: isHovered3,
   } = useHover();
 
   const context = useContext(ContextAssignmentReport);
@@ -160,8 +159,12 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
               </a>
             </li>
 
-            <li onMouseEnter={handleMouseEnter1} onMouseLeave={handleMouseLeave1}>
-              <a>
+            <li
+              onMouseEnter={handleMouseEnter1}
+              onMouseLeave={handleMouseLeave1}
+              className="rounded-none"
+            >
+              <a className="rounded-none">
                 <p>CAMBIAR ASIGNACIÓN A</p>
                 <div
                   className={
@@ -184,7 +187,7 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
                       {dataRecomended.map((item) => (
                         <div
                           className={
-                            'p-2 cursor-pointer bg-white hover:bg-gray-200 max-w-52 text-start block uppercase w-52'
+                            'p-2 cursor-pointer bg-white hover:bg-gray-200 max-w-52 text-start block uppercase w-52 z-10'
                           }
                           key={item}
                           onClick={() => onhandleClick(item)}
@@ -196,29 +199,15 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
                   </div>
 
                   <div
-                    className="p-2 cursor-pointer hover:bg-gray-200   block "
-                    onMouseEnter={handleMouseEnter3}
-                    onMouseLeave={handleMouseLeave3}
+                    className="p-2 cursor-pointer hover:bg-gray-200"
+                    onClick={() => {
+                      const modal = document.getElementById(
+                        'my_modal' + idRow
+                      ) as HTMLDialogElement;
+                      modal?.showModal();
+                    }}
                   >
                     <p className="pl-3">SELECCIONAR DE LA LISTA DE DOCENTES</p>
-                    <div
-                      className={
-                        'absolute -left-[88%] top-10 flex flex-col bg-white border border-gray-300  shadow-lg  ' +
-                        (!isHovered3 ? 'hidden' : ' ')
-                      }
-                    >
-                      {dataPossibleTeacher.map((item) => (
-                        <div
-                          className={
-                            'p-2 cursor-pointer hover:bg-gray-200 max-w-52 text-start block uppercase w-52'
-                          }
-                          key={item}
-                          onClick={() => onhandleClick(item)}
-                        >
-                          <p className="pl-3 "> {item}</p>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 </div>
               </a>
@@ -226,6 +215,13 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
           </ul>
         </div>
       </div>
+      {/* con el id row mapeale la data necesariaa */}
+      <ModalFormTeacher
+        idModal={'my_modal' + idRow}
+        data={dataPossibleTeacher}
+        idRow={idRow}
+        setFunction={setSelectedItem}
+      />
     </div>
   );
 };

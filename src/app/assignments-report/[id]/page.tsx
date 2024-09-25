@@ -52,11 +52,11 @@ const ReportAssignments = () => {
     .filter((assignment) => {
       const matchesInputValue =
         filterOption === 'Curso'
-          ? assignment.course.toLowerCase().includes(inputValue.toLowerCase())
+          ? assignment.course.toLowerCase().trim().includes(inputValue.toLowerCase())
           : filterOption === 'Profesor'
-          ? assignment.teacher.toLowerCase().includes(inputValue.toLowerCase())
+          ? assignment.teacher.toLowerCase().trim().includes(inputValue.toLowerCase())
           : filterOption === 'Aula'
-          ? assignment.classroom.toLowerCase().includes(inputValue.toLowerCase())
+          ? assignment.classroom.toLowerCase().trim().includes(inputValue.toLowerCase())
           : true;
 
       return matchesInputValue;
@@ -64,7 +64,7 @@ const ReportAssignments = () => {
     .filter(
       (assignment) =>
         (selectedSede === 'Todas' ||
-          assignment.location.toLowerCase() === selectedSede.toLowerCase()) &&
+          assignment.location.toLowerCase().trim() === selectedSede.toLowerCase().trim()) &&
         (!onlyUnassigned || assignment.teacher === '' || assignment.teacher === '-') &&
         (!onlyLocked || assignment.isTeacherClosed || assignment.isRoomClosed)
     );
@@ -73,7 +73,7 @@ const ReportAssignments = () => {
     <LayoutValidation>
       <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8">
         <NavBar />
-        <ReturnTitle name="Tabla de Asignaciones" />
+        <ReturnTitle name="Tabla de Asignaciones" link="/history" />
         <div className="w-[95%] flex gap-5 justify-center mx-auto flex-col  ">
           <div className="w-full flex flex-row gap-5 items-end -mt-10">
             <div className="w-1/4 relative text-black border rounded-md">
@@ -190,11 +190,11 @@ const ReportAssignments = () => {
             idModal="my_modal_5"
           />
         </div>
-        <div className="w-full overflow-auto min-h-[52vh] max-h-[52vh]  ">
+        <div className="w-full overflow-auto min-h-[52.5vh] max-h-[52.5vh]  ">
           <table className="w-full ">
             <thead>
               <tr className="text-black bg-white">
-                <th className="py-2 font-inter sticky top-0 bg-white">
+                <th className="py-2 font-inter sticky top-0 bg-white z-10 ">
                   <p className="text-transparent">●</p>
                 </th>
                 <th className="py-2 uppercase max-w-16 overflow-hidden font-inter text-start sticky top-0 bg-white">

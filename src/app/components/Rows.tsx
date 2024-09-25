@@ -147,10 +147,10 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
         (teacher === '' || teacher === '-' ? ' bg-[#FFCA38]' : ' ')
       }
     >
-      <td>
+      <td className="px-1">
         {isRoomClosed || isTeacherClosed ? (
           <Image
-            className="size-[15px] opacity-70"
+            className="size-[15px] opacity-70 z-0"
             width={20}
             alt="img"
             height={20}
@@ -172,7 +172,20 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
         <MultiLevelMenuTeacher
           teacher={teacher}
           idRow={assignmentId}
-          dataPossibleTeacher={['LINDA ALMAR', 'JUAN REYNOSO']}
+          dataPossibleTeacher={[
+            'LINDA ALMAR',
+            'JUAN REYNOSO',
+            'MARIANA GARCÍA',
+            'PABLO HERRERA',
+            'ISABEL CRUZ',
+            'DIEGO MORALES',
+            'SOFÍA TORO',
+            'ANDRÉS SALAZAR',
+            'VALENTINA JIMÉNEZ',
+            'CARLOS MENDEZ',
+            'LINA MARTÍNEZ',
+            'NICOLE RAMOS',
+          ]}
           dataRecomended={['Juna diaz', 'pedro ruiz', 'alfin dei']}
         />
       </td>
@@ -254,7 +267,6 @@ export const TableTacReport: React.FC<TeacherAssignment> = ({
       <td className="font-inter text-start py-2.5">{teacher}</td>
       <td className="font-inter py-2.5 ">{location}</td>
       <td className="font-inter text-center  py-2.5">{status}</td>
-      {/* duda sobre el termino del rango */}
       {timeDaily.map((time, index) => (
         <td
           key={`daily-${index}`}

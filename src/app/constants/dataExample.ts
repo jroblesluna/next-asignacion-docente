@@ -159,7 +159,7 @@ export const balanceData = [
   {
     idTeacher: '018',
     scheduleTime: '16:00 - 19:15',
-    frequency: 'LMV',
+    frequency: 'LV',
     statusTeacher: 'FT',
     location: 'SURCO',
     points: 0.5,
