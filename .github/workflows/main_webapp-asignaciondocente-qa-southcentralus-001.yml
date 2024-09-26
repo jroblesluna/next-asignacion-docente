@@ -29,11 +29,14 @@ jobs:
           cp -R ./build/static ./build/standalone/build/static
           cp -R ./public ./build/standalone
 
+      - name: Zip artifact for deployment
+        run: zip release.zip ./build/standalone/* -r
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./build/standalone
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -41,18 +44,21 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
+    
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
 
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
+      
       - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'webapp-asignaciondocente-qa-southcentralus-001'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_DF9AD65677D54D6A8A0664451BA72D83 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E6C2315E574346C7A75D00B2BA373E21 }}
