@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../lib/db';
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const idPeriod = searchParams.get('idPeriod');
-    const idVersion = searchParams.get('idVersion');
+    const idPeriod = '123';
+    const idVersion = '456';
 
     if (!idPeriod || !idVersion) {
       return NextResponse.json({ message: 'Faltan campos en el query string', data: false });
     }
 
     const pool = await connectToDatabase();
-
-    if (idVersion === '-1') {
+    //===-1
+    if (idVersion) {
       const result = await pool.request().input('id', idPeriod).query(`SELECT TOP 1 idVersion
                 FROM Version
                 WHERE idPeriodo = @id
