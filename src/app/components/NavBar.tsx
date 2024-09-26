@@ -58,6 +58,8 @@ const NavBar = () => {
             <p className={userAccount.name ? '' : 'skeleton h-4 w-[200px]'}>
               {userAccount.name}
             </p>
+            <p className="w-10"></p>
+            <strong>Rol:</strong> Admin
           </div>
           <div className="flex flex-row gap-2">
             <strong>Correo:</strong>

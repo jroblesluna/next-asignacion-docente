@@ -155,6 +155,25 @@ const ReportAssignments = () => {
               Descargar Reporte
             </button>
 
+            <button
+              className="bg-primary font-roboto py-3 px-10 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
+              onClick={() => {
+                const modal = document.getElementById('my_modal_25');
+                if (modal) {
+                  (modal as HTMLDialogElement).showModal();
+                }
+              }}
+            >
+              <Image
+                className="size-4 mr-1"
+                width={20}
+                alt="img"
+                height={20}
+                src={'/sync-inc.svg'}
+              />
+              Sincronizar
+            </button>
+
             {/* <button
               className={` hidden font-roboto py-2 x-6 text-[14px] text-white font-semibold flex flex-row items-center gap-1 mx-auto ${
                 modifications.length === 0
@@ -188,6 +207,12 @@ const ReportAssignments = () => {
             subtitle="Esta acción es irreversible."
             title="¿Está seguro de realizar los cambios? "
             idModal="my_modal_5"
+          />
+          <ModalWarning
+            linkTo={'/history'}
+            subtitle="El sistema se bloqueará mientras se esté ejecutando."
+            title="¿Está seguro de sincronizar la data con el sistema Inicio? "
+            idModal="my_modal_25"
           />
         </div>
         <div className="w-full overflow-auto min-h-[52.5vh] max-h-[52.5vh]  ">

@@ -1,21 +1,22 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../lib/db';
-
 export async function GET(request: Request) {
   try {
-    const { idPeriod, idVersion } = await request.json();
+    const { searchParams } = new URL(request.url);
+    const idPeriod = searchParams.get('idPeriod');
+    const idVersion = searchParams.get('idVersion');
 
     if (!idPeriod || !idVersion) {
-      return NextResponse.json({ message: 'Faltan campos en el body', data: false });
+      return NextResponse.json({ message: 'Faltan campos en el query string', data: false });
     }
 
     const pool = await connectToDatabase();
 
     if (idVersion === '-1') {
       const result = await pool.request().input('id', idPeriod).query(`SELECT TOP 1 idVersion
-            FROM Version
-            WHERE idPeriodo = @id
-            ORDER BY numeroVersion DESC`);
+                FROM Version
+                WHERE idPeriodo = @id
+                ORDER BY numeroVersion DESC`);
       pool.close();
 
       const idLastVersion = result.recordset.length > 0 ? result.recordset[0].idVersion : 1;
@@ -24,19 +25,19 @@ export async function GET(request: Request) {
         .request()
         .input('id', idPeriod)
         .input('idVersion', idLastVersion).query(`SELECT * 
-            FROM AsignacionDocente
-            WHERE idPeriodo = @id and idVersion = @idVersion`);
+                FROM AsignacionDocente
+                WHERE idPeriodo = @id and idVersion = @idVersion`);
 
       return NextResponse.json({
-        message: `Asignación docente del periodo ${idPeriod} , la ultima versión encontrada correctamente`,
+        message: `Asignación docente del periodo ${idPeriod}, última versión encontrada correctamente`,
         data: resultLast.recordset,
       });
     }
 
     const result = await pool.request().input('id', idPeriod).input('idVersion', idVersion)
       .query(`SELECT * 
-            FROM AsignacionDocente
-            WHERE idPeriodo = @id and idVersion = @idVersion`);
+              FROM AsignacionDocente
+              WHERE idPeriodo = @id and idVersion = @idVersion`);
 
     pool.close();
 
