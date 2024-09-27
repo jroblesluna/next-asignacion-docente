@@ -24,13 +24,15 @@ jobs:
       - name: npm install, build, and test
         run: |
           npm install
-          npm run build --if-present
-          #npm run test --if-present
+          npm run build
           cp -R ./build/static ./build/standalone/build/static
           cp -R ./public ./build/standalone
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./build/standalone/* -r
+        run: |
+          cd ./build/standalone
+          zip ../../release.zip ./* -r
+          cd ../..
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -53,18 +55,6 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-
-      # Step to list files in current directory after unzip
-      - name: List files in current directory
-        run: ls -la
-
-      # Step to list files in the unzipped directory
-      - name: List files in unzipped directory
-        run: ls -la ./build/standalone
-        
-      # Step to list files in the static build directory
-      - name: List files in build/static
-        run: ls -la ./build/standalone/build/static
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
