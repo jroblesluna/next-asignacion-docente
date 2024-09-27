@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3000' + '/api/period';
+const BASE_URL = '/api/period';
 
 const periodService = {
   // Obtener todos los periodos - ACTIVO, CARGANDO y CERRADO , mas no los NO ACTIVO

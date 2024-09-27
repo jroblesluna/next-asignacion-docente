@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = '/api/teacher';
 
 const teacherService = {
   getAll: async () => {
     try {
-      const { data } = await axios.get(BASE_URL + '/api/teacher/getall');
+      const { data } = await axios.get(BASE_URL + '/getall');
       return data;
     } catch (error) {
       console.log(error);

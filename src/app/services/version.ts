@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3000' + '/api/version';
+const BASE_URL = '/api/version';
 
 const versionService = {
   getAll: async (id: string) => {

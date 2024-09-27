@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3000' + '/api/event';
+const BASE_URL = '/api/event';
 
 const eventService = {
   getAll: async (id: string) => {
