@@ -62,6 +62,10 @@ jobs:
       - name: List files in unzipped directory
         run: ls -la ./build/standalone
         
+      # Step to list files in the static build directory
+      - name: List files in build/static
+        run: ls -la ./build/standalone/build/static
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
