@@ -26,6 +26,8 @@ const config: DBConfig = {
 
 export async function connectToDatabase() {
   try {
+    console.log(process.env.DB_USER);
+    console.log(process.env.DB_PASSWORD);
     const pool = await sql.connect(config);
     console.log('Database connection successful');
     return pool;
