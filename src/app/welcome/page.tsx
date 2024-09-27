@@ -33,6 +33,7 @@ function Page() {
 
         <div className="flex flex-col gap-8">
           <h1 className="text-5xl font-bold">Sistema de Asignación docente ICPNA</h1>
+          <h6 className="text-sm font-light">v202409271758</h6>
           <p className="text-primary_ligth text-[18px]">
             El Sistema de Asignación Docente ICPNA automatiza la asignación de profesores a
             cursos, optimizando horarios según disponibilidad y requisitos. Facilita la gestión
