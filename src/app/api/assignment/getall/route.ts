@@ -4,7 +4,7 @@ export async function GET() {
   try {
     const idPeriod = '123';
     const idVersion = '456';
-
+    //
     if (!idPeriod || !idVersion) {
       return NextResponse.json({ message: 'Faltan campos en el query string', data: false });
     }

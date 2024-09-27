@@ -13,10 +13,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
     const pool = await connectToDatabase();
 
-    const result = await pool
-      .request()
-      .input('id', id)
-      .query('SELECT * FROM Evento WHERE idPeriodo = @id');
+    // const result = await pool
+    //   .request()
+    //   .input('id', id)
+    //   .query('SELECT * FROM Evento WHERE idPeriodo = @id');
+    const result = await pool.request().query('SELECT * FROM test');
 
     pool.close();
 

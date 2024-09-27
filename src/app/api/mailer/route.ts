@@ -4,7 +4,7 @@ import { connectToDatabase } from '../lib/db';
 export async function GET() {
   try {
     const pool = await connectToDatabase();
-
+    //
     const result = await pool.request().query('SELECT * FROM test');
 
     pool.close();

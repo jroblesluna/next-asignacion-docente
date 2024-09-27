@@ -9,7 +9,7 @@ export async function PATCH(request: Request) {
     if (!id || !data) {
       return NextResponse.json({ message: 'Faltan campos en el body', data: false });
     }
-
+    //
     const pool = await connectToDatabase();
 
     const checkResult = await pool
