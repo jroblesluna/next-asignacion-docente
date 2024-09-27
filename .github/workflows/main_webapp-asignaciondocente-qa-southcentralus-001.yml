@@ -53,7 +53,15 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-      
+
+      # Step to list files in current directory after unzip
+      - name: List files in current directory
+        run: ls -la
+
+      # Step to list files in the unzipped directory
+      - name: List files in unzipped directory
+        run: ls -la ./build/standalone
+        
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
