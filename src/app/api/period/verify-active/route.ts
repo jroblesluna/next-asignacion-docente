@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../lib/db';
 
 export async function GET() {
+  console.log("GET@/app/api/period/verify-active/route.ts");
   try {
     const pool = await connectToDatabase();
 

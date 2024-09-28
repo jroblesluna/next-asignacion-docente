@@ -6,11 +6,14 @@ npm run build
 cp -R ./build/static ./build/standalone/build/static
 cp -R ./public ./build/standalone
 cd ./build/standalone
-zip ../../release.zip ./* -r
+zip -qr ../../release.zip ./*
 cd ../..
 mkdir .node-app
 cd .node-app
 mv ../release.zip .
-unzip release.zip
+unzip -q release.zip
 cp ../.env .
 node server.js
+cd ..
+rm -rf build
+rm -rf .node-app

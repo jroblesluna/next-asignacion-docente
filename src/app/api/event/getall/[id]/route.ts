@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../lib/db';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
+  console.log("GET@/app/api/event/getall/[id]/route.ts");
   try {
     const { id } = params;
 

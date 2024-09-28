@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../lib/db';
 
 export async function POST(request: Request) {
+  console.log("POST@/app/api/version/create/route.ts");
   try {
     const { id, creator } = await request.json();
 

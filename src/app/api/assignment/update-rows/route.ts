@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../lib/db';
 
 export async function PATCH(request: Request) {
+  console.log("PATCH@/app/api/assignment/update-rows/route.ts");
   try {
     const { id, data } = await request.json();
 

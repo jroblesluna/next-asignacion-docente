@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../lib/db';
 
 export async function PATCH(request: Request) {
+  console.log("PATCH@/app/api/event/execute/route.ts");
   try {
     const { id } = await request.json();
 

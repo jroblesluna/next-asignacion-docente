@@ -25,6 +25,7 @@ const config: DBConfig = {
 };
 
 export async function connectToDatabase() {
+  console.log("connectToDatabase@/app/api/lib/db.ts");
   try {
     console.log("DB_USER", process.env.DB_USER);
     console.log("DB_PASSWORD", process.env.DB_PASSWORD);

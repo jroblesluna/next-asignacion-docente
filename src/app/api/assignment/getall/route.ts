@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../lib/db';
 export async function GET() {
+  console.log("GET@/app/api/assignment/getall/route.ts");
   try {
     const idPeriod = '123';
     const idVersion = '456';
