@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = '/api/event';
+const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/event`;
 
 const eventService = {
   getAll: async (id: string) => {
