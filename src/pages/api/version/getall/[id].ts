@@ -1,0 +1,53 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+import { connectToDatabase } from '../../lib/db';
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'GET') {
+    console.log("GET@/pages/api/version/getall/[id].ts");
+    const { id } = req.query;
+
+    if (!id) {
+      return res.status(400).json({
+        message: 'ID del periodo académico no proporcionado',
+        data: false,
+      });
+    }
+
+    let pool;
+    try {
+      pool = await connectToDatabase();
+
+      const resultCheck = await pool
+        .request()
+        .input('id', id)
+        .query('SELECT * FROM Periodo WHERE idPeriodo = @id');
+
+      if (resultCheck.recordset.length === 0) {
+        return res.status(404).json({
+          message: `Periodo con ID ${id} no encontrado`,
+          data: false,
+        });
+      }
+
+      const result = await pool
+        .request()
+        .input('id', id)
+        .query('SELECT * FROM Version WHERE idPeriodo = @id');
+
+      return res.status(200).json({
+        message: 'Versión encontrada correctamente',
+        data: result.recordset,
+      });
+    } catch (error) {
+      console.error('Error en la API:', error);
+      return res.status(500).json({ message: 'Error en la consulta', error });
+    } finally {
+      if (pool) {
+        pool.close();
+      }
+    }
+  } else {
+    res.setHeader('Allow', ['GET']);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
+}

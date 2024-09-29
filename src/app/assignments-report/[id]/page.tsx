@@ -1,26 +1,26 @@
-'use client';
-import React from 'react';
-import { useContext, useState } from 'react';
-import NavBar from '../../components/NavBar';
-import { ReturnTitle } from '../../components/Titles';
-import Image from 'next/image';
-import { ModalWarning } from '../../components/Modals';
-import { ReportAsigmnentTable } from '../../components/Rows';
+"use client";
+import React from "react";
+import { useContext, useState } from "react";
+import NavBar from "../../components/NavBar";
+import { ReturnTitle } from "../../components/Titles";
+import Image from "next/image";
+import { ModalWarning } from "../../components/Modals";
+import { ReportAsigmnentTable } from "../../components/Rows";
 import {
   ContextAssignmentReport,
   ContextAssignmentReportProvider,
-} from '../../components/MyContexts';
-import { locationData } from '../../constants/data';
-import LayoutValidation from '@/app/LayoutValidation';
-import { useParams } from 'next/navigation';
+} from "../../components/MyContexts";
+import { locationData } from "../../constants/data";
+import LayoutValidation from "@/app/LayoutValidation";
+import { useParams } from "next/navigation";
 
 const ReportAssignments = () => {
-  const { id } = useParams();
-  const [inputValue, setInputValue] = useState('');
-  const [selectedSede, setSelectedSede] = useState('Todas');
+  const { id } = useParams() as { id: string };
+  const [inputValue, setInputValue] = useState("");
+  const [selectedSede, setSelectedSede] = useState("Todas");
   const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [onlyLocked, setOnlyLocked] = useState(false);
-  const [filterOption, setFilterOption] = useState('Curso');
+  const [filterOption, setFilterOption] = useState("Curso");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -37,35 +37,51 @@ const ReportAssignments = () => {
     setOnlyLocked(e.target.checked);
   };
 
-  const handleFilterOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleFilterOptionChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     setFilterOption(e.target.value);
   };
 
   const context = useContext(ContextAssignmentReport);
 
   if (!context) {
-    throw new Error('DisplayComponent debe ser usado dentro de MyContextProvider');
+    throw new Error(
+      "DisplayComponent debe ser usado dentro de MyContextProvider"
+    );
   }
   const { assignments } = context;
 
   const filteredAssignments = assignments
     .filter((assignment) => {
       const matchesInputValue =
-        filterOption === 'Curso'
-          ? assignment.course.toLowerCase().trim().includes(inputValue.toLowerCase())
-          : filterOption === 'Profesor'
-          ? assignment.teacher.toLowerCase().trim().includes(inputValue.toLowerCase())
-          : filterOption === 'Aula'
-          ? assignment.classroom.toLowerCase().trim().includes(inputValue.toLowerCase())
+        filterOption === "Curso"
+          ? assignment.course
+              .toLowerCase()
+              .trim()
+              .includes(inputValue.toLowerCase())
+          : filterOption === "Profesor"
+          ? assignment.teacher
+              .toLowerCase()
+              .trim()
+              .includes(inputValue.toLowerCase())
+          : filterOption === "Aula"
+          ? assignment.classroom
+              .toLowerCase()
+              .trim()
+              .includes(inputValue.toLowerCase())
           : true;
 
       return matchesInputValue;
     })
     .filter(
       (assignment) =>
-        (selectedSede === 'Todas' ||
-          assignment.location.toLowerCase().trim() === selectedSede.toLowerCase().trim()) &&
-        (!onlyUnassigned || assignment.teacher === '' || assignment.teacher === '-') &&
+        (selectedSede === "Todas" ||
+          assignment.location.toLowerCase().trim() ===
+            selectedSede.toLowerCase().trim()) &&
+        (!onlyUnassigned ||
+          assignment.teacher === "" ||
+          assignment.teacher === "-") &&
         (!onlyLocked || assignment.isTeacherClosed || assignment.isRoomClosed)
     );
 
@@ -78,8 +94,10 @@ const ReportAssignments = () => {
           <div className="w-full flex flex-row gap-5 items-end -mt-10">
             <div className="w-1/4 relative text-black border rounded-md">
               <input
-                placeholder={'Seleccione el tipo y busque '}
-                className={'w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs'}
+                placeholder={"Seleccione el tipo y busque "}
+                className={
+                  "w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs"
+                }
                 onChange={handleInputChange}
               />
               <Image
@@ -87,7 +105,7 @@ const ReportAssignments = () => {
                 width={20}
                 alt="img"
                 height={20}
-                src={'/search-icon.svg'}
+                src={"/search-icon.svg"}
               />
             </div>
 
@@ -109,7 +127,9 @@ const ReportAssignments = () => {
                   checked={onlyUnassigned}
                   onChange={handleUnassignedChange}
                 />
-                <span className="label-text text-xs">Solo cursos sin asignar</span>
+                <span className="label-text text-xs">
+                  Solo cursos sin asignar
+                </span>
               </label>
             </div>
             <div className="form-control max-w-28 border rounded-lg px-1 ">
@@ -150,7 +170,7 @@ const ReportAssignments = () => {
                 width={20}
                 alt="img"
                 height={20}
-                src={'/download-icon.svg'}
+                src={"/download-icon.svg"}
               />
               Descargar Reporte
             </button>
@@ -158,7 +178,7 @@ const ReportAssignments = () => {
             <button
               className="bg-primary font-roboto py-3 px-10 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
               onClick={() => {
-                const modal = document.getElementById('my_modal_25');
+                const modal = document.getElementById("my_modal_25");
                 if (modal) {
                   (modal as HTMLDialogElement).showModal();
                 }
@@ -169,7 +189,7 @@ const ReportAssignments = () => {
                 width={20}
                 alt="img"
                 height={20}
-                src={'/sync-inc.svg'}
+                src={"/sync-inc.svg"}
               />
               Sincronizar
             </button>
@@ -203,13 +223,13 @@ const ReportAssignments = () => {
             </p>
           </div>
           <ModalWarning
-            linkTo={'/history'}
+            linkTo={"/history"}
             subtitle="Esta acción es irreversible."
             title="¿Está seguro de realizar los cambios? "
             idModal="my_modal_5"
           />
           <ModalWarning
-            linkTo={'/history'}
+            linkTo={"/history"}
             subtitle="El sistema se bloqueará mientras se esté ejecutando."
             title="¿Está seguro de sincronizar la data con el sistema Inicio? "
             idModal="my_modal_25"
@@ -225,10 +245,18 @@ const ReportAssignments = () => {
                 <th className="py-2 uppercase max-w-16 overflow-hidden font-inter text-start sticky top-0 bg-white">
                   SEDE
                 </th>
-                <th className="py-2 uppercase font-inter sticky top-0 bg-white">CURSO</th>
-                <th className="py-2 uppercase font-inter sticky top-0 bg-white ">HORARIO</th>
-                <th className="py-2 uppercase font-inter sticky top-0 bg-white">FRECUENCIA</th>
-                <th className="py-2 uppercase font-inter sticky top-0 bg-white z-10 ">AULA</th>
+                <th className="py-2 uppercase font-inter sticky top-0 bg-white">
+                  CURSO
+                </th>
+                <th className="py-2 uppercase font-inter sticky top-0 bg-white ">
+                  HORARIO
+                </th>
+                <th className="py-2 uppercase font-inter sticky top-0 bg-white">
+                  FRECUENCIA
+                </th>
+                <th className="py-2 uppercase font-inter sticky top-0 bg-white z-10 ">
+                  AULA
+                </th>
                 <th className="py-2 uppercase font-inter text-start sticky top-0 bg-white z-10">
                   PROFESOR
                 </th>

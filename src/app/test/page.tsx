@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import eventService from '../services/evento';
+import eventService from '../../services/evento';
 
 function Page() {
   const loadDataTest = async () => {

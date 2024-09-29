@@ -20,7 +20,7 @@ const Page = () => {
   const [selectedNumberCompare, setSelectedNumberCompare] = useState('ninguna');
 
   const [showHistoryVersion, setShowHistoryVersion] = useState(false);
-  const { id } = useParams();
+  const { id } = useParams() as { id: string };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);

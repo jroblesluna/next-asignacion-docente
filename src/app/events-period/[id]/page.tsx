@@ -9,7 +9,7 @@ import LayoutValidation from '@/app/LayoutValidation';
 import Image from 'next/image';
 
 const Page = () => {
-  const { id } = useParams();
+  const { id } = useParams() as { id: string };
 
   const EventTable = [
     {

@@ -33,7 +33,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "build/types/**/*.ts"
-  ],
+, "src/pages/api/event/getall/[id].ts"  ],
   "exclude": [
     "node_modules"
   ]
