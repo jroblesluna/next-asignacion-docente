@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const client = new EmailClient(connectionString);
 
       const emailMessage = {
-        senderAddress: "DoNotReply@notificaciones.icpna-virtual.edu.pe",
+        senderAddress: "noreply@notificaciones.icpna-virtual.edu.pe",
         content: {
           subject,
           plainText,
