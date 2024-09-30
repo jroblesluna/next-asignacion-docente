@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { EmailClient } from '@azure/communication-email';
 
-const connectionString = process.env['COMMUNICATION_SERVICES_CONNECTION_STRING'];
+const connectionString = process.env.COMMUNICATION_SERVICES_CONNECTION_STRING;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const { to, subject, plainText } = req.body;
 
-      console.log(to,subject,plainText);
+      console.log(to, subject, plainText);
 
       if (!to || !subject || !plainText) {
         return res.status(400).json({ message: 'Faltan parámetros obligatorios' });
