@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { ContextAssignmentReport } from './MyContexts';
 import useHover from '../utils/useHover';
-import { ModalFormTeacher } from './Modals';
+import { ModalFormTeacher, ModalFormTeacherCompatibility } from './Modals';
+import assigmentService from '@/services/assigment';
 interface MultiLevelMenuClassroomProps {
   idRow: string;
   classRoom: string;
@@ -87,14 +88,12 @@ interface MultiLevelMenuTeacherProps {
   teacher: string;
   idRow: string;
   dataRecomended: string[];
-  dataPossibleTeacher: string[];
+  teacherId: string;
 }
 
 export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
   teacher,
   idRow,
-  dataRecomended,
-  dataPossibleTeacher,
 }) => {
   const [selectedItem, setSelectedItem] = useState(teacher);
   const {
@@ -103,18 +102,12 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
     isHovered: isHovered1,
   } = useHover();
 
-  const {
-    handleMouseEnter: handleMouseEnter2,
-    handleMouseLeave: handleMouseLeave2,
-    isHovered: isHovered2,
-  } = useHover();
-
   const context = useContext(ContextAssignmentReport);
   if (!context) {
     throw new Error('DisplayComponent debe ser usado dentro de MyContextProvider');
   }
 
-  const { assignments, setAssignments, setModifications } = context;
+  const { assignments, setAssignments, setModifications, period, LastVersionID } = context;
 
   const UpdateTeacher = (assignmentId: string, newTeacher: string) => {
     const updatedAssignments = assignments.map((assignment) =>
@@ -132,13 +125,13 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
     setAssignments([...updatedAssignments]);
   };
 
-  const onhandleClick = (newTeacher: string) => {
-    setSelectedItem(newTeacher);
-    UpdateTeacher(idRow, newTeacher);
+  const uploadRowTeacher = async (idTeacher: string) => {
+    await assigmentService.updateRows(period, LastVersionID, idRow, idTeacher);
   };
 
   const onhandleRemove = () => {
     setSelectedItem('-');
+    uploadRowTeacher('-1');
     UpdateTeacher(idRow, '-');
   };
 
@@ -174,32 +167,6 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
                 >
                   <div
                     className="p-2 cursor-pointer hover:bg-gray-200  block  "
-                    onMouseEnter={handleMouseEnter2}
-                    onMouseLeave={handleMouseLeave2}
-                  >
-                    <p className="pl-3 "> DOCENTES COMPATIBLES</p>
-                    <div
-                      className={
-                        'absolute -left-[88%] top-0 flex flex-col bg-white border border-gray-300  shadow-lg  ' +
-                        (!isHovered2 ? 'hidden' : ' ')
-                      }
-                    >
-                      {dataRecomended.map((item) => (
-                        <div
-                          className={
-                            'p-2 cursor-pointer bg-white hover:bg-gray-200 max-w-52 text-start block uppercase w-52 z-10'
-                          }
-                          key={item}
-                          onClick={() => onhandleClick(item)}
-                        >
-                          <p className="pl-3 "> {item}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div
-                    className="p-2 cursor-pointer hover:bg-gray-200"
                     onClick={() => {
                       const modal = document.getElementById(
                         'my_modal' + idRow
@@ -207,7 +174,19 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
                       modal?.showModal();
                     }}
                   >
-                    <p className="pl-3">SELECCIONAR DE LA LISTA DE DOCENTES</p>
+                    <p className="pl-3 "> SELECCIONAR DE LA LISTA DE DOCENTES</p>
+                  </div>
+
+                  <div
+                    className="p-2 cursor-pointer hover:bg-gray-200"
+                    onClick={() => {
+                      const modal = document.getElementById(
+                        'my_modalCompatibility' + idRow
+                      ) as HTMLDialogElement;
+                      modal?.showModal();
+                    }}
+                  >
+                    <p className="pl-3">DOCENTES COMPATIBLES</p>
                   </div>
                 </div>
               </a>
@@ -215,10 +194,15 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
           </ul>
         </div>
       </div>
-      {/* con el id row mapeale la data necesariaa */}
+      {/* HACER OTRO MODAL CON EL TEACHER NECESARIO  */}
       <ModalFormTeacher
         idModal={'my_modal' + idRow}
-        data={dataPossibleTeacher}
+        idRow={idRow}
+        setFunction={setSelectedItem}
+      />
+
+      <ModalFormTeacherCompatibility
+        idModal={'my_modalCompatibility' + idRow}
         idRow={idRow}
         setFunction={setSelectedItem}
       />

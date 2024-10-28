@@ -6,7 +6,7 @@ interface HistoryTableInterface {
   startDate: string;
   endDate: string;
   codePeriod: string;
-  isActive: boolean;
+  isActive: string;
 }
 
 export const HistoryTable: React.FC<HistoryTableInterface> = ({
@@ -19,12 +19,16 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
   return (
     <tr className="text-[#050505]   border-b-[0.5px]  border-[#a1c2f1] ">
       <td className="py-3.5 flex items-center justify-center ">
-        {isActive ? (
+        {isActive == 'ACTIVO' ? (
           <div className="bg-[#43D010] text-white font-inter font-semibold text-[11px] py-1 px-2 rounded-lg  text-center  min-w-[75px]  max-w-[75px]">
             <p> ● Activo</p>
           </div>
+        ) : isActive == 'CARGANDO' ? (
+          <div className="bg-primary_ligth text-white font-inter font-semibold text-[9.5px] py-2 px-2 rounded-lg max-w-[75px]">
+            <p> ● Cargando</p>
+          </div>
         ) : (
-          <div className="bg-secundary_ligth text-white font-inter font-semibold text-[11px] py-1 px-2 rounded-lg max-w-[75px]">
+          <div className="bg-secundary text-white font-inter font-semibold text-[11px] py-1 px-2 rounded-lg max-w-[75px]">
             <p> ● Cerrado</p>
           </div>
         )}
@@ -56,7 +60,7 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
         </Link>
       </td>
       <td>
-        {isActive && (
+        {isActive == 'ACTIVO' && (
           <div className="dropdown dropdown-top dropdown-end   bg-white">
             <Image
               className="cursor-pointer hover:opacity-80 text-gray-500"
@@ -94,7 +98,7 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
                 <button
                   className=""
                   onClick={() => {
-                    const modal = document.getElementById('my_modal_3');
+                    const modal = document.getElementById('closePeriod-' + idPeriod);
                     if (modal) {
                       (modal as HTMLDialogElement).showModal();
                     }
@@ -119,9 +123,11 @@ interface ReportAsigmnentTableInterface {
   classroom: string;
   frequency: string;
   teacher: string;
+  teacherId: string;
   numberOfStudents: number;
   isRoomClosed: boolean;
   isTeacherClosed: boolean;
+  isEditable: boolean;
 }
 
 import { MultiLevelMenuClassroom, MultiLevelMenuTeacher } from './MultiLevelMenu';
@@ -137,6 +143,8 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
   numberOfStudents,
   schedule,
   teacher,
+  teacherId,
+  isEditable,
 }) => {
   const data = ['105', '106', '107'];
 
@@ -144,7 +152,7 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
     <tr
       className={
         'text-[#050505]   border-b-[0.5px] border-[#a1c2f1] ' +
-        (teacher === '' || teacher === '-' ? ' bg-[#FFCA38]' : ' ')
+        (teacher === '' || (teacher === '-' && isEditable) ? ' bg-[#FFCA38]' : ' ')
       }
     >
       <td className="px-1">
@@ -166,28 +174,23 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
       <td className="font-inter text-center  py-3">{schedule}</td>
       <td className="font-inter text-center  py-3">{frequency}</td>
       <td className="font-inter text-center py-3">
-        <MultiLevelMenuClassroom classRoom={classroom} data={data} idRow={assignmentId} />
+        {isEditable ? (
+          <MultiLevelMenuClassroom classRoom={classroom} data={data} idRow={assignmentId} />
+        ) : (
+          <p>{classroom}</p>
+        )}
       </td>
       <td className="font-inter text-start  py-3 uppercase">
-        <MultiLevelMenuTeacher
-          teacher={teacher}
-          idRow={assignmentId}
-          dataPossibleTeacher={[
-            'LINDA ALMAR',
-            'JUAN REYNOSO',
-            'MARIANA GARCÍA',
-            'PABLO HERRERA',
-            'ISABEL CRUZ',
-            'DIEGO MORALES',
-            'SOFÍA TORO',
-            'ANDRÉS SALAZAR',
-            'VALENTINA JIMÉNEZ',
-            'CARLOS MENDEZ',
-            'LINA MARTÍNEZ',
-            'NICOLE RAMOS',
-          ]}
-          dataRecomended={['Juna diaz', 'pedro ruiz', 'alfin dei']}
-        />
+        {isEditable ? (
+          <MultiLevelMenuTeacher
+            teacher={teacher}
+            idRow={assignmentId}
+            teacherId={teacherId}
+            dataRecomended={['Juna diaz', 'pedro ruiz', 'alfin dei']}
+          />
+        ) : (
+          <p>{teacher}</p>
+        )}
       </td>
       <td className="font-inter text-center  py-3">{numberOfStudents}</td>
     </tr>

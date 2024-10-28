@@ -1,29 +1,27 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { connectToDatabase } from '../lib/db'; // Ajusta la ruta si es necesario
+import { connectToDatabase } from '../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    console.log('GET@/pages/api/period/verify-active.ts');
+    console.log('GET@/pages/api/assignment/getall.ts');
     let pool;
 
     try {
       pool = await connectToDatabase();
 
+      let responseMessage = '';
+      let responseData: object[] | null = null;
+
       const result = await pool
         .request()
-        .query(`SELECT TOP 1 * FROM ad_periodo WHERE estado in (   'ACTIVO','CARGANDO' ) `);
+        .query(`select * from [dbo].[ad_avanceAlgoritmo] where idSede is not null `);
 
-      console.log(result.recordset.length);
-      if (result.recordset.length === 0) {
-        return res.status(200).json({
-          message: 'Períodos activos o cargando no encontrados',
-          data: [],
-        });
-      }
+      responseMessage = `Estado de avance de algoritmo `;
+      responseData = !result.recordset[0] ? [] : result.recordset[0];
 
       return res.status(200).json({
-        message: 'Períodos encontrados correctamente',
-        data: result.recordset,
+        message: responseMessage,
+        data: responseData,
       });
     } catch (error) {
       console.error('Error en la API:', error);

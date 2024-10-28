@@ -49,3 +49,33 @@ export function getSeparatedDate(dateStr: string): {
 
   return { day, month, year };
 }
+
+export function convertirFormatoFecha(dateString: string): string {
+  const [year, month, day] = dateString.split('-');
+  return `${day}/${month}/${year}`;
+}
+
+export function convertirFecha(codigo: string) {
+  const codigoStr = codigo.toString();
+  const año = codigoStr.slice(0, 4);
+  const mesNumero = parseInt(codigoStr.slice(4, 6), 10);
+
+  const meses = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
+  ];
+
+  const mesNombre = meses[mesNumero - 1];
+
+  return `${mesNombre} del ${año}`;
+}

@@ -41,4 +41,4 @@ export const locationData = [
   'PUCALLPA',
 ];
 
-export const stateData = ['FT', 'PT', 'VAC', 'DM'];
+export const stateData = ['FT', 'PT'];

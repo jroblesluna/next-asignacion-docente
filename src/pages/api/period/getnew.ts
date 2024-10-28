@@ -1,25 +1,20 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { connectToDatabase } from '../lib/db'; // Ajusta la ruta si es necesario
+import { connectToDatabase } from '../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    console.log('GET@/pages/api/period/verify-active.ts');
+    console.log('GET@/pages/api/period/getall.ts');
+
     let pool;
 
     try {
       pool = await connectToDatabase();
 
+      // verificar si hay un periodo abierto
+
       const result = await pool
         .request()
-        .query(`SELECT TOP 1 * FROM ad_periodo WHERE estado in (   'ACTIVO','CARGANDO' ) `);
-
-      console.log(result.recordset.length);
-      if (result.recordset.length === 0) {
-        return res.status(200).json({
-          message: 'Períodos activos o cargando no encontrados',
-          data: [],
-        });
-      }
+        .query(`SELECT top 1  * FROM [dbo].[ad_periodo] where estado = 'NO ACTIVO'`);
 
       return res.status(200).json({
         message: 'Períodos encontrados correctamente',

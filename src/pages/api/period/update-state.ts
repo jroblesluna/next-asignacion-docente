@@ -3,7 +3,7 @@ import { connectToDatabase } from '../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'PATCH') {
-    console.log("PATCH@/pages/api/period/update-state.ts");
+    console.log('PATCH@/pages/api/period/update-state.ts');
 
     let pool;
 
@@ -29,28 +29,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const checkResult = await pool
         .request()
         .input('id', id)
-        .query('SELECT estado FROM Periodo WHERE idPeriodo = @id');
+        .query('SELECT estado FROM ad_periodo WHERE idPeriodo = @id');
 
       if (checkResult.recordset.length === 0) {
-        return res.status(404).json({ message: 'Período académico no encontrado', data: false });
+        return res
+          .status(404)
+          .json({ message: 'Período académico no encontrado', data: false });
       }
+      // no puedo cerrarlo mientras esta cargando
 
       // Actualizar el estado del periodo
       await pool
         .request()
         .input('id', id)
         .input('estado', estado)
-        .query('UPDATE Periodo SET estado = @estado WHERE idPeriodo = @id');
+        .query('UPDATE ad_periodo SET estado = @estado WHERE idPeriodo = @id');
 
       return res.status(200).json({
         message: `Estado del periodo ${id} actualizado correctamente`,
         data: true,
       });
-
     } catch (error) {
       console.error('Error en la API:', error);
       return res.status(500).json({ message: 'Error en la consulta', error });
-      
     } finally {
       if (pool) {
         pool.close();

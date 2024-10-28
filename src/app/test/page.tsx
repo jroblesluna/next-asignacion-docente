@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import eventService from '../../services/evento';
+import assigmentService from '@/services/assigment';
+// import periodService from '@/services/period';
+// import teacherService from '@/services/teacher';
 
 function Page() {
   const loadDataTest = async () => {
-    const res = await eventService.getAll('2');
+    const res = await assigmentService.execute('202409');
     setData(JSON.stringify(res, null, 2));
   };
 

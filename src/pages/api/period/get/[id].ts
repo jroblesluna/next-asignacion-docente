@@ -3,7 +3,7 @@ import { connectToDatabase } from '../../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    console.log("GET@/pages/api/period/get/[id].ts");
+    console.log('GET@/pages/api/period/get/[id].ts');
     const { id } = req.query;
 
     if (!id) {
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await pool
         .request()
         .input('id', id)
-        .query('SELECT * FROM Periodo WHERE idPeriodo = @id');
+        .query('SELECT  * FROM [dbo].[ad_periodo] where idPeriodo=@id');
 
       if (result.recordset.length === 0) {
         return res.status(404).json({

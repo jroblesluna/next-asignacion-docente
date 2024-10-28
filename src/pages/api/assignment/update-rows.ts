@@ -3,41 +3,48 @@ import { connectToDatabase } from '../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'PATCH') {
-    console.log("PATCH@/pages/api/assignment/update-rows.ts");
+    console.log('PATCH@/pages/api/assignment/update-rows.ts');
     let pool;
 
     try {
-      const { id, data } = req.body;
+      const { idPeriodo, idVersion, uuidFila, idDocente } = req.body;
 
-      if (!id || !data) {
+      if (!idPeriodo || !idVersion || !uuidFila || !idDocente) {
         return res.status(400).json({ message: 'Faltan campos en el body', data: false });
       }
 
       pool = await connectToDatabase();
 
-      const checkResult = await pool
-        .request()
-        .input('id', id)
-        .query('SELECT * FROM Periodo WHERE idPeriodo = @id');
-
-      if (checkResult.recordset.length === 0) {
-        return res.status(404).json({ message: 'Período académico no encontrado', data: false });
-      }
-
-      for (const row of data) {
+      if (idDocente === '-1') {
         await pool
           .request()
-          .input('idAula', row.idAula)
-          .input('idDocente', row.idDocente)
-          .input('idVersion', row.idVersion)
-          .input('id', id)
-          .query(
-            'UPDATE AsignacionDocente SET idAula = @idAula, idDocente = @idDocente WHERE idPeriodo = @id AND idVersion = @idVersion'
-          );
+          .input('id', idPeriodo)
+          .input('idVersion', idVersion)
+          .input('uuidFila', uuidFila)
+          .input('idDocente', idDocente).query(`
+        UPDATE [dbo].[ad_programacionAcademica] 
+        SET docenteModificado = 0, idDocente = NULL
+        WHERE idPeriodo = @id 
+        AND uuuidProgramacionAcademica = @uuidFila 
+        AND idVersion = @idVersion
+    `);
+      } else {
+        await pool
+          .request()
+          .input('id', idPeriodo)
+          .input('idVersion', idVersion)
+          .input('uuidFila', uuidFila)
+          .input('idDocente', idDocente).query(`
+        UPDATE [dbo].[ad_programacionAcademica] 
+        SET docenteModificado = 1, idDocente = @idDocente
+        WHERE idPeriodo = @id 
+        AND uuuidProgramacionAcademica = @uuidFila 
+        AND idVersion = @idVersion
+    `);
       }
 
       return res.status(200).json({
-        message: `Campos de asignación docente para el periodo ${id} actualizados correctamente`,
+        message: `Campos de asignación docente para el periodo ${idPeriodo} actualizados correctamente`,
         data: true,
       });
     } catch (error) {

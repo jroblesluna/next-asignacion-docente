@@ -14,10 +14,21 @@ const periodService = {
     }
   },
 
+  getNew: async () => {
+    try {
+      const { data } = await axios.get(`${BASE_URL}/getnew`);
+      return data;
+    } catch (error) {
+      console.error('Error al obtener un nuevo periodo:', error);
+      return null;
+    }
+  },
+
   // Obtener un periodo por su ID academico
   getById: async (id: string) => {
     try {
       const { data } = await axios.get(`${BASE_URL}/get/${id}`);
+
       return data;
     } catch (error) {
       console.error(`Error al obtener el periodo academico con ID ${id}:`, error);
