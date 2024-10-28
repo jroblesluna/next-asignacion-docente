@@ -22,8 +22,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const result = await pool.request().input('id', idPeriod)
         .query(`SELECT Distinct S.nombreSede FROM [dbo].[ad_programacionAcademica] AS PA 
-            INNER JOIN [dbo].[ad_sede] as S ON S.idSede=PA.idSede AND S.periodo=@id and s.nombreSede <> 'VECOR'
+            INNER JOIN [dbo].[ad_sede] as S ON S.idSede=PA.idSede  and s.nombreSede <> 'VECOR'
              where PA.idPeriodo =@id `);
+      //AND S.periodo=@id VERIFICAR
 
       responseMessage = `Sedes del periodo ${idPeriod} encontrados `;
       responseData = result.recordset;
