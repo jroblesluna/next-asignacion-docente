@@ -4,6 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDatabase } from '../lib/db';
 
 import sql from 'mssql';
+import { sendEmail } from '../lib/conectEmail';
 
 const frecuenciaEquivalenteMap: { [key: string]: string } = {
   Diario: 'LV',
@@ -1057,9 +1058,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('id', periodo)
         .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
 
+      const to = 'ext.jrobles@icpna-virtual.edu.pe';
+      const subject = 'Asignación Docente';
+      const plainText =
+        'Algoritmo de asignación docente terminado exitosamente para el periodo ' + periodo;
+
+      await sendEmail(to, subject, plainText);
+
       return res.status(200).json({
-        message: 'responseMessage',
-        data: 'responseData',
+        message: 'Algoritmo de asignación docente terminado exitosamente',
+        data: true,
       });
     } catch (error) {
       console.error('Error en la API:', error);

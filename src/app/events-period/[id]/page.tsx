@@ -172,6 +172,9 @@ const Page = () => {
             subtitle="Esta acción es irreversible."
             title="¿Está seguro de incorporar los eventos? "
             idModal="my_modal_6"
+            setFunction={(s: string) => {
+              console.log(s);
+            }}
           />
         </div>
         <div className="w-[90%] mx-auto flex flex-col gap-3 p-2 mt-3">

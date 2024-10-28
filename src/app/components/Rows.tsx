@@ -85,7 +85,7 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
                 <button
                   className=""
                   onClick={() => {
-                    const modal = document.getElementById('my_modal_2');
+                    const modal = document.getElementById('reprocesar-' + idPeriod);
                     if (modal) {
                       (modal as HTMLDialogElement).showModal();
                     }

@@ -121,6 +121,9 @@ const Page = () => {
             subtitle="Esta acción es irreversible."
             title="¿Está seguro de cerrar el período?"
             idModal="my_modal_3"
+            setFunction={(s: string) => {
+              console.log(s);
+            }}
           />
         </div>
 

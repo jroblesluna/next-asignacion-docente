@@ -4,14 +4,22 @@ import NavBar from '../components/NavBar';
 import LayoutValidation from '../LayoutValidation';
 import Link from 'next/link';
 import Image from 'next/image';
+import assigmentService from '@/services/assigment';
 
 function Page() {
   const [isloadingComplete, setIsLoadingComplete] = useState(false);
+  const [reprocesoPeriodo, setReprocesoPeriodo] = useState('');
+
+  const loadData = async (p: string) => {
+    const res = await assigmentService.execute(p);
+    setIsLoadingComplete(res.data);
+  };
 
   useEffect(() => {
-    setInterval(() => {
-      setIsLoadingComplete(true);
-    }, 10000);
+    console.log(localStorage.getItem('periodo'));
+    const p = localStorage.getItem('periodo');
+    setReprocesoPeriodo(p || '');
+    loadData(p || '');
   }, []);
 
   return (
@@ -41,7 +49,7 @@ function Page() {
             </p>
             <Link
               className="bg-secundary py-2 px-10 text-white font-semibold hover:bg-secundary_ligth mx-auto mt-5"
-              href={'/assignments-report/123456'}
+              href={'/assignments-report/' + reprocesoPeriodo}
             >
               Ir al reporte de asignación
             </Link>

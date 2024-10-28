@@ -72,8 +72,8 @@ function Page() {
 
   const filteredDataActive = historyData.filter((period) => period.estado === 'ACTIVO');
 
-  const saludar = (mensaje: string) => {
-    console.log(mensaje);
+  const savePeriod = (period: string) => {
+    localStorage.setItem('periodo', period);
   };
 
   const cerrarPeriodo = async (idPeriodo: string) => {
@@ -146,25 +146,26 @@ function Page() {
               </div>
             </div>
 
-            <ModalWarning
-              linkTo={'/loading'}
-              subtitle="Se perderán las asignaciones manuales guardadas."
-              title="¿Está seguro de reprocesar las asignaciones?"
-              idModal="my_modal_2"
-              setFunction={saludar}
-            />
-
             {paginatedData.length !== 0 ? (
               <div className="flex flex-col justify-between min-h-[400px]">
                 {filteredDataActive.map((period) => (
-                  <ModalWarning
-                    linkTo={'/history'}
-                    subtitle="Esta acción es irreversible."
-                    title="¿Está seguro de cerrar el período?"
-                    idModal={'closePeriod-' + period.idPeriodo}
-                    key={period.idPeriodo}
-                    setFunction={cerrarPeriodo}
-                  />
+                  <>
+                    <ModalWarning
+                      linkTo={'/loading'}
+                      subtitle="Se perderán las asignaciones manuales guardadas."
+                      title="¿Está seguro de reprocesar las asignaciones?"
+                      idModal={'reprocesar-' + period.idPeriodo}
+                      setFunction={savePeriod}
+                    />
+                    <ModalWarning
+                      linkTo={'/history'}
+                      subtitle="Esta acción es irreversible."
+                      title="¿Está seguro de cerrar el período?"
+                      idModal={'closePeriod-' + period.idPeriodo}
+                      key={period.idPeriodo}
+                      setFunction={cerrarPeriodo}
+                    />
+                  </>
                 ))}
 
                 <table className="w-full ">
