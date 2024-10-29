@@ -784,7 +784,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               (ListaDocentes.length !== 0 && docenteAsignado === false)
             ) {
               if (
-                Number(sede.sedeId) === virtualID &&
+                Number(sede.idSede) === virtualID &&
                 iteradorOrden + 1 < ordenDisponibilidadVirtuales.length
               ) {
                 console.log('PROBANDO SIGUIENTE SEDE');

@@ -13,8 +13,7 @@ const Page = () => {
 
   const loadData = async () => {
     const resPerido = await periodService.verify();
-    console.log(resPerido);
-    setDataPeriodo(resPerido.data[0]);
+    setDataPeriodo(resPerido.data);
   };
 
   useEffect(() => {
@@ -40,15 +39,16 @@ const Page = () => {
             />
             <ButtonOptionMain
               img={'/new-period-icon.svg'}
-              isDisabled={dataPerido?.idPeriodo !== undefined}
-              title="Nuevo Período"
+              isDisabled={dataPerido.idPeriodo !== -1}
+              title={'Nuevo Período'}
               linkTo="/new-period"
             />
+
             <ButtonOptionMain
               img={'/current-period.svg'}
-              isDisabled={dataPerido?.idPeriodo === undefined}
+              isDisabled={dataPerido.idPeriodo === -1}
               title="Ver Periodo En curso"
-              linkTo={'/assignments-report/' + dataPerido?.idPeriodo}
+              linkTo={'/assignments-report/' + (dataPerido?.idPeriodo || '')}
             />
             <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
             <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />

@@ -12,18 +12,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await pool
         .request()
         .query(`SELECT TOP 1 * FROM ad_periodo WHERE estado in (   'ACTIVO','CARGANDO' ) `);
-
-      console.log(result.recordset.length);
       if (result.recordset.length === 0) {
         return res.status(200).json({
           message: 'Períodos activos o cargando no encontrados',
-          data: [],
+          data: { idPeriodo: -1 },
         });
       }
 
       return res.status(200).json({
         message: 'Períodos encontrados correctamente',
-        data: result.recordset,
+        data: result.recordset[0],
       });
     } catch (error) {
       console.error('Error en la API:', error);
