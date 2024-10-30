@@ -1,5 +1,5 @@
 'use client';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
 import { ModalWarning } from '../../components/Modals';
@@ -9,8 +9,19 @@ import { numberCompare, frecuencyData } from '../../constants/data';
 import { TableTacReport } from '../../components/Rows';
 import { evaluateExpression } from '../../utils/managmentTime';
 import LayoutValidation from '@/app/LayoutValidation';
-import { locationData } from '../../constants/data';
 import Image from 'next/image';
+import {
+  docentesTac,
+  PeriodoAcademico,
+  tacData,
+  versionData,
+} from '@/app/interface/datainterface';
+import assigmentService from '@/services/assigment';
+import { frecuenciaEquivalenteMap } from '@/app/utils/other';
+import { downloadExcelTac } from '@/app/utils/downloadExcel';
+import periodService from '@/services/period';
+import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
+import versionService from '@/services/version';
 
 const Page = () => {
   const [inputValue, setInputValue] = useState('');
@@ -18,9 +29,14 @@ const Page = () => {
   const [selectedLocation, setSelectedLocation] = useState('Todas');
   const [selectedSings, setSelectedSings] = useState('ninguna');
   const [selectedNumberCompare, setSelectedNumberCompare] = useState('ninguna');
-
+  const [ProgramacionAcademicaData, setData] = useState<docentesTac[]>([]);
+  const [ProgramacionAcademicaDataTac, setDataTac] = useState<tacData[]>([]);
+  const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
+  const [DataVersion, setDataVersion] = useState<versionData[]>([]);
+  const [selectVersion, setSelectedVersion] = useState('');
   const [showHistoryVersion, setShowHistoryVersion] = useState(false);
   const { id } = useParams() as { id: string };
+  const [nombresSedesData, setNombresSedeData] = useState<{ NombreSede: string }[]>([]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -40,106 +56,56 @@ const Page = () => {
     setSelectedSings(e.target.value);
   };
 
-  // data de ejempplo
-  const tacData = [
-    {
-      teacher: 'SALAZAR QUISPE, MARIO ENRIQUE',
-      location: 'LIMA',
-      status: 'FT',
-      classSchedule: [
-        { frecuency: 'LMV', schedule: '10:00 - 12:00', room: 'A301' },
-        { frecuency: 'MJ', schedule: '10:00 - 13:00', room: 'A302' },
-        { frecuency: 'S', schedule: '14:00 - 16:00', room: 'A303' },
-      ],
-    },
-    {
-      teacher: 'PEREZ SANDOVAL, LUZ ELENA',
-      location: 'CALLAO',
-      status: 'PT',
-      classSchedule: [
-        { frecuency: 'LMV', schedule: '16:00 - 18:00', room: 'B101' },
-        { frecuency: 'S', schedule: '10:00 - 12:00', room: 'B102' },
-      ],
-    },
-    {
-      teacher: 'RAMIREZ CASTRO, EDUARDO MANUEL',
-      location: 'INDEPENDENCIA',
-      status: 'FT',
-      classSchedule: [
-        { frecuency: 'LMV', schedule: '8:00 - 10:00', room: 'B103' },
-        { frecuency: 'SD', schedule: '10:00 - 12:00', room: 'B104' },
-      ],
-    },
-    {
-      teacher: 'ROJAS PAREDES, VICTOR MANUEL',
-      location: 'LIMA',
-      status: 'PT',
-      classSchedule: [
-        { frecuency: 'MJ', schedule: '18:00 - 20:00', room: 'C201' },
-        { frecuency: 'S', schedule: '14:00 - 16:00', room: 'C202' },
-      ],
-    },
-    {
-      teacher: 'CAMACHO HUERTA, SUSANA BEATRIZ',
-      location: 'HUARAL',
-      status: 'FT',
-      classSchedule: [
-        { frecuency: 'LMV', schedule: '12:00 - 14:00', room: 'C203' },
-        { frecuency: 'MJ', schedule: '8:00 - 10:00', room: 'C204' },
-        { frecuency: 'S', schedule: '16:00 - 18:00', room: 'C205' },
-      ],
-    },
-    {
-      teacher: 'DIAZ VARGAS, ANDRES ALFONSO',
-      location: 'CALLAO',
-      status: 'PT',
-      classSchedule: [
-        { frecuency: 'MJ', schedule: '10:00 - 12:00', room: 'D101' },
-        { frecuency: 'LMV', schedule: '14:00 - 16:00', room: 'D102' },
-      ],
-    },
-    {
-      teacher: 'ESPINOZA MORALES, JAVIER ANTONIO',
-      location: 'LIMA',
-      status: 'FT',
-      classSchedule: [
-        { frecuency: 'LMV', schedule: '16:00 - 18:00', room: 'D103' },
-        { frecuency: 'SD', schedule: '10:00 - 12:00', room: 'D104' },
-      ],
-    },
-    {
-      teacher: 'FLORES CASTILLO, MARIA JOSE',
-      location: 'INDEPENDENCIA',
-      status: 'PT',
-      classSchedule: [
-        { frecuency: 'MJ', schedule: '8:00 - 10:00', room: 'E101' },
-        { frecuency: 'S', schedule: '12:00 - 14:00', room: 'E102' },
-      ],
-    },
-    {
-      teacher: 'GONZALEZ ZAPATA, ANA ROSA',
-      location: 'HUARAL',
-      status: 'FT',
-      classSchedule: [
-        { frecuency: 'LMV', schedule: '8:00 - 10:00', room: 'E103' },
-        { frecuency: 'MJ', schedule: '12:00 - 14:00', room: 'E104' },
-        { frecuency: 'S', schedule: '14:00 - 16:00', room: 'E105' },
-      ],
-    },
-    {
-      teacher: 'HERRERA AGUIRRE, LUIS ALFREDO',
-      location: 'LIMA',
-      status: 'PT',
-      classSchedule: [
-        { frecuency: 'LMV', schedule: '10:00 - 12:00', room: 'F101' },
-        { frecuency: 'S', schedule: '16:00 - 18:00', room: 'F102' },
-      ],
-    },
-  ];
+  // data de ejemplo
+  const loadData = async () => {
+    const resPerido = await periodService.getById(id);
+    setDataPeriodo(resPerido.data[0]);
+    const resVersion = await versionService.getAll(id);
+    setDataVersion(resVersion.data);
+    setSelectedVersion(resVersion.data[0].idVersion);
+    const resSedesData = await assigmentService.getLocationTac(id);
+    console.log(resSedesData.data);
+    setNombresSedeData(resSedesData.data);
+    const res = await assigmentService.getTacAssigment(id, '-1');
+    setData(res.data);
+  };
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  useEffect(() => {
+    if (ProgramacionAcademicaData[0]) {
+      const tacConvertido: tacData[] = ProgramacionAcademicaData.filter(
+        (obj, index, self) =>
+          index === self.findIndex((o) => o.uuidDocente === obj.uuidDocente)
+      ).map((item) => ({
+        teacher: item.NombreCompletoProfesor,
+        location: item.NombreSede,
+        status: item.TipoJornada,
+        classSchedule: ProgramacionAcademicaData.filter(
+          (item2) => item2.uuidDocente === item.uuidDocente && item2.idFrecuencia !== null
+        ).map((elemento) => ({
+          frecuency:
+            frecuenciaEquivalenteMap[elemento.NombreFrecuencia] || elemento.NombreFrecuencia,
+          schedule: elemento.HorarioInicio + ' - ' + elemento.HorarioFin,
+          room: elemento.codigoCurso,
+        })),
+      }));
+      setDataTac(tacConvertido);
+    }
+  }, [ProgramacionAcademicaData]);
 
   interface CheckboxState {
     [key: string]: boolean;
   }
+
+  const downloadExcel = () => {
+    if (ProgramacionAcademicaDataTac[0]) {
+      downloadExcelTac(ProgramacionAcademicaDataTac);
+    }
+  };
 
   const [checkboxState, setCheckboxState] = useState<CheckboxState>(() =>
     frecuencyData.reduce<CheckboxState>((acc, item) => {
@@ -156,7 +122,7 @@ const Page = () => {
     }));
   };
 
-  const filteredDataTac = tacData.filter(
+  const filteredDataTac = ProgramacionAcademicaDataTac.filter(
     (rowTac) =>
       rowTac.teacher.toLowerCase().includes(inputValue.toLowerCase()) &&
       (selectedNumberCompare === 'ninguna' ||
@@ -209,10 +175,12 @@ const Page = () => {
                   value={selectedLocation}
                   onChange={handleLocationChange}
                 >
-                  <option selected>Todas</option>
-                  {locationData.map((item, index) => {
-                    return <option key={index}> {item.toLowerCase()}</option>;
-                  })}
+                  <option value="Todas">Todas</option>
+                  {nombresSedesData.map((item, index) => (
+                    <option key={index} value={item.NombreSede}>
+                      {item?.NombreSede?.toLowerCase() || ''}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label className="form-control w-full max-w-28 -mt-9">
@@ -227,8 +195,6 @@ const Page = () => {
                   <option value="Todas">Todas</option>
                   <option value="FT">FT</option>
                   <option value="PT">PT</option>
-                  <option value="VAC">VAC</option>
-                  <option value="DM">DM</option>
                 </select>
               </label>
               <div className="form-control w-full max-w-28 -mt-9 ">
@@ -318,7 +284,12 @@ const Page = () => {
                 </ul>
               </div>
             </div>
-            <button className="bg-[#50B403] font-roboto py-2 px-8 w-64 text-[14px] text-white font-semibold hover:opacity-80  flex flex-row items-center ">
+            <button
+              className="bg-[#50B403] font-roboto py-2 px-8 w-64 text-[14px] text-white font-semibold hover:opacity-80  flex flex-row items-center "
+              onClick={() => {
+                downloadExcel();
+              }}
+            >
               <Image
                 className="size-7"
                 width={20}
@@ -330,26 +301,32 @@ const Page = () => {
             </button>
           </div>
           <div className="flex flex-row gap-10 items-center justify-between">
-            <div className="flex flex-row gap-10 items-center ">
-              <p>
-                <strong>ID: </strong> {id}
-              </p>
-
-              <p>
-                <strong>Periodo: </strong> Agosto del 2022
-              </p>
-              <p>
-                <strong>Fecha:</strong> 01/08/2022 - 31/08/2022
-              </p>
+            <div className="flex flex-row gap-10 items-center">
+              <div className="flex flex-row gap-2">
+                <strong>Codigo de Periodo: </strong> {id}
+              </div>
+              <div className="flex flex-row gap-2">
+                <strong>Periodo: </strong>
+                <p>{convertirFecha(id)}</p>
+              </div>
+              <div className="flex flex-row gap-2">
+                <strong>Fecha:</strong>
+                <p className={dataPerido?.fechaInicio ? '' : 'skeleton h-4 w-[200px] '}>
+                  {dataPerido?.fechaInicio !== undefined &&
+                    ` ${convertirFormatoFecha(
+                      dataPerido?.fechaInicio
+                    )} - ${convertirFormatoFecha(dataPerido?.fechaFinal)} `}
+                </p>
+              </div>
             </div>
             <div className="flex flex-row gap-5  w-40">
               <p>
-                <strong>Versión: </strong> N° 2
+                <strong>Versión: </strong> N°{selectVersion}
               </p>
 
               <div className="relative ">
                 <Image
-                  className="size-7  cursor-pointer hover:opacity-60"
+                  className="size-5  cursor-pointer hover:opacity-60"
                   onClick={() => setShowHistoryVersion(!showHistoryVersion)}
                   width={20}
                   alt="img"
@@ -357,79 +334,101 @@ const Page = () => {
                   src={'/clock-history-icon.svg'}
                 />
 
-                {/* se debe mapear */}
                 <div
                   className={
-                    'absolute w-64 min-h-60 h-60 bg-[#ffffff] px-5 border flex flex-col gap-2 items-center p-3 right-[90%] top-8 rounded-md z-20  ' +
+                    'absolute w-64 min-h-60 h-60 max-h-60 overflow-y-auto bg-[#ffffff] px-5 border flex flex-col gap-2 items-center p-3 right-[90%] top-8 rounded-md z-20  ' +
                     (showHistoryVersion ? 'block' : 'hidden')
                   }
                 >
                   <p className="font-inter font-bold mb-2 ">Historial de Versiones</p>
-                  <div className="font-roboto font-extralight flex flex-row items-center gap-3">
-                    <span className="text-green-500 text-xl">*</span>
-                    <span className="hover:underline cursor-pointer text-xs ">
-                      N°2 - 08/09/2024 por el usuario x a las 12:02 pm (mas reciente)
-                    </span>
-                  </div>
-                  <p className="font-roboto font-thin flex flex-row items-center gap-3">
-                    <span className="text-green-500 text-xl">*</span>
-                    <span className="hover:underline cursor-pointer text-xs ">
-                      N°1 - 08/09/2024 por el usuario x1 a las 10:01 pm
-                    </span>
-                  </p>
+
+                  {DataVersion.length === 0 ? (
+                    <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+                      <span className="loading loading-bars loading-lg"></span>
+                    </div>
+                  ) : (
+                    <>
+                      {DataVersion.map((item, index) => {
+                        return (
+                          <div
+                            className="font-roboto font-extralight flex flex-row items-center gap-3"
+                            key={index}
+                          >
+                            <span className="text-green-500 text-xl">*</span>
+                            <span
+                              className="hover:underline cursor-pointer text-xs "
+                              onClick={() => {
+                                setSelectedVersion(item.idVersion);
+                              }}
+                            >
+                              {`N°${item.idVersion} - Modificado el  ${convertirFormatoFecha(
+                                item.fecha
+                              )} por el usario: ${item.nombreCreador}`}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-          <div className="w-full max-w-[100vw] max-h-[27vw] min-h-[27vw]  overflow-auto">
-            <table className="w-full ">
-              <thead>
-                <tr className="text-black">
-                  <th className="py-2.5 uppercase max-w-16 overflow-hidden font-inter sticky top-0 bg-[#19B050] text-white min-w-80">
-                    PROFESOR
-                  </th>
-                  <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-32">
-                    SEDE
-                  </th>
-                  <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-24">
-                    ESTADO
-                  </th>
-                  {timeDaily.map((time, index) => (
-                    <th
-                      key={`daily-${index}`}
-                      className="py-2.5 uppercase font-inter border bg-[#062060] sticky top-0 text-white min-w-24"
-                    >
-                      {time}
+          {ProgramacionAcademicaDataTac.length === 0 ? (
+            <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+              <span className="loading loading-bars loading-lg"></span>
+            </div>
+          ) : (
+            <div className="w-full max-w-[100vw] max-h-[27vw] min-h-[27vw]  overflow-auto">
+              <table className="w-full ">
+                <thead>
+                  <tr className="text-black">
+                    <th className="py-2.5 uppercase max-w-16 overflow-hidden font-inter sticky top-0 bg-[#19B050] text-white min-w-80">
+                      PROFESOR
                     </th>
-                  ))}
-                  {timeWeekend.map((time, index) => (
-                    <th
-                      key={`weekend-${index}`}
-                      className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24"
-                    >
-                      {time}
+                    <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-32">
+                      SEDE
                     </th>
+                    <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-24">
+                      ESTADO
+                    </th>
+                    {timeDaily.map((time, index) => (
+                      <th
+                        key={`daily-${index}`}
+                        className="py-2.5 uppercase font-inter border bg-[#062060] sticky top-0 text-white min-w-24"
+                      >
+                        {time}
+                      </th>
+                    ))}
+                    {timeWeekend.map((time, index) => (
+                      <th
+                        key={`weekend-${index}`}
+                        className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24"
+                      >
+                        {time}
+                      </th>
+                    ))}
+                    <th className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24">
+                      Todas
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDataTac.map((rowTac, index) => (
+                    <TableTacReport
+                      key={index}
+                      classSchedule={rowTac.classSchedule.filter(
+                        (item) => checkboxState[item.frecuency]
+                      )}
+                      location={rowTac.location}
+                      status={rowTac.status}
+                      teacher={rowTac.teacher}
+                    />
                   ))}
-                  <th className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24">
-                    Todas
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDataTac.map((rowTac, index) => (
-                  <TableTacReport
-                    key={index}
-                    classSchedule={rowTac.classSchedule.filter(
-                      (item) => checkboxState[item.frecuency]
-                    )}
-                    location={rowTac.location}
-                    status={rowTac.status}
-                    teacher={rowTac.teacher}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <ModalWarning
             linkTo={'/history'}

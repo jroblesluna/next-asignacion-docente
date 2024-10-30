@@ -23,18 +23,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await pool.request().input('id', idPeriod).query(`
                IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo =  @id)
                 BEGIN
-               SELECT Distinct S.nombreSede FROM [dbo].[ad_programacionAcademica] AS PA 
-            INNER JOIN [dbo].[ad_sede] as S ON S.idSede=PA.idSede  and s.nombreSede <> 'VECOR'
-             where PA.idPeriodo =@id 
+                SELECT distinct NombreSede from [dbo].[ad_docente]
+             where periodo=@id and NombreSede is not null and Nombresede <> 'Virtual'
                 END
               ELSE
                 BEGIN
-                SELECT Distinct S.nombreSede FROM [dbo].[ad_programacionAcademica] AS PA 
-            INNER JOIN [dbo].[ad_sede] as S ON S.idSede=PA.idSede  and s.nombreSede <> 'VECOR'
-             where PA.idPeriodo =1
+                 SELECT distinct NombreSede from [dbo].[ad_docente]
+             where periodo=1 and NombreSede is not null and Nombresede <> 'Virtual'
               END      
              `);
-      //AND S.periodo=@id VERIFICAR
 
       responseMessage = `Sedes del periodo ${idPeriod} encontrados `;
       responseData = result.recordset;

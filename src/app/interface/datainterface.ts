@@ -72,3 +72,52 @@ export interface DocentesActivos {
   TipoJornada: string;
   EstadoDisponible: number;
 }
+
+export interface docentesTac {
+  uuidDocente: string;
+  NombreSede: string;
+  NombreCompletoProfesor: string;
+  TipoJornada: string;
+  indice: number;
+  uuuidProgramacionAcademica: string;
+  idVersion: number;
+  idPeriodo: number;
+  idSede: number;
+  idCurso: number;
+  idHorario: number;
+  idFrecuencia: number;
+  idDocente: number;
+  idAula: number;
+  matriculados: number;
+  inicioClase: string;
+  finalClase: string;
+  vigente: boolean;
+  cancelado: boolean;
+  uidIdIntensidadFase: string;
+  aulaModificada: boolean;
+  docenteModificado: boolean;
+  tiempoModificado: string;
+  HorarioInicio: string;
+  HorarioFin: string;
+  NombreFrecuencia: string;
+  codigoCurso: string;
+}
+
+export interface classSchedule {
+  frecuency: string;
+  schedule: string;
+  room: string;
+}
+
+export interface tacData {
+  teacher: string;
+  location: string;
+  status: string;
+  classSchedule: classSchedule[];
+}
+
+export interface versionData {
+  nombreCreador: string;
+  fecha: string;
+  idVersion: string;
+}

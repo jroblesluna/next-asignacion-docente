@@ -21,7 +21,7 @@ import {
   ProgramacionAcademica,
 } from '@/app/interface/datainterface';
 import periodService from '@/services/period';
-import { convertirFecha } from '@/app/utils/managmentDate';
+import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
 import { frecuenciaEquivalenteMap } from '@/app/utils/other';
 
 const ReportAssignments = () => {
@@ -37,7 +37,7 @@ const ReportAssignments = () => {
   const endIndex = startIndex + rowsPerPage;
 
   const [ProgramacionAcademicaData, setData] = useState<ProgramacionAcademica[]>([]);
-  const [nombresSedesData, setNombresSedeData] = useState<{ nombreSede: string }[]>([]);
+  const [nombresSedesData, setNombresSedeData] = useState<{ NombreSede: string }[]>([]);
 
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
 
@@ -217,8 +217,8 @@ const ReportAssignments = () => {
                 <option value="Todas">Todas</option>
                 {nombresSedesData.map((item, index) => {
                   return (
-                    <option value={item.nombreSede} key={index}>
-                      {item.nombreSede.toLowerCase()}
+                    <option value={item.NombreSede} key={index}>
+                      {item.NombreSede.toLowerCase()}
                     </option>
                   );
                 })}
@@ -277,7 +277,9 @@ const ReportAssignments = () => {
               <strong>Fecha:</strong>
               <p className={dataPerido?.fechaInicio ? '' : 'skeleton h-4 w-[200px] '}>
                 {dataPerido?.fechaInicio !== undefined &&
-                  ` ${dataPerido?.fechaInicio} - ${dataPerido?.fechaFinal} `}
+                  ` ${convertirFormatoFecha(
+                    dataPerido?.fechaInicio
+                  )} - ${convertirFormatoFecha(dataPerido?.fechaFinal)} `}
               </p>
             </div>
           </div>
