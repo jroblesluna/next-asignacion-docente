@@ -33,6 +33,20 @@ const assigmentService = {
     }
   },
 
+  getRatiosBalance: async (idPeriod: string) => {
+    try {
+      const { data } = await axios.get(`${BASE_URL}/getRatiosBalance`, {
+        params: {
+          idPeriod,
+        },
+      });
+      return data;
+    } catch (error) {
+      console.error('Error al obtener todos los periodos:', error);
+      return null;
+    }
+  },
+
   execute: async (periodo: string) => {
     try {
       const { data } = await axios.get(`${BASE_URL}/executeScript`, {

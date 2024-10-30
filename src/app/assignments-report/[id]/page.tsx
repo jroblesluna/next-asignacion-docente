@@ -218,7 +218,7 @@ const ReportAssignments = () => {
                 {nombresSedesData.map((item, index) => {
                   return (
                     <option value={item.NombreSede} key={index}>
-                      {item.NombreSede.toLowerCase()}
+                      {item?.NombreSede?.toLowerCase() || ''}{' '}
                     </option>
                   );
                 })}

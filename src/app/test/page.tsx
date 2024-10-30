@@ -1,14 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
-// import assigmentService from '@/services/assigment';
+import assigmentService from '@/services/assigment';
 // import { docentesTac, tacData } from '../interface/datainterface';
 // import periodService from '@/services/period';
 // import teacherService from '@/services/teacher';
-import versionService from '@/services/version';
+// import versionService from '@/services/version';
 
 function Page() {
   const loadDataTest = async () => {
-    const res = await versionService.getAll('202409');
+    const res = await assigmentService.getRatiosBalance('202409');
     setData(JSON.stringify(res, null, 2));
     // setData(res.data);
   };
