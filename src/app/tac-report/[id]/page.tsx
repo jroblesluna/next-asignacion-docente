@@ -56,7 +56,6 @@ const Page = () => {
     setSelectedSings(e.target.value);
   };
 
-  // data de ejemplo
   const loadData = async () => {
     const resPerido = await periodService.getById(id);
     setDataPeriodo(resPerido.data[0]);

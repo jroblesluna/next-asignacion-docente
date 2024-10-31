@@ -121,3 +121,28 @@ export interface versionData {
   fecha: string;
   idVersion: string;
 }
+
+export interface ratioData {
+  idSede: number;
+  NombreSede: string;
+  FT: number;
+  PT: number;
+  Ratio: number;
+}
+
+export interface balanceDataInterface {
+  idDocente: number;
+  HorarioInicio: string;
+  HorarioFin: string;
+  NombreFrecuencia: string;
+  idSedeAlojada: number;
+  nombreSedeAlojada: string;
+  nombreSede: string;
+  minutosCurso: number;
+  carga: number;
+}
+
+export interface esquemaFrecuenciaHorario {
+  frecuencia: string;
+  horario: string;
+}

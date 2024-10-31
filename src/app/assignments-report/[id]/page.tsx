@@ -110,6 +110,7 @@ const ReportAssignments = () => {
     setDataPeriodo(resPerido.data[0]);
     const res = await assigmentService.getAll(id, '-1');
     setData(res.data);
+
     const resSedesData = await assigmentService.getLocation(id);
     setNombresSedeData(resSedesData.data);
   };

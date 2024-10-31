@@ -1,18 +1,31 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
 import { ModalWarning } from '../../components/Modals';
 import Image from 'next/image';
-import { locationData } from '../../constants/data';
-import { balanceData, schedules } from '../../constants/dataExample';
-// import { useParams } from 'next/navigation';
 import LayoutValidation from '@/app/LayoutValidation';
+import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
+import { useParams } from 'next/navigation';
+import periodService from '@/services/period';
+import {
+  balanceDataInterface,
+  esquemaFrecuenciaHorario,
+  PeriodoAcademico,
+  ratioData,
+} from '@/app/interface/datainterface';
+import assigmentService from '@/services/assigment';
+import { frecuenciaEquivalenteMap } from '@/app/utils/other';
 const Page = () => {
-  // const { id } = useParams();
+  const { id } = useParams() as { id: string };
   const [timeStart, setTimeStart] = useState<string>('06:00');
   const [timeEnd, setTimeEnd] = useState<string>('23:59');
   const [selectedDays, setSelectedDays] = useState('Estado');
+  const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
+  const [ratiosData, setRatiosData] = useState<ratioData[]>([]);
+  const [balancaDatarray, setBalancaDatarray] = useState<balanceDataInterface[]>([]);
+  const [balanceSchedule, setBalanceSchedule] = useState<esquemaFrecuenciaHorario[]>([]);
+  const [locationData, setLocationData] = useState<string[]>([]);
 
   const handleTimeStartChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTimeStart(event.target.value);
@@ -44,19 +57,69 @@ const Page = () => {
   const Weekenday = ['S', 'D'];
 
   const filterSchedules = () => {
-    return schedules.filter(
-      ({ time, frequency }) =>
-        rangesOverlap(time, timeStart, timeEnd) &&
+    return balanceSchedule.filter(
+      ({ horario, frecuencia }) =>
+        rangesOverlap(horario, timeStart, timeEnd) &&
         (selectedDays === 'Estado' ||
           (selectedDays === 'Diarios'
-            ? weekday.some((item) => frequency.includes(item))
+            ? weekday.some((item) => frecuencia.includes(item))
             : selectedDays === 'Sabatinos'
-            ? Weekenday.some((item) => frequency.includes(item))
+            ? Weekenday.some((item) => frecuencia.includes(item))
             : false))
     );
   };
 
   const filteredSchedules = filterSchedules();
+
+  const loadData = async () => {
+    const resPerido = await periodService.getById(id);
+    setDataPeriodo(resPerido.data[0]);
+    const resRatioData = await assigmentService.getRatiosBalance(id);
+    setRatiosData(resRatioData.data);
+    console.log(resRatioData.data);
+
+    const resBalanceData = await assigmentService.getDataBalance(id);
+    setBalancaDatarray(resBalanceData.data);
+    console.log(resBalanceData.data);
+  };
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  useEffect(() => {
+    if (balancaDatarray.length !== 0) {
+      const uniqueCombinations = new Set<string>();
+      const result: esquemaFrecuenciaHorario[] = [];
+
+      balancaDatarray.forEach(
+        (item: { NombreFrecuencia: string; HorarioInicio: string; HorarioFin: string }) => {
+          const comboKey = `${item.NombreFrecuencia}, ${item.HorarioInicio} - ${item.HorarioFin}`;
+
+          if (!uniqueCombinations.has(comboKey)) {
+            uniqueCombinations.add(comboKey);
+            result.push({
+              frecuencia:
+                frecuenciaEquivalenteMap[item.NombreFrecuencia] || item.NombreFrecuencia,
+              horario: `${item.HorarioInicio} - ${item.HorarioFin}`,
+            });
+          }
+        }
+      );
+
+      setBalanceSchedule(result);
+
+      const uniqueSedesAlojadas = Array.from(
+        new Set(
+          balancaDatarray.map((item: { nombreSedeAlojada: string }) => item.nombreSedeAlojada)
+        )
+      );
+      console.log(uniqueSedesAlojadas);
+      setLocationData(uniqueSedesAlojadas);
+    }
+  }, [balancaDatarray]);
+
   return (
     <LayoutValidation>
       <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8">
@@ -64,12 +127,21 @@ const Page = () => {
         <ReturnTitle name="Balance de Asignaciones" />
         <div className="w-[95%] flex gap-10 flex-row  mx-auto justify-between  text-[15px]">
           <div className="flex flex-row gap-5 items-center ">
-            <p className="w-48">
-              <strong>Periodo: </strong> Agosto del 2022
-            </p>
-            <p className="w-56 text-[14px]">
-              <strong>Fecha:</strong> 01/08/2022 - 31/08/2022
-            </p>
+            <div className="flex flex-row gap-10 items-center">
+              <div className="flex flex-row gap-2">
+                <strong>Periodo: </strong>
+                <p>{convertirFecha(id)}</p>
+              </div>
+              <div className="flex flex-row gap-2">
+                <strong>Fecha:</strong>
+                <p className={dataPerido?.fechaInicio ? '' : 'skeleton h-4 w-[200px] '}>
+                  {dataPerido?.fechaInicio !== undefined &&
+                    ` ${convertirFormatoFecha(
+                      dataPerido?.fechaInicio
+                    )} - ${convertirFormatoFecha(dataPerido?.fechaFinal)} `}
+                </p>
+              </div>
+            </div>
             <div className="flex flex-row items-center ">
               <label className="font-inter font-semibold text-xs">Hora de inicio:</label>
               <input
@@ -100,7 +172,7 @@ const Page = () => {
                 value={selectedDays}
                 onChange={handleSelectedDays}
               >
-                <option selected>Estado</option>
+                <option>Estado</option>
                 <option>Diarios</option>
                 <option>Sabatinos</option>
               </select>
@@ -127,187 +199,184 @@ const Page = () => {
           />
         </div>
 
-        <div className="w-full max-w-[100vw] overflow-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-black truncate text-[13px]">
-                <th className="py-1 uppercase max-w-16 overflow-hidden font-inter bg-[#062060] text-white min-w-32">
-                  FRECUENCIA
-                </th>
-                <th className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-32">
-                  HORARIO
-                </th>
-                <th className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24">
-                  TOTAL
-                </th>
-                {locationData.map((time, index) => (
-                  <th
-                    key={`daily-${index}`}
-                    className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24"
-                  >
-                    {time}
+        {ratiosData.length === 0 ||
+        balanceSchedule.length === 0 ||
+        locationData.length === 0 ? (
+          <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+            <span className="loading loading-bars loading-lg"></span>
+          </div>
+        ) : (
+          <div className="w-full max-w-[100vw] overflow-auto py-3">
+            <table className="w-full">
+              <thead>
+                <tr className="text-black truncate text-[11px]">
+                  <th className="py-1 uppercase max-w-16 overflow-hidden font-inter bg-[#062060] text-white min-w-32">
+                    FRECUENCIA
                   </th>
-                ))}
-                <th className="py-1 uppercase font-inter border text-white min-w-24"></th>
-                {locationData.map((time, index) => (
-                  <th
-                    key={`daily-${index}`}
-                    className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24"
-                  >
-                    {time}
+                  <th className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-32">
+                    HORARIO
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="text-xs border">
-                <td></td>
-                <td className="text-center border">FULL TIME</td>
-                <td className="text-center border">
-                  {
-                    balanceData.filter((rowBalance) => rowBalance.statusTeacher === 'FT')
-                      .length
-                  }
-                </td>
-                {locationData.map((item, index) => (
-                  <td className="text-center border " key={index}>
-                    {
-                      balanceData.filter(
-                        (rowBalance) =>
-                          rowBalance.location === item && rowBalance.statusTeacher === 'FT'
-                      ).length
-                    }
+                  <th className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24">
+                    TOTAL
+                  </th>
+                  {ratiosData.map((item, index) => (
+                    <th
+                      key={`daily-${index}`}
+                      className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24"
+                    >
+                      {item.NombreSede}
+                    </th>
+                  ))}
+                  <th className="py-1 uppercase font-inter border text-white min-w-24"></th>
+                  {ratiosData.map((item, index) => (
+                    <th
+                      key={`daily-${index}`}
+                      className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24"
+                    >
+                      {item.NombreSede}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="text-xs border">
+                  <td></td>
+                  <td className="text-center border">FULL TIME</td>
+                  <td className="text-center border">
+                    {ratiosData.reduce((acc: number, item: ratioData) => acc + item.FT, 0)}
                   </td>
-                ))}
-                <td></td>
-                {locationData.map((item, index) => (
-                  <td className="text-center border font-bold " key={index}>
-                    {(
-                      (balanceData.filter((rowBalance) => rowBalance.location === item)
-                        .length /
-                        3 /
-                        (balanceData.length / 3)) *
-                      100
-                    ).toFixed(2) + '%'}
-                    <td></td>
+                  {ratiosData.map((item, index) => (
+                    <td className="text-center border " key={index}>
+                      {item.FT}
+                    </td>
+                  ))}
+                  <td></td>
+                  {ratiosData.map((item, index) => (
+                    <td className="text-center border font-bold " key={index}>
+                      {item.Ratio.toFixed(2) + '%'}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="text-xs border">
+                  <td></td>
+                  <td className="text-center border">PART TIME</td>
+                  <td className="text-center border">
+                    {ratiosData.reduce((acc: number, item: ratioData) => acc + item.PT, 0)}
                   </td>
-                ))}
-              </tr>
-              <tr className="text-xs border">
-                <td></td>
-                <td className="text-center border">PART TIME</td>
-                <td className="text-center border">
-                  {
-                    balanceData.filter((rowBalance) => rowBalance.statusTeacher === 'PT')
-                      .length
-                  }
-                </td>
-                {locationData.map((item, index) => (
-                  <td className="text-center border" key={index}>
-                    {
-                      balanceData.filter(
-                        (rowBalance) =>
-                          rowBalance.location === item && rowBalance.statusTeacher === 'PT'
-                      ).length
-                    }
-                  </td>
-                ))}
-                <td></td>
-                <td></td>
-              </tr>
+                  {ratiosData.map((item, index) => (
+                    <td className="text-center border" key={index}>
+                      {item.PT}
+                    </td>
+                  ))}
+                  <td></td>
+                  <td></td>
+                </tr>
 
-              <tr className="text-xs border">
-                <td></td>
-                <td className="text-center border">RATIO</td>
-                <td className="text-center border">{(balanceData.length / 3).toFixed(2)}</td>
-                {locationData.map((item, index) => (
-                  <td className="text-center border" key={index}>
+                <tr className="text-xs border">
+                  <td></td>
+                  <td className="text-center border">RATIO</td>
+                  <td className="text-center border">
                     {(
-                      (balanceData.filter((rowBalance) => rowBalance.location === item)
-                        .length /
-                        3 /
-                        (balanceData.length / 3)) *
-                      100
-                    ).toFixed(2) + '%'}
-                  </td>
-                ))}
-                <td></td>
-                {locationData.map((item) => (
-                  <td key={item} className="text-center border">
-                    {(
-                      balanceData
-                        .filter((rowBalance) => rowBalance.location === item)
-                        .reduce(
-                          (acumulador, rowBalance) => acumulador + rowBalance.points,
-                          0
-                        ) /
-                      (balanceData.filter((rowBalance) => rowBalance.location === item)
-                        .length /
-                        3)
+                      ratiosData.reduce((acc: number, item: ratioData) => acc + item.FT, 0) +
+                      ratiosData.reduce((acc: number, item: ratioData) => acc + item.PT, 0) / 3
                     ).toFixed(2)}
                   </td>
-                ))}
-              </tr>
-
-              {filteredSchedules.map((item, index) => {
-                return (
-                  <tr className="text-xs text-center border" key={index}>
-                    <td className="border font-semibold">{item.frequency}</td>
-                    <td className="border font-semibold"> {item.time}</td>
-                    <td>
-                      {
-                        balanceData.filter(
-                          (rowBalance) =>
-                            rowBalance.frequency === item.frequency &&
-                            rowBalance.scheduleTime === item.time
-                        ).length
-                      }
+                  {ratiosData.map((item, index) => (
+                    <td className="text-center border" key={index}>
+                      {item.Ratio.toFixed(2) + '%'}
                     </td>
+                  ))}
+                  <td></td>
+                  {ratiosData.map((item) => (
+                    <td key={item.idSede} className="text-center border">
+                      {(
+                        balancaDatarray.reduce(
+                          (acc: number, itemBalance: balanceDataInterface) =>
+                            itemBalance.nombreSede === item.NombreSede
+                              ? acc + itemBalance.carga
+                              : acc,
+                          0
+                        ) /
+                        ((item.NombreSede === item.NombreSede ? item.FT : 0) +
+                          (item.NombreSede === item.NombreSede ? item.PT : 0) / 3)
+                      ).toFixed(2) + '%'}
+                    </td>
+                  ))}
+                </tr>
 
-                    {locationData.map((itemLocation, index) => (
-                      <td className="text-center border" key={index}>
+                {filteredSchedules.map((item, index) => {
+                  return (
+                    <tr className="text-xs text-center border" key={index}>
+                      <td className="border font-semibold">{item.frecuencia}</td>
+                      <td className="border font-semibold"> {item.horario}</td>
+                      <td>
                         {
-                          balanceData.filter(
+                          balancaDatarray.filter(
                             (rowBalance) =>
-                              rowBalance.frequency === item.frequency &&
-                              rowBalance.scheduleTime === item.time &&
-                              rowBalance.location === itemLocation
+                              frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
+                                item.frecuencia &&
+                              `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                item.horario
                           ).length
                         }
                       </td>
-                    ))}
 
-                    <td>xx</td>
-                    {locationData.map((itemLocation, index) => (
-                      <td className="text-center border" key={index}>
-                        {balanceData.filter(
-                          (rowBalance) =>
-                            rowBalance.frequency === item.frequency &&
-                            rowBalance.scheduleTime === item.time
-                        ).length !== 0
-                          ? (
-                              (balanceData.filter(
-                                (rowBalance) =>
-                                  rowBalance.frequency === item.frequency &&
-                                  rowBalance.scheduleTime === item.time &&
-                                  rowBalance.location === itemLocation
-                              ).length /
-                                balanceData.filter(
+                      {ratiosData.map((itemLocation, index) => (
+                        <td className="text-center border" key={index}>
+                          {
+                            balancaDatarray.filter(
+                              (rowBalance) =>
+                                frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
+                                  item.frecuencia &&
+                                `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                  item.horario &&
+                                rowBalance.nombreSede === itemLocation.NombreSede
+                            ).length
+                          }
+                        </td>
+                      ))}
+
+                      <td>xx</td>
+                      {ratiosData.map((itemLocation, index) => (
+                        <td className="text-center border" key={index}>
+                          {balancaDatarray.filter(
+                            (rowBalance) =>
+                              frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] &&
+                              frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
+                                item.frecuencia &&
+                              `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                item.horario
+                          ).length !== 0
+                            ? (
+                                (balancaDatarray.filter(
                                   (rowBalance) =>
-                                    rowBalance.frequency === item.frequency &&
-                                    rowBalance.scheduleTime === item.time
-                                ).length) *
-                              100
-                            ).toFixed(2) + '%'
-                          : ''}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                                    frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] &&
+                                    frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
+                                      item.frecuencia &&
+                                    `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                      item.horario &&
+                                    rowBalance.nombreSede === itemLocation.NombreSede
+                                ).length /
+                                  balancaDatarray.filter(
+                                    (rowBalance) =>
+                                      frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] &&
+                                      frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
+                                        item.frecuencia &&
+                                      `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                        item.horario
+                                  ).length) *
+                                100
+                              ).toFixed(2) + '%'
+                            : ''}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </main>
     </LayoutValidation>
   );

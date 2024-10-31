@@ -319,6 +319,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       											AND D.FechaInicioContrato IS NOT NULL
       											AND  D.idSede <> @virtualID
       											and  D.periodo=@id
+                            				AND S.vigente=1
       									GROUP BY
       											S.idSede,
       											S.NombreSede

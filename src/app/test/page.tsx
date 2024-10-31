@@ -1,19 +1,26 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import { useEffect, useState } from 'react';
 import assigmentService from '@/services/assigment';
+import { balanceDataInterface, esquemaFrecuenciaHorario } from '../interface/datainterface';
+import { frecuenciaEquivalenteMap } from '../utils/other';
 // import { docentesTac, tacData } from '../interface/datainterface';
 // import periodService from '@/services/period';
 // import teacherService from '@/services/teacher';
 // import versionService from '@/services/version';
 
 function Page() {
+  const [balancaDatarray, setBalancaDatarray] = useState<balanceDataInterface[]>([]);
+
   const loadDataTest = async () => {
-    const res = await assigmentService.getRatiosBalance('202409');
+    const res = await assigmentService.getDataBalance('202409');
+    setBalancaDatarray(res.data);
     setData(JSON.stringify(res, null, 2));
     // setData(res.data);
   };
   // const [ProgramacionAcademicaData, setData] = useState<docentesTac[]>([]);
   // const [ProgramacionAcademicaDataTac, setDataTac] = useState<tacData[]>([]);
+  // const [DataSchedules, setDataSchedules] = useState<schedulesInterface[]>([]);
 
   useEffect(() => {
     loadDataTest();
@@ -44,6 +51,29 @@ function Page() {
   //     setDataTac(tacConvertido);
   //   }
   // }, [ProgramacionAcademicaData]);
+
+  useEffect(() => {
+    if (balancaDatarray.length !== 0) {
+      const uniqueCombinations = new Set<string>();
+      const result: esquemaFrecuenciaHorario[] = [];
+
+      balancaDatarray.forEach(
+        (item: { NombreFrecuencia: string; HorarioInicio: string; HorarioFin: string }) => {
+          const comboKey = `${item.NombreFrecuencia}, ${item.HorarioInicio} - ${item.HorarioFin}`;
+
+          if (!uniqueCombinations.has(comboKey)) {
+            uniqueCombinations.add(comboKey);
+            result.push({
+              frecuencia:
+                frecuenciaEquivalenteMap[item.NombreFrecuencia] || item.NombreFrecuencia,
+              horario: `${item.HorarioInicio} - ${item.HorarioFin}`,
+            });
+          }
+        }
+      );
+      console.log('Combinaciones únicas como objetos:', result);
+    }
+  }, [balancaDatarray]);
 
   const [data, setData] = useState('');
 

@@ -11,9 +11,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let pool;
 
   try {
-    const { idPeriod, idVersion } = req.query;
+    const { idPeriod } = req.query;
 
-    if (!idPeriod || !idVersion) {
+    if (!idPeriod) {
       return res
         .status(400)
         .json({ message: 'Faltan campos en el query string', data: false });
@@ -21,15 +21,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     pool = await connectToDatabase();
 
-    let selectedVersion = idVersion;
-    if (idVersion === '-1') {
-      const result = await pool.request().input('id', idPeriod).query(`
+    const result = await pool.request().input('id', idPeriod).query(`
         SELECT TOP 1 idVersion
         FROM (SELECT DISTINCT idVersion FROM [dbo].[ad_programacionAcademica] WHERE idPeriodo = @id) AS DistinctVersions
         ORDER BY idVersion DESC;
       `);
-      selectedVersion = result.recordset.length > 0 ? result.recordset[0].idVersion : '0';
-    }
+
+    const selectedVersion = result.recordset.length > 0 ? result.recordset[0].idVersion : '0';
 
     const resultData = await pool
       .request()
@@ -37,38 +35,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .input('idVersion', selectedVersion).query(`
         IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
-          SELECT PA.*, D.NombreCompletoProfesor, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
-            A.identificadorFisico, D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-            C.codigoCurso, S.nombreSede 
+          SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
+           D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
+           S.nombreSede , (H.MinutosReal * aux.NumDias) as minutosCurso  , (H.MinutosReal * aux.NumDias)/(36*60.0) as carga
           FROM [dbo].[ad_programacionAcademica] AS PA  
           LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = @id
-          LEFT JOIN ad_aula AS A ON A.idAula = PA.idAula AND A.periodo = @id
-          INNER JOIN ad_curso AS C ON C.idCurso = PA.idCurso AND C.periodo = @id
           INNER JOIN ad_horario AS H ON H.idHorario = PA.idHorario AND H.periodo = @id
           INNER JOIN ad_frecuencia AS F ON F.idFrecuencia = PA.idFrecuencia AND F.periodo = @id
           INNER JOIN ad_sede AS S ON S.idSede = PA.idSede AND S.periodo = @id
-          WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0
+		  OUTER APPLY (
+			SELECT TOP 1 aux.NumDias
+			FROM [dbo].[aux_intensidad_fase] AS aux
+			WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase
+				AND PA.idPeriodo = aux.PeriodoAcademico
+                              				) AS aux
+          WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0 and S.nombreSede<>'virtual'
+          and S.nombreSede <> 'VECOR'
+		  ORDER BY F.NombreFrecuencia ,H.HorarioInicio
         END
         ELSE
         BEGIN
-          SELECT PA.*, D.NombreCompletoProfesor, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
-            A.identificadorFisico, D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-            C.codigoCurso, S.nombreSede 
+         SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
+           D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
+           S.nombreSede , (H.MinutosReal * aux.NumDias) as minutosCurso  , (H.MinutosReal * aux.NumDias)/(36*60.0) as carga
           FROM [dbo].[ad_programacionAcademica] AS PA  
           LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = 1
-          LEFT JOIN ad_aula AS A ON A.idAula = PA.idAula AND A.periodo = 1
-          INNER JOIN ad_curso AS C ON C.idCurso = PA.idCurso AND C.periodo = 1
           INNER JOIN ad_horario AS H ON H.idHorario = PA.idHorario AND H.periodo = 1
           INNER JOIN ad_frecuencia AS F ON F.idFrecuencia = PA.idFrecuencia AND F.periodo = 1
           INNER JOIN ad_sede AS S ON S.idSede = PA.idSede AND S.periodo = 1
-          WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0 
+		  OUTER APPLY (
+			SELECT TOP 1 aux.NumDias
+			FROM [dbo].[aux_intensidad_fase] AS aux
+			WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase
+				AND PA.idPeriodo = aux.PeriodoAcademico
+                              				) AS aux
+          WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 
+          AND PA.cancelado = 0 and S.nombreSede<>'virtual' and S.nombreSede <> 'VECOR'
+		  ORDER BY  F.NombreFrecuencia ,H.HorarioInicio
         END
       `);
 
     const responseMessage =
-      idVersion === '-1'
-        ? `Asignación docente del periodo ${idPeriod}, última versión encontrada correctamente`
-        : `Asignación docente del periodo ${idPeriod} y la versión ${idVersion} encontrada correctamente`;
+      'data de balance  del periodo ${idPeriod}, última versión encontrada correctamente';
 
     return res.status(200).json({
       message: responseMessage,

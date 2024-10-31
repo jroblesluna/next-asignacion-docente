@@ -72,6 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             	AND D.FechaInicioContrato IS NOT NULL 
             	AND  D.idSede <> @idVirtual
             	and  D.periodo=@id
+              	AND S.vigente=1
             GROUP BY
             	S.idSede,
             	S.NombreSede
@@ -109,6 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             	AND D.FechaInicioContrato IS NOT NULL 
             	AND  D.idSede <> @idVirtual
             	and  D.periodo=1
+              				AND S.vigente=1
             GROUP BY
             	S.idSede,
             	S.NombreSede
