@@ -186,7 +186,7 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
             teacher={teacher}
             idRow={assignmentId}
             teacherId={teacherId}
-            dataRecomended={['Juna diaz', 'pedro ruiz', 'alfin dei']}
+            dataRecomended={[]}
           />
         ) : (
           <p>{teacher}</p>

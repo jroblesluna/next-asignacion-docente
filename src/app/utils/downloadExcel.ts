@@ -1,7 +1,13 @@
 import ExcelJS, { Workbook, Worksheet } from 'exceljs';
 import { saveAs } from 'file-saver';
 
-import { ProgramacionAcademica, tacData } from '../interface/datainterface';
+import {
+  balanceDataInterface,
+  esquemaFrecuenciaHorario,
+  ProgramacionAcademica,
+  ratioData,
+  tacData,
+} from '../interface/datainterface';
 import { timeDaily, timeWeekend } from '../constants/data';
 import { containsDaysOfWeek, isTimeInRange } from './managmentTime';
 
@@ -174,5 +180,146 @@ export const downloadExcelTac = (data: tacData[]) => {
   workbook.xlsx.writeBuffer().then((buffer) => {
     const blob = new Blob([buffer], { type: 'application/octet-stream' });
     saveAs(blob, 'Teacher_Assignment_Report.xlsx');
+  });
+};
+
+export const exportBalance = (
+  ratiosData: ratioData[],
+  balancaDatarray: balanceDataInterface[],
+  filteredSchedules: esquemaFrecuenciaHorario[],
+  frecuenciaEquivalenteMap: Record<string, string>,
+  periodo: string
+) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('ReporteBalance' + periodo);
+
+  // Configuración de estilos para las celdas de cabecera
+  const headerStyle = {
+    fill: {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '062060' }, // Fondo azul oscuro
+    },
+    font: {
+      color: { argb: 'FFFFFF' }, // Texto blanco
+      bold: true,
+      size: 11,
+    },
+    alignment: { vertical: 'middle', horizontal: 'center' },
+  };
+
+  // Definir las cabeceras con sus anchos
+  const columns = [
+    { header: 'FRECUENCIA', key: 'frecuencia', width: 15 },
+    { header: 'HORARIO', key: 'horario', width: 15 },
+    { header: 'TOTAL', key: 'total', width: 10 },
+    ...ratiosData.map((item) => ({
+      header: item.NombreSede,
+      key: `sede_${item.idSede}`,
+      width: 20,
+    })),
+    { header: '', key: 'empty', width: 5 },
+    ...ratiosData.map((item) => ({
+      header: item.NombreSede,
+      key: `ratio_${item.idSede}`,
+      width: 20,
+    })),
+  ];
+
+  worksheet.columns = columns;
+
+  worksheet.getRow(1).eachCell((cell) => {
+    Object.assign(cell, headerStyle);
+  });
+
+  // Add Full Time Row
+  const ftRow = [
+    '',
+    'FULL TIME',
+    ratiosData.reduce((acc, item) => acc + item.FT, 0),
+    ...ratiosData.map((item) => item.FT),
+    '',
+    ...ratiosData.map((item) => `${item.Ratio.toFixed(2)}%`),
+  ];
+  worksheet.addRow(ftRow);
+
+  // Add Part Time Row
+  const ptRow = [
+    '',
+    'PART TIME',
+    ratiosData.reduce((acc, item) => acc + item.PT, 0),
+    ...ratiosData.map((item) => item.PT),
+    balancaDatarray.filter((row) => row.idDocente === null).length,
+    '',
+  ];
+  worksheet.addRow(ptRow);
+
+  // Add Ratio Row
+  const totalFTPT = ratiosData.reduce((acc, item) => acc + item.FT + item.PT / 3, 0);
+  const ratioRow = [
+    '',
+    'RATIO',
+    totalFTPT.toFixed(2),
+    ...ratiosData.map((item) => `${item.Ratio.toFixed(2)}%`),
+    '',
+    ...ratiosData.map((item) => {
+      const cargaMod = balancaDatarray.reduce(
+        (acc, row) => (row.nombreSede === item.NombreSede ? acc + row.carga : acc),
+        0
+      );
+      const denom = item.FT + item.PT / 3;
+      return denom !== 0 ? (cargaMod / denom).toFixed(2) : '';
+    }),
+  ];
+  worksheet.addRow(ratioRow);
+
+  // Add filtered schedules
+  filteredSchedules.forEach((item) => {
+    const row = [
+      item.frecuencia,
+      item.horario,
+      balancaDatarray.filter(
+        (row) =>
+          frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+          `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario
+      ).length,
+      ...ratiosData.map((location) => {
+        const count = balancaDatarray.filter(
+          (row) =>
+            frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+            `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario &&
+            row.nombreSede === location.NombreSede &&
+            row.idDocente !== null
+        ).length;
+        return count;
+      }),
+      balancaDatarray.filter(
+        (row) =>
+          frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+          `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario &&
+          row.idDocente === null
+      ).length,
+      ...ratiosData.map((location) => {
+        const totalMatches = balancaDatarray.filter(
+          (row) =>
+            frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+            `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario
+        ).length;
+        if (totalMatches === 0) return '';
+        const matchCount = balancaDatarray.filter(
+          (row) =>
+            frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+            `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario &&
+            row.nombreSede === location.NombreSede
+        ).length;
+        return `${((matchCount / totalMatches) * 100).toFixed(2)}%`;
+      }),
+    ];
+    worksheet.addRow(row);
+  });
+
+  // Save as Excel file
+  workbook.xlsx.writeBuffer().then((buffer) => {
+    saveAs(new Blob([buffer]), 'ReporteBalance' + periodo + '.xlsx');
   });
 };

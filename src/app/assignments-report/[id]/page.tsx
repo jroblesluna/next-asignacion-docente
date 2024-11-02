@@ -112,6 +112,7 @@ const ReportAssignments = () => {
     setData(res.data);
 
     const resSedesData = await assigmentService.getLocation(id);
+    console.log(resSedesData.data);
     setNombresSedeData(resSedesData.data);
   };
 
@@ -216,13 +217,11 @@ const ReportAssignments = () => {
                 onChange={handleSedeChange}
               >
                 <option value="Todas">Todas</option>
-                {nombresSedesData.map((item, index) => {
-                  return (
-                    <option value={item.NombreSede} key={index}>
-                      {item?.NombreSede?.toLowerCase() || ''}{' '}
-                    </option>
-                  );
-                })}
+                {nombresSedesData.map((item, index) => (
+                  <option value={item.NombreSede} key={index}>
+                    {item?.NombreSede?.toLowerCase()}
+                  </option>
+                ))}
               </select>
             </label>
 
@@ -299,7 +298,7 @@ const ReportAssignments = () => {
             setFunction={saludar}
           />
         </div>
-        {ProgramacionAcademicaData.length === 0 ? (
+        {ProgramacionAcademicaData.length === 0 && nombresSedesData.length > 0 ? (
           <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
             <span className="loading loading-bars loading-lg"></span>
           </div>
@@ -331,9 +330,9 @@ const ReportAssignments = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedAssignments.map((assignment) => (
+                {paginatedAssignments.map((assignment, index) => (
                   <ReportAsigmnentTable
-                    key={assignment.assignmentId}
+                    key={index}
                     location={assignment.location}
                     assignmentId={assignment.assignmentId}
                     classroom={assignment.classroom}

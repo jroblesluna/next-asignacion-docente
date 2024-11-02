@@ -17,6 +17,7 @@ const frecuenciaEquivalenteMap: { [key: string]: string } = {
   'Sabatino Dominical': 'SD',
   'Interdiario M-J': 'MJ',
   'Interdiario M-J-S': 'MJS',
+  'Interdiario M-J-V': 'MJV',
   Lunes: 'L',
   Jueves: 'J',
   Martes: 'M',
@@ -40,9 +41,20 @@ const obtenerNumerosPorDias = (frecuencia: string): number[] => {
     case 'LMV':
       numerosDias = [1, 3, 5];
       break;
-
     case 'LV':
       numerosDias = [1, 2, 3, 4, 5];
+      break;
+    case 'LM':
+      numerosDias = [1, 2, 3];
+      break;
+    case 'MV':
+      numerosDias = [2, 3, 5];
+      break;
+    case 'MJS':
+      numerosDias = [2, 4, 7];
+      break;
+    case 'MJV':
+      numerosDias = [2, 4, 5];
       break;
     case 'MJ':
       numerosDias = [2, 4];
@@ -56,8 +68,21 @@ const obtenerNumerosPorDias = (frecuencia: string): number[] => {
     case 'D':
       numerosDias = [7];
       break;
+    case 'L':
+      numerosDias = [1];
+      break;
+    case 'M':
+      numerosDias = [2, 3];
+      break;
+    case 'J':
+      numerosDias = [4];
+      break;
+    case 'V':
+      numerosDias = [5];
+      break;
+
     default:
-      throw new Error('Frecuencia no válida');
+      throw new Error('Frecuencia no válidaASDASD');
   }
 
   return numerosDias;
@@ -800,6 +825,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             VALUES (${escenario.escenario},${cursosXsede.idCurso}, ${cursosXsede.idFrecuencia}, null , ${cursosXsede.idHorario}
                             , ${cursosXsede.minutosTotales}, ${sede.idSede},${periodo},0,1,${cursosXsede.uuuidProgramacionAcademica},${version});`;
 
+              if (ListaDocentes.length === 0) {
+                console.log('No se encontraron docente para el curso: ' + cursosXsede.idCurso);
+              }
               console.log(
                 'CURSO NO INSERTADO - ' +
                   cursosXsede.idCurso +
@@ -1073,10 +1101,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       console.error('Error en la API:', error);
       return res.status(500).json({ message: 'Error en la consulta', error });
-    } finally {
-      if (pool) {
-        pool.close();
-      }
     }
   } else {
     res.setHeader('Allow', ['GET']);

@@ -16,6 +16,7 @@ import {
 } from '@/app/interface/datainterface';
 import assigmentService from '@/services/assigment';
 import { frecuenciaEquivalenteMap } from '@/app/utils/other';
+import { exportBalance } from '@/app/utils/downloadExcel';
 const Page = () => {
   const { id } = useParams() as { id: string };
   const [timeStart, setTimeStart] = useState<string>('06:00');
@@ -87,6 +88,20 @@ const Page = () => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const descargarBalance = () => {
+    if (ratiosData.length > 0 && balancaDatarray.length > 0 && filteredSchedules.length > 0) {
+      exportBalance(
+        ratiosData,
+        balancaDatarray,
+        filteredSchedules,
+        frecuenciaEquivalenteMap,
+        id
+      );
+    } else {
+      alert('error');
+    }
+  };
 
   useEffect(() => {
     if (balancaDatarray.length !== 0) {
@@ -178,7 +193,12 @@ const Page = () => {
               </select>
             </label>
           </div>
-          <button className="bg-[#50B403] font-roboto py-2 px-8 w-56 text-[14px] text-white font-semibold hover:opacity-80  flex flex-row items-center ">
+          <button
+            className="bg-[#50B403] font-roboto py-2 px-8 w-56 text-[14px] text-white font-semibold hover:opacity-80  flex flex-row items-center "
+            onClick={() => {
+              descargarBalance();
+            }}
+          >
             <Image
               className="size-7"
               width={20}
@@ -268,7 +288,12 @@ const Page = () => {
                       {item.PT}
                     </td>
                   ))}
-                  <td></td>
+                  <td className="text-center border font-bold">
+                    {
+                      balancaDatarray.filter((rowBalance) => rowBalance.idDocente === null)
+                        .length
+                    }
+                  </td>
                   <td></td>
                 </tr>
 
@@ -287,6 +312,7 @@ const Page = () => {
                     </td>
                   ))}
                   <td></td>
+                  {/* carga modificacion extraña */}
                   {ratiosData.map((item) => (
                     <td key={item.idSede} className="text-center border">
                       {(
@@ -299,7 +325,7 @@ const Page = () => {
                         ) /
                         ((item.NombreSede === item.NombreSede ? item.FT : 0) +
                           (item.NombreSede === item.NombreSede ? item.PT : 0) / 3)
-                      ).toFixed(2) + '%'}
+                      ).toFixed(2)}
                     </td>
                   ))}
                 </tr>
@@ -330,13 +356,25 @@ const Page = () => {
                                   item.frecuencia &&
                                 `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                   item.horario &&
-                                rowBalance.nombreSede === itemLocation.NombreSede
+                                rowBalance.nombreSede === itemLocation.NombreSede &&
+                                rowBalance.idDocente !== null
                             ).length
                           }
                         </td>
                       ))}
+                      <td className="text-center border" key={index}>
+                        {
+                          balancaDatarray.filter(
+                            (rowBalance) =>
+                              frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
+                                item.frecuencia &&
+                              `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                item.horario &&
+                              rowBalance.idDocente === null
+                          ).length
+                        }
+                      </td>
 
-                      <td>xx</td>
                       {ratiosData.map((itemLocation, index) => (
                         <td className="text-center border" key={index}>
                           {balancaDatarray.filter(

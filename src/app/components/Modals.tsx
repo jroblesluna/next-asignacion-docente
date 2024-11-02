@@ -54,7 +54,7 @@ export const ModalWarning: React.FC<ModalProps> = ({
                     setCargando(true);
                     setTimeout(() => {
                       window.location.reload();
-                    }, 2000);
+                    }, 3000);
 
                     // const modal = document.getElementById(idModal) as HTMLDialogElement;
                     // modal?.close();
@@ -94,6 +94,7 @@ interface teacherDisponibility {
   nombre: string;
   tipoContrato: string;
   minutosTotales: string;
+  nombreSede: string;
 }
 
 export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
@@ -136,6 +137,9 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
             mutation.attributeName === 'open' &&
             modal.open
           ) {
+            setSelectNewTeacher('-1');
+            setNewIdTeacher('');
+            setData([]);
             loadData();
           }
         }
@@ -176,26 +180,32 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
           <div className="modal-action">
             <form method="dialog" className="flex w-full flex-col">
               <div className="w-full overflow-auto min-h-[400px] max-h-[400px] ">
-                <table className="w-full">
-                  <thead>
-                    <tr className="uppercase border overflow-hidden font-inter text-start sticky top-0 bg-white">
-                      <th className="py-2">LISTA DE DOCENTES DISPONIBLES</th>
-                    </tr>
-                  </thead>
+                <div className=" text-center font-bold">LISTA DE DOCENTES DISPONIBLES</div>
+
+                <table className="w-full mt-10">
                   {data.length === 0 ? (
-                    <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
-                      <span className="loading loading-bars loading-lg"></span>
-                    </div>
+                    <tbody>
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]"
+                        >
+                          <span className="loading loading-bars loading-lg"></span>
+                        </td>
+                      </tr>
+                    </tbody>
                   ) : (
                     <tbody>
                       {data.map((item, index) => (
                         <tr
                           key={index}
                           className={
-                            'border w-full cursor-pointer hover:bg-cyan-300 ' +
+                            (data[0].id !== -1
+                              ? 'border w-full cursor-pointer hover:bg-cyan-300'
+                              : 'border ') +
                             (selectNewTeacher.toLowerCase() === item.nombre.toLowerCase() &&
-                            data[0].id != -1
-                              ? 'bg-cyan-400'
+                            data[0].id !== -1
+                              ? ' bg-cyan-400'
                               : '')
                           }
                           onClick={() => {
@@ -205,9 +215,10 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
                             }
                           }}
                         >
-                          <td className="py-1 px-5 ">{item.nombre}</td>
-                          <td className="py-1 px-5 ">{item.tipoContrato}</td>
-                          <td className="py-1 px-5 ">{item.minutosTotales}</td>
+                          <td className="py-1 px-5">{item.nombre}</td>
+                          <td className="py-1 px-5">{item.tipoContrato}</td>
+                          <td className="py-1 px-5">{item.minutosTotales}</td>
+                          <td className="py-1 px-5">{item.nombreSede}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -220,7 +231,10 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
                   className="bg-primary py-2 text-white font-semibold hover:bg-primary_light w-48 text-center"
                   onClick={() => {
                     const modal = document.getElementById(idModal) as HTMLDialogElement;
-                    onhandleClick(selectNewTeacher, selectNewIdTeacher);
+                    if (data[0].id !== -1) {
+                      onhandleClick(selectNewTeacher, selectNewIdTeacher);
+                    }
+
                     setSelectNewTeacher('-1');
                     modal?.close();
                   }}
@@ -265,7 +279,7 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
   const { assignments, setAssignments, setModifications, period, LastVersionID } = context;
 
   const loadData = async () => {
-    const res = await teacherService.getDisponibility(period, idRow, LastVersionID);
+    const res = await teacherService.getCompatibility(period, idRow, LastVersionID);
     console.log(res.data);
     setData(res.data);
   };
@@ -287,6 +301,9 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
             mutation.attributeName === 'open' &&
             modal.open
           ) {
+            setSelectNewTeacher('-1');
+            setNewIdTeacher('');
+            setData([]);
             loadData();
           }
         }
@@ -327,16 +344,22 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
           <div className="modal-action">
             <form method="dialog" className="flex w-full flex-col">
               <div className="w-full overflow-auto min-h-[400px] max-h-[400px] ">
-                <table className="w-full">
-                  <thead>
-                    <tr className="uppercase border overflow-hidden font-inter text-start sticky top-0 bg-white">
-                      <th className="py-2">LISTA DE DOCENTES COMPATIBLES Y RECOMENDADOS</th>
-                    </tr>
-                  </thead>
+                <div className=" text-center font-bold">
+                  LISTA DE DOCENTES COMPATIBLES Y RECOMENDADOS
+                </div>
+
+                <table className="w-full mt-10">
                   {data.length === 0 ? (
-                    <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
-                      <span className="loading loading-bars loading-lg"></span>
-                    </div>
+                    <tbody>
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]"
+                        >
+                          <span className="loading loading-bars loading-lg"></span>
+                        </td>
+                      </tr>
+                    </tbody>
                   ) : (
                     <tbody>
                       {data.map((item, index) => (
@@ -344,11 +367,11 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
                           key={index}
                           className={
                             (data[0].id !== -1
-                              ? 'border w-full cursor-pointer hover:bg-cyan-300 '
+                              ? 'border w-full cursor-pointer hover:bg-cyan-300'
                               : 'border ') +
-                            +(selectNewTeacher.toLowerCase() === item.nombre.toLowerCase() &&
+                            (selectNewTeacher.toLowerCase() === item.nombre.toLowerCase() &&
                             data[0].id !== -1
-                              ? 'bg-cyan-400'
+                              ? ' bg-cyan-400'
                               : '')
                           }
                           onClick={() => {
@@ -358,9 +381,10 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
                             }
                           }}
                         >
-                          <td className="py-1 px-5 ">{item.nombre}</td>
-                          <td className="py-1 px-5 ">{item.tipoContrato}</td>
-                          <td className="py-1 px-5 ">{item.minutosTotales}</td>
+                          <td className="py-1 px-5">{item.nombre}</td>
+                          <td className="py-1 px-5">{item.tipoContrato}</td>
+                          <td className="py-1 px-5">{item.minutosTotales}</td>
+                          <td className="py-1 px-5">{item.nombreSede}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -373,7 +397,10 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
                   className="bg-primary py-2 text-white font-semibold hover:bg-primary_light w-48 text-center"
                   onClick={() => {
                     const modal = document.getElementById(idModal) as HTMLDialogElement;
-                    onhandleClick(selectNewTeacher, selectNewIdTeacher);
+                    if (data[0].id !== -1) {
+                      onhandleClick(selectNewTeacher, selectNewIdTeacher);
+                    }
+
                     setSelectNewTeacher('-1');
                     modal?.close();
                   }}

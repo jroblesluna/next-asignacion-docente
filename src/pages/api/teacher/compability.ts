@@ -242,20 +242,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         resultDocentes = await pool
           .request()
           .input('id', idPeriod)
+          .input('idCurso', resultCurso.recordset[0]?.idCurso)
           .input('tiempoCurso', resultCurso.recordset[0]?.minutosTotales)
           .input('version', version).query(`
-                SELECT 					D.idDocente as DocenteID,
+            SELECT LD.*, 
                    D.NombreCompletoProfesor, 
-                     D.nombreSede,
                    D.FechaInicioContrato,
+                     D.nombreSede,
                    ISNULL((SELECT SUM(H.MinutosReal * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
-                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
+                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                     INNER JOIN [dbo].[aux_intensidad_fase] aux 
                     ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id  
-                    AND t2.idDocente = D.idDocente
-                    AND t2.idPeriodo = @id  
+                    WHERE aux.PeriodoAcademico = @id
+                    AND t2.idDocente = LD.DocenteID
+                    AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) AS MinutosAcumulados, 
                    D.idTipoContrato, 
@@ -264,42 +265,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    ISNULL(
                        ((ISNULL((SELECT SUM(H.MinutosReal * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
-                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id  
+                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                     INNER JOIN [dbo].[aux_intensidad_fase] aux 
                     ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id  
-                    AND t2.idDocente = D.idDocente
-                    AND t2.idPeriodo =@id  
+                    WHERE aux.PeriodoAcademico = @id
+                    AND t2.idDocente = LD.DocenteID
+                    AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) + @tiempoCurso) / CAST((TC.HoraSemana * 60 * 4) AS DECIMAL(10, 2))), 0
                    ) AS Equidad
-            FROM  [dbo].[ad_docente] AS D 
-			    INNER JOIN [dbo].[dim_tipo_contrato] AS TC ON TC.TipoContratoID = D.idTipoContrato
-			    WHERE
-             D.periodo = @id  AND
-             D.vigente=1
-			AND D.FechaInicioContrato IS NOT NULL
+            FROM [dbo].[LibroPorDocente] AS LD
+            INNER JOIN [dbo].[ad_docente] AS D ON D.idDocente = LD.docenteID 
+                AND D.periodo = @id 
+                AND D.FechaInicioContrato IS NOT NULL
+            INNER JOIN [dbo].[dim_tipo_contrato] AS TC ON TC.TipoContratoID = D.idTipoContrato
+            WHERE LD.CursoID = @idCurso
+            AND D.vigente=1
             ORDER BY Equidad
         `);
       } else {
         resultDocentes = await pool
           .request()
           .input('id', idPeriod)
+          .input('idCurso', resultCurso.recordset[0]?.idCurso)
           .input('tiempoCurso', resultCurso.recordset[0]?.minutosTotales)
           .input('idSede', idSedeCurso)
           .input('version', version).query(`
-            SELECT 					D.idDocente as DocenteID,
+            SELECT LD.*, 
                    D.NombreCompletoProfesor, 
                      D.nombreSede,
                    D.FechaInicioContrato,
                    ISNULL((SELECT SUM(H.MinutosReal * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
-                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
+                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                     INNER JOIN [dbo].[aux_intensidad_fase] aux 
                     ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id  
+                    WHERE aux.PeriodoAcademico = @id
                     AND t2.idDocente = D.idDocente
-                    AND t2.idPeriodo = @id  
+                    AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) AS MinutosAcumulados, 
                    D.idTipoContrato, 
@@ -308,22 +311,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    ISNULL(
                        ((ISNULL((SELECT SUM(H.MinutosReal * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
-                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id  
+                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                     INNER JOIN [dbo].[aux_intensidad_fase] aux 
                     ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id  
+                    WHERE aux.PeriodoAcademico = @id
                     AND t2.idDocente = D.idDocente
-                    AND t2.idPeriodo =@id  
+                    AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) + @tiempoCurso) / CAST((TC.HoraSemana * 60 * 4) AS DECIMAL(10, 2))), 0
                    ) AS Equidad
-            FROM  [dbo].[ad_docente] AS D 
-			    INNER JOIN [dbo].[dim_tipo_contrato] AS TC ON TC.TipoContratoID = D.idTipoContrato
-			    WHERE
-             D.periodo = @id  AND
-             D.vigente=1
-			AND D.FechaInicioContrato IS NOT NULL
-			AND D.idSede=@idSede
+            FROM [dbo].[LibroPorDocente] AS LD
+            INNER JOIN [dbo].[ad_docente] AS D ON D.idDocente = LD.docenteID 
+                AND D.periodo = @id 
+                AND D.FechaInicioContrato IS NOT NULL
+                AND D.idSede=@idSede
+                AND D.vigente=1
+            INNER JOIN [dbo].[dim_tipo_contrato] AS TC ON TC.TipoContratoID = D.idTipoContrato
+            WHERE LD.CursoID = @idCurso
             ORDER BY Equidad
         `);
       }
@@ -338,7 +342,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const ListaDocentes = resultDocentes.recordset;
 
-      console.log(ListaDocentes);
       const DocentesActos: DocenteInterface[] = [];
 
       for (const docente of ListaDocentes) {
@@ -442,9 +445,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           nombreSede: docente.nombreSede,
         });
 
-        // if (DocentesActos.length > 100) {
-        //   break;
-        // }
+        if (DocentesActos.length > 5) {
+          break;
+        }
       }
 
       if (DocentesActos.length === 0) {
@@ -462,6 +465,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       console.error('Error en la API:', error);
       return res.status(500).json({ message: 'Error en la consulta', error });
+    } finally {
+      if (pool) {
+        pool.close();
+      }
     }
   } else {
     res.setHeader('Allow', ['GET']);

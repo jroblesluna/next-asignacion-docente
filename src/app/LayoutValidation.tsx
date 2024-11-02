@@ -12,11 +12,23 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
   const accounts = instance.getAllAccounts();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  // const requiredGroupId = '7094a90a-d29d-4298-a613-2fb59f8eaf77';
   useEffect(() => {
     if (inProgress === 'none') {
       const authenticated = accounts.some((account) => !!account.idToken);
       setIsAuthenticated(authenticated);
+      // if (authenticated) {
+      //   const account = accounts[0];
+      //   const userGroups = account.idTokenClaims?.groups || [];
+      //   console.log(account.idTokenClaims);
+      //   alert(account.idTokenClaims);
+      //   if (Array.isArray(userGroups) && userGroups.includes(requiredGroupId)) {
+      //     setIsAuthenticated(true);
+      //   } else {
+      //     setIsAuthenticated(false);
+      //   }
+      // }
+
       setLoading(false);
     }
   }, [accounts, inProgress]);
@@ -44,6 +56,7 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
       .catch((e) => {
         console.error(e);
       });
+
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">

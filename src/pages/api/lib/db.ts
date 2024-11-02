@@ -9,6 +9,7 @@ interface DBConfig {
   options: {
     encrypt: boolean;
     trustServerCertificate: boolean;
+    requestTimeout: number;
   };
 }
 
@@ -21,6 +22,7 @@ const config: DBConfig = {
   options: {
     encrypt: true,
     trustServerCertificate: false,
+    requestTimeout: 60000,
   },
 };
 

@@ -32,6 +32,22 @@ const teacherService = {
       return null;
     }
   },
+
+  getCompatibility: async (idPeriod: string, uuidSlot: string, version: string) => {
+    try {
+      const { data } = await axios.get(BASE_URL + `/compability`, {
+        params: {
+          idPeriod,
+          uuidSlot,
+          version,
+        },
+      });
+      return data;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  },
 };
 
 export default teacherService;
