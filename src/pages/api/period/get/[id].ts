@@ -24,9 +24,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .query('SELECT  * FROM [dbo].[ad_periodo] where idPeriodo=@id');
 
       if (result.recordset.length === 0) {
-        return res.status(404).json({
+        return res.status(200).json({
           message: `Período con ID ${id} no encontrado`,
-          data: false,
+          data: null,
         });
       }
 

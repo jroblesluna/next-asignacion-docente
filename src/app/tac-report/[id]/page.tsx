@@ -58,6 +58,10 @@ const Page = () => {
 
   const loadData = async () => {
     const resPerido = await periodService.getById(id);
+    if (!resPerido.data) {
+      alert('No se encontraron datos del periodo. Redirigiendo a la página principal.');
+      window.location.href = '/history';
+    }
     setDataPeriodo(resPerido.data[0]);
     const resVersion = await versionService.getAll(id);
     setDataVersion(resVersion.data);

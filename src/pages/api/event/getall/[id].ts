@@ -10,28 +10,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'ID de periodo académico no proporcionado' });
     }
 
-    let pool; // Declaración del pool fuera del try para cerrar la conexión en finally
+    let pool;
 
     try {
       pool = await connectToDatabase();
 
       // Consulta a la base de datos
-      const result = await pool.request().query('SELECT * FROM test');
+      const result = await pool.request().input('id', id).query(`
+                SELECT  FORMAT(fechaCambio, 'dd-MM-yyyy') AS "date",
+       FORMAT(fechaCambio, 'HH:mm') AS "time",descripcion as description,tipoEvento as name,estado FROM  ad_evento WHERE periodo=@id`);
 
       return res.status(200).json({
         message: `Eventos del periodo ${id} encontrados correctamente`,
         data: result.recordset,
       });
-
     } catch (error) {
       console.error('Error en la API:', error);
       return res.status(500).json({ message: 'Error en la consulta', error });
-
-    } finally {
-      // Cerrar la conexión al pool en caso de éxito o error
-      if (pool) {
-        pool.close();
-      }
     }
   } else {
     // Manejar el caso de método no permitido

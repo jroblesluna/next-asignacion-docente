@@ -1,122 +1,37 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
 import { ModalWarning } from '../../components/Modals';
 import { TableEventReport } from '../../components/Rows';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import LayoutValidation from '@/app/LayoutValidation';
 import Image from 'next/image';
+import { EventoData, PeriodoAcademico } from '@/app/interface/datainterface';
+import periodService from '@/services/period';
+import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
+import eventService from '@/services/evento';
 
 const Page = () => {
   const { id } = useParams() as { id: string };
+  const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
+  const [dataEvento, setDataEvento] = useState<EventoData[]>([]);
 
-  const EventTable = [
-    {
-      name: 'CURSO ASIGNADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '12/09/2024',
-      time: '09:30',
-      status: 'No iniciado',
-    },
-    {
-      name: 'CURSO ASIGNADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '12/09/2024',
-      time: '09:30',
-      status: 'No iniciado',
-    },
-    {
-      name: 'CURSO ASIGNADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '12/09/2024',
-      time: '09:30',
-      status: 'No iniciado',
-    },
-    {
-      name: 'CURSO ASIGNADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '12/09/2024',
-      time: '09:30',
-      status: 'No iniciado',
-    },
-    {
-      name: 'CURSO ASIGNADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '12/09/2024',
-      time: '09:30',
-      status: 'No iniciado',
-    },
-    {
-      name: 'CURSO POSTERGADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '11/09/2024',
-      time: '14:00',
-      status: 'Ejecutado',
-    },
-    {
-      name: 'CURSO POSTERGADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '11/09/2024',
-      time: '14:00',
-      status: 'Ejecutado',
-    },
-    {
-      name: 'CURSO POSTERGADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '11/09/2024',
-      time: '14:00',
-      status: 'Ejecutado',
-    },
-    {
-      name: 'CURSO POSTERGADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '11/09/2024',
-      time: '14:00',
-      status: 'Ejecutado',
-    },
-    {
-      name: 'CURSO POSTERGADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '11/09/2024',
-      time: '14:00',
-      status: 'Ejecutado',
-    },
-    {
-      name: 'CURSO POSTERGADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '11/09/2024',
-      time: '14:00',
-      status: 'Ejecutado',
-    },
-    {
-      name: 'CURSO POSTERGADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '11/09/2024',
-      time: '14:00',
-      status: 'Ejecutado',
-    },
-    {
-      name: 'CURSO POSTERGADO',
-      description:
-        'codigo curso, horario, docente (apellido, nombre) sede (sede docente si es virtual)',
-      date: '11/09/2024',
-      time: '14:00',
-      status: 'Ejecutado',
-    },
-  ];
+  const loadData = async () => {
+    const resPerido = await periodService.getById(id);
+    if (!resPerido.data) {
+      alert('No se encontraron datos del periodo. Redirigiendo a la página principal.');
+      window.location.href = '/history';
+    }
+    setDataPeriodo(resPerido.data[0]);
+    const resEvent = await eventService.getAll(id);
+    setDataEvento(resEvent.data);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const [selectedState, setSelectedState] = useState('Todas');
 
@@ -125,9 +40,9 @@ const Page = () => {
   };
 
   // Filtra los eventos según el estado seleccionado
-  const filteredEvents = EventTable.filter((event) => {
+  const filteredEvents = dataEvento.filter((event) => {
     if (selectedState.toLocaleLowerCase() === 'Todas'.toLocaleLowerCase()) return true;
-    return event.status.toLocaleLowerCase() === selectedState.toLocaleLowerCase();
+    return event.estado === true ? 'Ejecutado' : 'No iniciado' === selectedState;
   });
 
   return (
@@ -157,15 +72,22 @@ const Page = () => {
             </button>
           </div>
           <div className="flex flex-row gap-10 items-center">
-            <p>
-              <strong>ID: </strong> {id}
-            </p>
-            <p>
-              <strong>Periodo: </strong> Agosto del 2022
-            </p>
-            <p>
-              <strong>Fecha:</strong> 01/08/2022 - 31/08/2022
-            </p>
+            <div className="flex flex-row gap-2">
+              <strong>Codigo de Periodo: </strong> {id}
+            </div>
+            <div className="flex flex-row gap-2">
+              <strong>Periodo: </strong>
+              <p>{convertirFecha(id)}</p>
+            </div>
+            <div className="flex flex-row gap-2">
+              <strong>Fecha:</strong>
+              <p className={dataPerido?.fechaInicio ? '' : 'skeleton h-4 w-[200px] '}>
+                {dataPerido?.fechaInicio !== undefined &&
+                  ` ${convertirFormatoFecha(
+                    dataPerido?.fechaInicio
+                  )} - ${convertirFormatoFecha(dataPerido?.fechaFinal)} `}
+              </p>
+            </div>
           </div>
           <ModalWarning
             linkTo={'/loading'}
@@ -226,7 +148,7 @@ const Page = () => {
                     date={event.date}
                     description={event.description}
                     name={event.name}
-                    status={event.status}
+                    status={event.estado === true ? 'Ejecutado' : 'No iniciado'}
                     time={event.time}
                   />
                 ))}

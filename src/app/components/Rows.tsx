@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // import { VscDebugBreakpointLog } from 'react-icons/vsc';
 import Image from 'next/image';
 
@@ -174,11 +175,12 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
       <td className="font-inter text-center  py-3">{schedule}</td>
       <td className="font-inter text-center  py-3">{frequency}</td>
       <td className="font-inter text-center py-3">
-        {isEditable ? (
+        {/* {isEditable ? (
           <MultiLevelMenuClassroom classRoom={classroom} data={data} idRow={assignmentId} />
         ) : (
           <p>{classroom}</p>
-        )}
+        )} */}
+        <p>{classroom}</p>
       </td>
       <td className="font-inter text-start  py-3 uppercase">
         {isEditable ? (

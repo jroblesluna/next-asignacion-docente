@@ -146,3 +146,11 @@ export interface esquemaFrecuenciaHorario {
   frecuencia: string;
   horario: string;
 }
+
+export interface EventoData {
+  date: string;
+  time: string;
+  description: string;
+  name: string;
+  estado: boolean;
+}

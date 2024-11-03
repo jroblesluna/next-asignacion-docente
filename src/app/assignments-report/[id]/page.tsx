@@ -107,7 +107,12 @@ const ReportAssignments = () => {
 
   const loadDataTest = async () => {
     const resPerido = await periodService.getById(id);
+    if (!resPerido.data) {
+      alert('No se encontraron datos del periodo. Redirigiendo a la página principal.');
+      window.location.href = '/history';
+    }
     setDataPeriodo(resPerido.data[0]);
+
     const res = await assigmentService.getAll(id, '-1');
     setData(res.data);
     const resSedesData = await assigmentService.getLocation(id);
