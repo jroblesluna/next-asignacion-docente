@@ -10,6 +10,7 @@ function Page() {
   const [isloadingComplete, setIsLoadingComplete] = useState(false);
   const [reprocesoPeriodo, setReprocesoPeriodo] = useState('');
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const loadData = async (p: string, correo: string) => {
     const res = await assigmentService.execute(p, correo);
     setIsLoadingComplete(res.data);
