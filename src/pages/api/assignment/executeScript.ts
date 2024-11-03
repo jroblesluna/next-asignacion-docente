@@ -194,15 +194,13 @@ const disponibleEnFecha = (
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    console.log('GET@/pages/api/assignment/getall.ts');
+    console.log('GET@/pages/api/assignment/executeScript.ts');
     const pool = await connectToDatabase();
 
     try {
-      const { periodo } = req.query;
+      const { periodo, correo } = req.query;
 
-      console.log(periodo);
-
-      if (!periodo) {
+      if (!periodo && !correo) {
         return res
           .status(400)
           .json({ message: 'Faltan campos en el query string', data: false });
@@ -243,8 +241,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await pool.request().input('periodoID', sql.Int, periodo)
         .query(` IF NOT EXISTS (SELECT 1 FROM ad_avanceAlgoritmo WHERE idPeriodo = @periodoID)
                       BEGIN
-                        INSERT INTO ad_avanceAlgoritmo  (idSede, escenario, idSlot, idPeriodo, idVersion)
-                        VALUES (null, null, null, @periodoID,null);
+                        INSERT INTO ad_avanceAlgoritmo  (idSede, escenario, idSlot, idPeriodo, idVersion,correo)
+                        VALUES (null, null, null, @periodoID,null,null);
                       END
                       `);
 
@@ -268,7 +266,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await pool
           .request()
           .input('idPeriodo', sql.Int, periodo)
-          .input('nombreCreador', sql.VarChar, 'sytem')
+          .input('nombreCreador', sql.VarChar, correo)
           .execute('ad_crearVersion');
 
         // SI NO HAY VERSIÓN PARA ESE PERIODO
@@ -798,7 +796,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                           SET idSede = ${sede.idSede},
                                               escenario = ${escenario.escenario},
                                               idSlot = ${cursosXsede.uuuidProgramacionAcademica},
-                                              idVersion = ${version}
+                                              idVersion = ${version},
+                                              correo=${correo}
                                           WHERE idPeriodo = ${periodo};`;
 
               iteradorOrden = 0;
@@ -839,7 +838,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                                   SET idSede = ${sede.idSede},
                                                       escenario = ${escenario.escenario},
                                                       idSlot = ${cursosXsede.uuuidProgramacionAcademica},
-                                                      idVersion = ${version}
+                                                      idVersion = ${version},
+                                                      correo=${correo}
                                                   WHERE idPeriodo = ${periodo};`;
               iteradorOrden = 0;
               continue;
@@ -1076,7 +1076,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                     SET idSede = null,
                                         escenario = null,
                                         idSlot = null,
-                                        idVersion=null
+                                        idVersion=null,
+                                        correo=null
                                     WHERE idPeriodo = ${periodo};`;
 
       // await sql.query`INSERT INTO testLogsTiempo (estado, fechaHoraActual, periodo, escenario, sede)
@@ -1092,7 +1093,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const plainText =
         'Algoritmo de asignación docente terminado exitosamente para el periodo ' + periodo;
 
-      await sendEmail(to, subject, plainText);
+      if (correo) {
+        await sendEmail(correo as string, subject, plainText);
+      }
 
       return res.status(200).json({
         message: 'Algoritmo de asignación docente terminado exitosamente',

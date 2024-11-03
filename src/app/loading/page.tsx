@@ -10,16 +10,27 @@ function Page() {
   const [isloadingComplete, setIsLoadingComplete] = useState(false);
   const [reprocesoPeriodo, setReprocesoPeriodo] = useState('');
 
-  const loadData = async (p: string) => {
-    const res = await assigmentService.execute(p);
+  const loadData = async (p: string, correo: string) => {
+    const res = await assigmentService.execute(p, correo);
     setIsLoadingComplete(res.data);
   };
 
   useEffect(() => {
-    console.log(localStorage.getItem('periodo'));
-    const p = localStorage.getItem('periodo');
-    setReprocesoPeriodo(p || '');
-    loadData(p || '');
+    const periodoId = localStorage.getItem('periodo');
+    const correo = localStorage.getItem('user');
+    const flagReproceso = localStorage.getItem('flagReproceso');
+
+    if (periodoId && correo && flagReproceso === 'true') {
+      localStorage.setItem('flagReproceso', 'false');
+      setReprocesoPeriodo(periodoId);
+      // loadData(periodoId,correo);
+    } else {
+      localStorage.setItem('flagReproceso', 'false');
+      alert(
+        'No  se esta permitido Ingresar directamente. Redirigiendo a la página principal.'
+      );
+      window.location.href = '/home';
+    }
   }, []);
 
   return (

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import NavBar from '../components/NavBar';
 import { ReturnTitle } from '../components/Titles';
 import { HistoryTable } from '../components/Rows';
-import { ModalWarning } from '../components/Modals';
+import { ModalClosedPeriod, ModalWarning } from '../components/Modals';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { es } from 'date-fns/locale';
@@ -73,6 +73,7 @@ function Page() {
   const filteredDataActive = historyData.filter((period) => period.estado === 'ACTIVO');
 
   const savePeriod = (period: string) => {
+    localStorage.setItem('flagReproceso', 'true');
     localStorage.setItem('periodo', period);
   };
 
@@ -149,7 +150,7 @@ function Page() {
             {paginatedData.length !== 0 ? (
               <div className="flex flex-col justify-between min-h-[400px]">
                 {filteredDataActive.map((period) => (
-                  <>
+                  <React.Fragment key={period.idPeriodo}>
                     <ModalWarning
                       linkTo={'/loading'}
                       subtitle="Se perderán las asignaciones manuales guardadas."
@@ -157,15 +158,14 @@ function Page() {
                       idModal={'reprocesar-' + period.idPeriodo}
                       setFunction={savePeriod}
                     />
-                    <ModalWarning
+                    <ModalClosedPeriod
                       linkTo={'/history'}
                       subtitle="Esta acción es irreversible."
                       title="¿Está seguro de cerrar el período?"
                       idModal={'closePeriod-' + period.idPeriodo}
-                      key={period.idPeriodo}
                       setFunction={cerrarPeriodo}
                     />
-                  </>
+                  </React.Fragment>
                 ))}
 
                 <table className="w-full ">

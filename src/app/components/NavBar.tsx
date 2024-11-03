@@ -15,6 +15,7 @@ const NavBar = () => {
         name: accounts[0].name || '',
         username: accounts[0].username || '',
       });
+      localStorage.setItem('user', accounts[0].username || '');
     }
   }, [accounts]);
 

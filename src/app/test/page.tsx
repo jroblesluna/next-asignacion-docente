@@ -8,7 +8,7 @@ import { frecuenciaEquivalenteMap } from '../utils/other';
 // import periodService from '@/services/period';
 // import teacherService from '@/services/teacher';
 // import versionService from '@/services/version';
-
+import Notification from '../components/Notification';
 function Page() {
   const [balancaDatarray, setBalancaDatarray] = useState<balanceDataInterface[]>([]);
 
@@ -76,12 +76,27 @@ function Page() {
   }, [balancaDatarray]);
 
   const [data, setData] = useState('');
+  const [notificationMessage, setNotificationMessage] = useState('');
+
+  const showNotification = (message: string) => {
+    setNotificationMessage(message);
+    setTimeout(() => {
+      setNotificationMessage('');
+    }, 2000);
+  };
 
   return (
     <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
       {/* <p>{ProgramacionAcademicaData[0]?.uuidDocente}</p>
       <p>{JSON.stringify(ProgramacionAcademicaDataTac, null, 2)}</p> */}
       {data}
+      <button
+        onClick={() => showNotification('New mail arrived!')}
+        className="hover:bg-red-400"
+      >
+        Show Notification
+      </button>
+      <Notification message={notificationMessage} estado={'alert-success'} />
     </main>
   );
 }

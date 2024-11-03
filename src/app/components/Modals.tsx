@@ -52,6 +52,66 @@ export const ModalWarning: React.FC<ModalProps> = ({
                   onClick={() => {
                     setFunction(idModal.match(/\d+/)?.[0] || '');
                     setCargando(true);
+                    setTimeout(() => {}, 1000);
+
+                    // const modal = document.getElementById(idModal) as HTMLDialogElement;
+                    // modal?.close();
+                  }}
+                >
+                  Aceptar
+                </Link>
+                <button className="bg-secundary py-2 text-white font-semibold hover:bg-secundary_ligth w-48 ">
+                  Salir
+                </button>
+              </form>
+            </div>
+          </>
+        ) : (
+          <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+            <span className="loading loading-bars loading-lg"></span>
+          </div>
+        )}
+      </div>
+    </dialog>
+  );
+};
+
+export const ModalClosedPeriod: React.FC<ModalProps> = ({
+  linkTo,
+  title,
+  subtitle,
+  idModal,
+  setFunction,
+}) => {
+  const [cargando, setCargando] = useState(false);
+  return (
+    <dialog id={idModal} className="modal overflow-hidden ">
+      <div className="modal-box py-14 px-10">
+        {!cargando ? (
+          <>
+            <div className="flex flex-row gap-5 items-center">
+              <Image
+                alt="img"
+                src={'/warning-icon.svg'}
+                width={20}
+                height={20}
+                className="text-[#FFA500] size-32"
+              />
+              <span className="flex flex-col gap-4">
+                <h3 className="font-bold text-3xl -ml-2">{title}</h3>
+                <p className="font-semibold">{subtitle}</p>
+              </span>
+            </div>
+
+            <div className="modal-action">
+              <form method="dialog" className="flex justify-around w-full">
+                <Link
+                  type="button"
+                  className="bg-primary py-2 text-white font-semibold hover:bg-primary_light w-48 text-center "
+                  href={linkTo}
+                  onClick={() => {
+                    setFunction(idModal.match(/\d+/)?.[0] || '');
+                    setCargando(true);
                     setTimeout(() => {
                       window.location.reload();
                     }, 3000);

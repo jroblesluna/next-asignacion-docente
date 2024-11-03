@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
-import { ModalWarning } from '../../components/Modals';
 import Image from 'next/image';
 import LayoutValidation from '@/app/LayoutValidation';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
@@ -77,11 +76,9 @@ const Page = () => {
     setDataPeriodo(resPerido.data[0]);
     const resRatioData = await assigmentService.getRatiosBalance(id);
     setRatiosData(resRatioData.data);
-    console.log(resRatioData.data);
 
     const resBalanceData = await assigmentService.getDataBalance(id);
     setBalancaDatarray(resBalanceData.data);
-    console.log(resBalanceData.data);
   };
 
   useEffect(() => {
@@ -98,8 +95,6 @@ const Page = () => {
         frecuenciaEquivalenteMap,
         id
       );
-    } else {
-      alert('error');
     }
   };
 
@@ -130,7 +125,6 @@ const Page = () => {
           balancaDatarray.map((item: { nombreSedeAlojada: string }) => item.nombreSedeAlojada)
         )
       );
-      console.log(uniqueSedesAlojadas);
       setLocationData(uniqueSedesAlojadas);
     }
   }, [balancaDatarray]);
@@ -208,15 +202,6 @@ const Page = () => {
             />
             Descargar Reporte
           </button>
-          <ModalWarning
-            linkTo={'/history'}
-            subtitle="Esta acción es irreversible."
-            title="¿Está seguro de cerrar el período?"
-            idModal="my_modal_3"
-            setFunction={(s: string) => {
-              console.log(s);
-            }}
-          />
         </div>
 
         {ratiosData.length === 0 ||

@@ -110,9 +110,7 @@ const ReportAssignments = () => {
     setDataPeriodo(resPerido.data[0]);
     const res = await assigmentService.getAll(id, '-1');
     setData(res.data);
-
     const resSedesData = await assigmentService.getLocation(id);
-    console.log(resSedesData.data);
     setNombresSedeData(resSedesData.data);
   };
 
@@ -245,25 +243,26 @@ const ReportAssignments = () => {
               />
               Descargar Reporte
             </button>
-
-            <button
-              className="bg-primary font-roboto py-3 px-10 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
-              onClick={() => {
-                const modal = document.getElementById('my_modal_25');
-                if (modal) {
-                  (modal as HTMLDialogElement).showModal();
-                }
-              }}
-            >
-              <Image
-                className="size-4 mr-1"
-                width={20}
-                alt="img"
-                height={20}
-                src={'/sync-inc.svg'}
-              />
-              Sincronizar
-            </button>
+            {dataPerido?.estado == 'ACTIVO' && (
+              <button
+                className="bg-primary font-roboto py-3 px-10 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
+                onClick={() => {
+                  const modal = document.getElementById('my_modal_25');
+                  if (modal) {
+                    (modal as HTMLDialogElement).showModal();
+                  }
+                }}
+              >
+                <Image
+                  className="size-4 mr-1"
+                  width={20}
+                  alt="img"
+                  height={20}
+                  src={'/sync-inc.svg'}
+                />
+                Sincronizar
+              </button>
+            )}
           </div>
           <div className="flex flex-row gap-10 items-center">
             <div className="flex flex-row gap-2">
