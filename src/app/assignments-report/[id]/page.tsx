@@ -152,8 +152,8 @@ const ReportAssignments = () => {
         numberOfStudents: item.matriculados,
         isEditable: dataPerido?.estado == 'ACTIVO',
       }));
-
       setAssignments(assignmentsConvertido);
+      console.log(assignmentsConvertido);
     }
   }, [ProgramacionAcademicaData]);
 
@@ -352,9 +352,9 @@ const ReportAssignments = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedAssignments.map((assignment, index) => (
+                    {paginatedAssignments.map((assignment) => (
                       <ReportAsigmnentTable
-                        key={index}
+                        key={assignment.assignmentId}
                         location={assignment.location}
                         assignmentId={assignment.assignmentId}
                         classroom={assignment.classroom}
