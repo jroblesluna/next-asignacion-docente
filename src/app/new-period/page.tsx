@@ -1,7 +1,7 @@
 'use client';
 import NavBar from '../components/NavBar';
 import { ReturnTitle } from '../components/Titles';
-import { convertirFecha } from '../utils/managmentDate';
+import { convertirFecha, convertirFormatoFecha } from '../utils/managmentDate';
 import { ModalWarning } from '../components/Modals';
 import { useEffect, useState } from 'react';
 import { TableActiveTeacher } from '../components/Rows';
@@ -66,6 +66,10 @@ const Page = () => {
 
   const loadDataTest = async () => {
     const resPerido = await periodService.getNew();
+    if (!resPerido.data) {
+      alert('Ya hay un periodo activo o en proceso. Redirigiendo a la página principal.');
+      window.location.href = '/home';
+    }
     setDataPeriodo(resPerido.data[0]);
   };
 
@@ -84,6 +88,12 @@ const Page = () => {
     }
   }, [dataPerido]);
 
+  const abrirPeriodo = async (idPeriodo: string) => {
+    localStorage.setItem('flagReproceso', 'true');
+    localStorage.setItem('periodo', idPeriodo);
+    await periodService.updateState(idPeriodo, 'ACTIVO');
+  };
+
   return (
     <LayoutValidation>
       <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
@@ -98,25 +108,27 @@ const Page = () => {
                   <strong>Periodo:</strong> {convertirFecha(dataPerido?.idPeriodo.toString())}
                 </p>
                 <p className="text-2xl">
-                  <strong>Fecha de Inicio:</strong> {dataPerido?.fechaInicio}
+                  <strong>Fecha de Inicio:</strong>{' '}
+                  {convertirFormatoFecha(dataPerido?.fechaInicio)}
                 </p>
                 <p className="text-2xl">
-                  <strong>Fecha de Termino:</strong> {dataPerido?.fechaFinal}
+                  <strong>Fecha de Termino:</strong>{' '}
+                  {convertirFormatoFecha(dataPerido?.fechaFinal)}
                 </p>
 
                 <ModalWarning
                   linkTo={'/loading'}
                   subtitle="Esta acción realizará el primer procesamiento de asignación docente."
                   title="¿Está seguro de crear un nuevo período?"
-                  idModal="my_modal_1"
-                  setFunction={(a: string) => {
-                    console.log(a);
-                  }}
+                  idModal={'abrirNuevoPeriodo-' + dataPerido?.idPeriodo.toString()}
+                  setFunction={abrirPeriodo}
                 />
                 <button
                   className="btn bg-secundary py-2 px-20 text-white font-semibold hover:bg-secundary_ligth  mt-10"
                   onClick={() => {
-                    const modal = document.getElementById('my_modal_1');
+                    const modal = document.getElementById(
+                      'abrirNuevoPeriodo-' + dataPerido?.idPeriodo.toString()
+                    );
                     if (modal) {
                       (modal as HTMLDialogElement).showModal();
                     }

@@ -3,7 +3,7 @@ import { connectToDatabase } from '../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'PATCH') {
-    console.log("PATCH@/pages/api/event/execute.ts");
+    console.log('PATCH@/pages/api/event/execute.ts');
     const { id } = req.body;
 
     if (!id) {
@@ -36,10 +36,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       console.error('Error en la API:', error);
       return res.status(500).json({ message: 'Error en la consulta', error });
-    } finally {
-      if (pool) {
-        pool.close();
-      }
     }
   } else {
     res.setHeader('Allow', ['PATCH']);

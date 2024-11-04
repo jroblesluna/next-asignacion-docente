@@ -23,10 +23,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       console.error('Error en la API:', error);
       return res.status(500).json({ message: 'Error en la consulta', error });
-    } finally {
-      if (pool) {
-        pool.close();
-      }
     }
   } else {
     res.setHeader('Allow', ['GET']);

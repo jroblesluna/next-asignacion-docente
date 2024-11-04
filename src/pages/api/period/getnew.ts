@@ -12,9 +12,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // verificar si hay un periodo abierto
 
+      const resultVerificar = await pool
+        .request()
+        .query(
+          `SELECT top 1  * FROM [dbo].[ad_periodo] where estado = 'ACTIVO' OR estado = 'CARGANDO'`
+        );
+
+      console.log(resultVerificar.recordset);
+      if (resultVerificar.recordset.length !== 0) {
+        return res.status(200).json({
+          message:
+            'Períodos ACTIVOS O CARGANDO encontrados correctamente, NO SE PUEDE ABRIR OTRO NUEVO',
+          data: null,
+        });
+      }
+
       const result = await pool
         .request()
-        .query(`SELECT top 1  * FROM [dbo].[ad_periodo] where estado = 'NO ACTIVO'`);
+        .query(`SELECT top 1  * FROM [dbo].[ad_periodo] where estado = 'NO ACTIVO' `);
 
       return res.status(200).json({
         message: 'Períodos encontrados correctamente',
@@ -23,10 +38,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       console.error('Error en la API:', error);
       return res.status(500).json({ message: 'Error en la consulta', error });
-    } finally {
-      if (pool) {
-        pool.close();
-      }
     }
   } else {
     res.setHeader('Allow', ['GET']);

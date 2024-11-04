@@ -28,7 +28,7 @@ const NavBar = () => {
   };
 
   return (
-    <div className="w-full flex justify-around items-center">
+    <div className="w-full flex justify-around items-center min-h-10">
       <div className="w-3/4 flex flex-row items-center gap-2">
         <div className="dropdown dropdown-bottom bg-transparent">
           <Image

@@ -3,10 +3,10 @@ import { connectToDatabase } from '../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    console.log("POST@/pages/api/period/create.ts");
-    
+    console.log('POST@/pages/api/period/create.ts');
+
     let pool;
-    
+
     try {
       const { id } = req.body;
 
@@ -25,7 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Verificamos si checkResult tiene registros
       if (checkResult.recordset.length === 0) {
-        return res.status(404).json({ message: 'Período académico no encontrado', data: false });
+        return res
+          .status(404)
+          .json({ message: 'Período académico no encontrado', data: false });
       }
 
       // Verifica su estado
@@ -49,16 +51,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: 'Período creado correctamente',
         data: true,
       });
-
     } catch (error) {
       console.error('Error en la API:', error);
       return res.status(500).json({ message: 'Error en la consulta', error });
-      
-    } finally {
-      // Asegura que el pool de la base de datos se cierre en caso de error o éxito
-      if (pool) {
-        pool.close();
-      }
     }
   } else {
     res.setHeader('Allow', ['POST']);

@@ -31,6 +31,7 @@ const ReportAssignments = () => {
   const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [onlyLocked, setOnlyLocked] = useState(false);
   const [filterOption, setFilterOption] = useState('Profesor');
+  const [dataVacia, setDataVacia] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 50;
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -115,8 +116,13 @@ const ReportAssignments = () => {
 
     const res = await assigmentService.getAll(id, '-1');
     setData(res.data);
+
     const resSedesData = await assigmentService.getLocation(id);
     setNombresSedeData(resSedesData.data);
+
+    if (res.data.length === 0) {
+      setDataVacia(true);
+    }
   };
 
   useEffect(() => {
@@ -302,58 +308,72 @@ const ReportAssignments = () => {
             setFunction={saludar}
           />
         </div>
-        {ProgramacionAcademicaData.length === 0 && nombresSedesData.length > 0 ? (
+        {ProgramacionAcademicaData.length === 0 &&
+        nombresSedesData.length === 0 &&
+        !dataVacia ? (
           <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
             <span className="loading loading-bars loading-lg"></span>
           </div>
         ) : (
-          <div className="w-full overflow-auto min-h-[48vh] max-h-[48vh]  ">
-            <table className="w-full ">
-              <thead>
-                <tr className="text-black bg-white">
-                  <th className="py-2 font-inter sticky top-0 bg-white z-10 ">
-                    <p className="text-transparent">●</p>
-                  </th>
-                  <th className="py-2 uppercase max-w-16 overflow-hidden font-inter text-start sticky top-0 bg-white">
-                    SEDE
-                  </th>
-                  <th className="py-2 uppercase font-inter sticky top-0 bg-white">CURSO</th>
-                  <th className="py-2 uppercase font-inter sticky top-0 bg-white ">HORARIO</th>
-                  <th className="py-2 uppercase font-inter sticky top-0 bg-white">
-                    FRECUENCIA
-                  </th>
-                  <th className="py-2 uppercase font-inter sticky top-0 bg-white z-10 ">
-                    AULA
-                  </th>
-                  <th className="py-2 uppercase font-inter text-start sticky top-0 bg-white z-10">
-                    PROFESOR
-                  </th>
-                  <th className="py-2 uppercase font-inter sticky top-0  bg-white">
-                    N° DE ALUMNOS
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedAssignments.map((assignment, index) => (
-                  <ReportAsigmnentTable
-                    key={index}
-                    location={assignment.location}
-                    assignmentId={assignment.assignmentId}
-                    classroom={assignment.classroom}
-                    course={assignment.course}
-                    frequency={assignment.frequency}
-                    isRoomClosed={assignment.isRoomClosed}
-                    isTeacherClosed={assignment.isTeacherClosed}
-                    numberOfStudents={assignment.numberOfStudents}
-                    schedule={assignment.schedule}
-                    teacher={assignment.teacher}
-                    isEditable={assignment.isEditable}
-                    teacherId={assignment.teacherId}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {dataVacia === true ? (
+              <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+                <h1 className="font-bold text-5xl"> Datos No Encontrados</h1>
+              </div>
+            ) : (
+              <div className="w-full overflow-auto min-h-[48vh] max-h-[48vh]  ">
+                <table className="w-full ">
+                  <thead>
+                    <tr className="text-black bg-white">
+                      <th className="py-2 font-inter sticky top-0 bg-white z-10 ">
+                        <p className="text-transparent">●</p>
+                      </th>
+                      <th className="py-2 uppercase max-w-16 overflow-hidden font-inter text-start sticky top-0 bg-white">
+                        SEDE
+                      </th>
+                      <th className="py-2 uppercase font-inter sticky top-0 bg-white">
+                        CURSO
+                      </th>
+                      <th className="py-2 uppercase font-inter sticky top-0 bg-white ">
+                        HORARIO
+                      </th>
+                      <th className="py-2 uppercase font-inter sticky top-0 bg-white">
+                        FRECUENCIA
+                      </th>
+                      <th className="py-2 uppercase font-inter sticky top-0 bg-white z-10 ">
+                        AULA
+                      </th>
+                      <th className="py-2 uppercase font-inter text-start sticky top-0 bg-white z-10">
+                        PROFESOR
+                      </th>
+                      <th className="py-2 uppercase font-inter sticky top-0  bg-white">
+                        N° DE ALUMNOS
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedAssignments.map((assignment, index) => (
+                      <ReportAsigmnentTable
+                        key={index}
+                        location={assignment.location}
+                        assignmentId={assignment.assignmentId}
+                        classroom={assignment.classroom}
+                        course={assignment.course}
+                        frequency={assignment.frequency}
+                        isRoomClosed={assignment.isRoomClosed}
+                        isTeacherClosed={assignment.isTeacherClosed}
+                        numberOfStudents={assignment.numberOfStudents}
+                        schedule={assignment.schedule}
+                        teacher={assignment.teacher}
+                        isEditable={assignment.isEditable}
+                        teacherId={assignment.teacherId}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
         {filteredAssignments.length !== 0 ? (
           <div className="flex justify-end flex-row items-center gap-5 ">

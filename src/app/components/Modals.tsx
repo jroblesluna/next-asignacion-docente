@@ -52,7 +52,7 @@ export const ModalWarning: React.FC<ModalProps> = ({
                   onClick={() => {
                     setFunction(idModal.match(/\d+/)?.[0] || '');
                     setCargando(true);
-                    setTimeout(() => {}, 1000);
+                    setTimeout(() => {}, 2000);
 
                     // const modal = document.getElementById(idModal) as HTMLDialogElement;
                     // modal?.close();
