@@ -24,7 +24,7 @@ function Page() {
     if (periodoId && correo && flagReproceso === 'true') {
       localStorage.setItem('flagReproceso', 'false');
       setReprocesoPeriodo(periodoId);
-      // loadData(periodoId,correo);
+      loadData(periodoId, correo);
     } else {
       localStorage.setItem('flagReproceso', 'false');
       alert(

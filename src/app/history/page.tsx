@@ -153,7 +153,7 @@ function Page() {
                   <React.Fragment key={period.idPeriodo}>
                     <ModalWarning
                       linkTo={'/loading'}
-                      subtitle="Se perderán las asignaciones manuales guardadas."
+                      subtitle="Se bloqueara las acciones del periodo mientras se esta ejecutando"
                       title="¿Está seguro de reprocesar las asignaciones?"
                       idModal={'reprocesar-' + period.idPeriodo}
                       setFunction={savePeriod}

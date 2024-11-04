@@ -192,6 +192,36 @@ const disponibleEnFecha = (
   return final1 < inicio2 || final2 < inicio1;
 };
 
+const solapamientoHorario = (rango: string, horarioInicio: string, horarioFin: string) => {
+  function convertirHora(cadenaHora: string): Date {
+    const [horas, minutos] = cadenaHora.split(':').map(Number);
+    const hoy = new Date();
+    hoy.setHours(horas, minutos, 0, 0);
+    return hoy;
+  }
+
+  const [rangoInicio, rangoFin] = rango.split(' - ');
+  const inicioRango = convertirHora(rangoInicio);
+  const finRango = convertirHora(rangoFin);
+  const inicioHorario = convertirHora(horarioInicio);
+  const finHorario = convertirHora(horarioFin);
+
+  return finRango > inicioHorario && finHorario > inicioRango;
+};
+
+const solapamientoFrecuencia = (f1: string, f2: string) => {
+  const dias1 = obtenerNumerosPorDias(f1);
+  const dias2 = obtenerNumerosPorDias(f2);
+
+  if (!hayNumeroComunEntreArrays(dias1, dias2)) return false;
+
+  return true;
+};
+
+const maquetarDatos = (frecuenciaId: string, horarioId: string, cabezera: string) => {
+  return ` OR (${cabezera}.idFrecuencia =${frecuenciaId} AND ${cabezera}.idHorario = ${horarioId} )`;
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     console.log('GET@/pages/api/assignment/executeScript.ts');
@@ -285,8 +315,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const version = resultadoVersion.recordset[0]?.Lastversion;
 
-      // console.log(version);
-
       // P3:  Obtener orden de sedes
 
       // await sql.query`INSERT INTO testLogsTiempo (estado, fechaHoraActual, periodo, escenario, sede)
@@ -294,7 +322,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // obtener ID SEDE VIRTUAL
 
-      const virtualID = 9268;
+      const resultadoIDVirtual = await pool
+        .request()
+        .input('id', periodo)
+        .query(
+          `SELECT idSede FROM [dbo].[ad_sede] where nombreSede = 'Virtual' and periodo=@id`
+        );
+
+      const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
 
       const resultadoSedes = await pool
         .request()
@@ -474,6 +509,72 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                     `);
         const BloquesBloqueadosCompletos = resultHorariosBloquedos.recordset;
 
+        const resultH = await pool.request().input('id', periodo).input('version', version)
+          .query(`
+               SELECT distinct PA.idHorario, H.HorarioInicio, H.HorarioFin FROM [dbo].[ad_programacionAcademica] AS PA
+            INNER JOIN [dbo].[ad_horario] AS H ON H.idHorario=PA.idHorario AND H.periodo=@id
+             where PA.idPeriodo=@id and  PA.idVersion =@version  and PA.vigente=1 and PA.cancelado=0
+      `);
+
+        const resultadoHorario = resultH.recordset;
+
+        const horariosMap = new Map<number, number[]>();
+
+        resultadoHorario.forEach((horario1) => {
+          const rango = `${horario1.HorarioInicio} - ${horario1.HorarioFin}`;
+          const solapados: number[] = [];
+
+          resultadoHorario.forEach((horario2) => {
+            if (horario1.idHorario !== horario2.idHorario) {
+              if (solapamientoHorario(rango, horario2.HorarioInicio, horario2.HorarioFin)) {
+                solapados.push(horario2.idHorario);
+              }
+            }
+          });
+
+          if (solapados.length > 0) {
+            horariosMap.set(horario1.idHorario, solapados);
+          } else {
+            horariosMap.set(horario1.idHorario, []);
+          }
+        });
+
+        const resultFrecuencia = await pool
+          .request()
+          .input('id', periodo)
+          .input('version', version).query(`
+    SELECT distinct PA.idFrecuencia, F.NombreFrecuencia FROM [dbo].[ad_programacionAcademica] AS PA
+            INNER JOIN [dbo].[ad_frecuencia] AS F ON F.idFrecuencia=PA.idFrecuencia AND F.periodo=@id
+             where PA.idPeriodo=@id and  PA.idVersion =@version  and PA.vigente=1 and PA.cancelado=0
+      `);
+
+        const resultadoFrecuencia = resultFrecuencia.recordset;
+
+        const frecuenciaMap = new Map<number, number[]>();
+
+        resultadoFrecuencia.forEach((frecuencia1) => {
+          const solapados: number[] = [];
+
+          resultadoFrecuencia.forEach((frecuencia2) => {
+            if (frecuencia1.idFrecuencia !== frecuencia2.idFrecuencia) {
+              if (
+                solapamientoFrecuencia(
+                  convertirFrecuencia(frecuencia1.NombreFrecuencia),
+                  convertirFrecuencia(frecuencia2.NombreFrecuencia)
+                )
+              ) {
+                solapados.push(frecuencia2.idFrecuencia);
+              }
+            }
+          });
+
+          if (solapados.length > 0) {
+            frecuenciaMap.set(frecuencia1.idFrecuencia, solapados);
+          } else {
+            frecuenciaMap.set(frecuencia1.idFrecuencia, []);
+          }
+        });
+
         console.log('Numero de slots : ' + cursosXsedeArray.length);
 
         //   // P5: Iteración por escenarios
@@ -531,59 +632,69 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .request()
                 .input('id', periodo)
                 .input('virtualID', virtualID)
+                .input('idVersion', sql.Int, cursosXsede.idVersion)
                 .input('escenario', escenario.escenario).query(`
-                                  WITH CTE_MediaPorDocente AS (
-                              				SELECT
-                              					P.idDocente,
-                              					D.idSede,
-                              					SUM(H.MinutosReal * aux.NumDias) AS MinutosAsignados,
-                              					TC.TipoJornada,
-                              					TC.HoraSemana,
-                              					(
-                              						ISNULL(
-                              							(SELECT SUM(tiempoCurso)
-                              								FROM [dbo].[ad_pivoteAsignacion]
-                              								WHERE escenario = @escenario
-                              								AND idSede = @virtualID
-                              								AND idPeriodo = @id
-                              								AND flagVigente = 1
-                              								AND idDocente = P.idDocente
-                              							), 0
-                              						) + SUM(H.MinutosReal * aux.NumDias)
-                              					) / CAST((TC.HoraSemana * 60 * 4) AS DECIMAL(10, 2)) * 100 AS Media
-
-                              				FROM [dbo].[ad_programacionAcademica] AS P
-                              				INNER JOIN [dbo].[ad_horario] AS H ON P.idHorario = H.idHorario AND H.periodo=@id
-                              				INNER JOIN [dbo].[ad_docente] AS D ON D.idDocente = P.idDocente AND D.periodo=@id
-                              				INNER JOIN [dbo].[dim_tipo_contrato] AS TC ON TC.TipoContratoID = D.idTipoContrato
-                              				INNER JOIN [dbo].[ad_frecuencia] AS F ON P.idFrecuencia = F.idFrecuencia AND F.periodo=@id
-                              				OUTER APPLY (
-                              					SELECT TOP 1 aux.NumDias
-                              					FROM [dbo].[aux_intensidad_fase] AS aux
-                              					WHERE P.uidIdIntensidadFase = aux.uididintensidadfase
-                              						AND P.idPeriodo = aux.PeriodoAcademico
-                              				) AS aux
-                              				WHERE
-                              					P.idPeriodo = @id
-                              					and p.idVersion=0
-                              					AND P.cancelado = 0
-                              					AND P.vigente = 1
-                              					AND D.idSede <> @virtualID
-
-                              				GROUP BY
-                              					P.idDocente,
-                              					TC.TipoJornada,
-                              					TC.HoraSemana,
-                              					D.idSede
-                                                              )
-                              							SELECT
-                              								idSede,
-                              								ROUND(SUM(Media) / COUNT(idDocente), 2) AS MediaPonderada,
-                              								ROUND(100 - (SUM(Media) / COUNT(idDocente)), 2) AS Disponibilidad
-
-                                                              FROM CTE_MediaPorDocente
-                                                              GROUP BY idSede
-                                                              ORDER BY MediaPonderada;
+                               WITH CTE_MediaPorDocente AS (
+                                  SELECT
+                                      D.idDocente,
+                                      D.idSede,
+                                     	ISNULL( SUM(H.MinutosReal * aux.NumDias),0) AS MinutosAsignados,
+                                      TC.TipoJornada,
+                                      TC.HoraSemana,
+                                     ISNULL (
+                                  	(
+                                          ISNULL(
+                                              (SELECT SUM(tiempoCurso)
+                                               FROM [dbo].[ad_pivoteAsignacion]
+                                               WHERE escenario = @escenario
+                                                 AND idSede = @virtualID
+                                                 AND idPeriodo = @id
+                                                 AND flagVigente = 1
+                                                 AND idDocente = P.idDocente
+                                              ), 0
+                                          ) + ISNULL(SUM(H.MinutosReal * aux.NumDias), 0)
+                                      ) / CAST((TC.HoraSemana * 60 * 4) AS DECIMAL(10, 2)) * 100 ,0)   AS Media
+                                  
+                                  FROM   [dbo].[ad_docente] AS D 
+                                  LEFT JOIN [dbo].[ad_programacionAcademica] AS P 
+                                      ON  P.idDocente = D.idDocente 
+                                      AND P.idPeriodo = @id
+                                      AND P.idVersion = @idVersion
+                                      AND P.cancelado = 0
+                                      AND P.vigente = 1
+                                  LEFT JOIN [dbo].[ad_horario] AS H 
+                                      ON P.idHorario = H.idHorario 
+                                      AND H.periodo = @id
+                                  LEFT JOIN [dbo].[dim_tipo_contrato] AS TC 
+                                      ON TC.TipoContratoID = D.idTipoContrato
+                                  LEFT JOIN [dbo].[ad_frecuencia] AS F 
+                                      ON P.idFrecuencia = F.idFrecuencia 
+                                      AND F.periodo = @id
+                                  OUTER APPLY (
+                                      SELECT TOP 1 aux.NumDias
+                                      FROM [dbo].[aux_intensidad_fase] AS aux
+                                      WHERE P.uidIdIntensidadFase = aux.uididintensidadfase
+                                        AND P.idPeriodo = aux.PeriodoAcademico
+                                  ) AS aux
+                                  WHERE
+                                      D.vigente = 1	
+                                      AND D.FechaInicioContrato IS NOT NULL
+                                      AND D.idSede <> @virtualID
+                                      AND D.periodo = @id
+                                  GROUP BY
+                                      D.idDocente,
+                                      TC.TipoJornada,
+                                      TC.HoraSemana,
+                                      D.idSede,
+                                      P.idDocente
+                                  )
+                                  SELECT
+                                  idSede,
+                                  ROUND(SUM(Media) / COUNT(idDocente), 2) AS MediaPonderada,
+                                  ROUND(100 - (SUM(Media) / COUNT(idDocente)), 2) AS Disponibilidad
+                                  FROM CTE_MediaPorDocente 
+                                  GROUP BY idSede
+                                  ORDER BY MediaPonderada ; 
                                     `);
 
               ordenDisponibilidadVirtuales = resultadoDisponibilidadVirtuales.recordset;
@@ -596,9 +707,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               );
             }
 
+            const fId = cursosXsede.idFrecuencia;
+            const hid = cursosXsede.idHorario;
+            let cadenaPC = '';
+            let cadenaTA = '';
+
+            const arraryFrecuencias = frecuenciaMap.get(Number(fId)) || [Number(fId)];
+            const arraryHorario = horariosMap.get(Number(hid)) || [Number(hid)];
+
+            arraryFrecuencias.forEach((element1) => {
+              arraryHorario.forEach((element2) => {
+                cadenaPC += maquetarDatos(element1.toString(), element2.toString(), 'PC');
+              });
+            });
+
+            arraryFrecuencias.forEach((element1) => {
+              arraryHorario.forEach((element2) => {
+                cadenaTA += maquetarDatos(element1.toString(), element2.toString(), 'TA');
+              });
+            });
+
             const resultDocentes = await pool
               .request()
               .input('OrderBy', sql.NVarChar, orderByClause)
+              .input('dinamicPC', sql.NVarChar, cadenaPC)
+              .input('dinamicTA', sql.NVarChar, cadenaTA)
               .input('minutosTotales', sql.Int, cursosXsede.minutosTotales)
               .input('idCurso', sql.Int, cursosXsede.idCurso)
               .input('idHorario', sql.Int, cursosXsede.idHorario)
@@ -619,14 +752,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             const ListaDocentes = resultDocentes.recordset;
 
-            //       // FLAG DE INSERCCIÓN
+            // FLAG DE INSERCCIÓN
             let docenteAsignado = false;
 
             for (const docente of ListaDocentes) {
               //P7.1: Validar Cumplimiento de Horas a Asignar
-              // console.log(Number(docente.totalTiempo));
-              // console.log(Number(cursosXsede.minutosTotales));
-              // console.log(Number(docente.HoraSemana));
+
               if (
                 Number(docente.totalTiempo) + Number(cursosXsede.minutosTotales) >
                 Number(docente.HoraSemana) * 4 * 60

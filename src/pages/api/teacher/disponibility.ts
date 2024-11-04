@@ -166,9 +166,39 @@ const frecuenciaEquivalenteMap: { [key: string]: string } = {
   'Blended J': 'no se está ofreciendo',
 };
 
+const solapamientoHorario = (rango: string, horarioInicio: string, horarioFin: string) => {
+  function convertirHora(cadenaHora: string): Date {
+    const [horas, minutos] = cadenaHora.split(':').map(Number);
+    const hoy = new Date();
+    hoy.setHours(horas, minutos, 0, 0);
+    return hoy;
+  }
+
+  const [rangoInicio, rangoFin] = rango.split(' - ');
+  const inicioRango = convertirHora(rangoInicio);
+  const finRango = convertirHora(rangoFin);
+  const inicioHorario = convertirHora(horarioInicio);
+  const finHorario = convertirHora(horarioFin);
+
+  return finRango > inicioHorario && finHorario > inicioRango;
+};
+
+const solapamientoFrecuencia = (f1: string, f2: string) => {
+  const dias1 = obtenerNumerosPorDias(f1);
+  const dias2 = obtenerNumerosPorDias(f2);
+
+  if (!hayNumeroComunEntreArrays(dias1, dias2)) return false;
+
+  return true;
+};
+
+const maquetarDatos = (frecuenciaId: string, horarioId: string, cabezera: string) => {
+  return ` OR (${cabezera}.idFrecuencia =${frecuenciaId} AND ${cabezera}.idHorario = ${horarioId} )`;
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    console.log('GET@/pages/api/teacher/getall.ts');
+    console.log('GET@/pages/api/teacher/disponibility.ts');
     let pool;
 
     try {
@@ -204,8 +234,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     				AND P.uuuidProgramacionAcademica=@uuidSlot AND P.idVersion=@version
                   `);
 
-      const virtualID = 9268;
       const idSedeCurso = resultCurso.recordset[0]?.idSede;
+
+      const resultadoIDVirtual = await pool
+        .request()
+        .input('id', idPeriod)
+        .query(
+          `SELECT idSede FROM [dbo].[ad_sede] where nombreSede = 'Virtual' and periodo=@id`
+        );
+
+      const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
 
       const resultDesponibilidad = await pool.request().input('id', idPeriod).query(`
                 SELECT DocenteID, PeriodoAcademico,EstadoDisponible,FORMAT(FechaInicio, 'dd-MM-yyyy') 
@@ -234,6 +272,85 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 ON hbd.CodigoBloque = bh.bloque 
                               `);
 
+      const resultH = await pool.request().input('id', idPeriod).input('version', version)
+        .query(`
+               SELECT distinct PA.idHorario, H.HorarioInicio, H.HorarioFin FROM [dbo].[ad_programacionAcademica] AS PA
+            INNER JOIN [dbo].[ad_horario] AS H ON H.idHorario=PA.idHorario AND H.periodo=@id
+             where PA.idPeriodo=@id and  PA.idVersion =@version  and PA.vigente=1 and PA.cancelado=0
+      `);
+
+      const resultadoHorario = resultH.recordset;
+
+      const horariosMap = new Map<number, number[]>();
+
+      resultadoHorario.forEach((horario1) => {
+        const rango = `${horario1.HorarioInicio} - ${horario1.HorarioFin}`;
+        const solapados: number[] = [];
+
+        resultadoHorario.forEach((horario2) => {
+          if (horario1.idHorario !== horario2.idHorario) {
+            if (solapamientoHorario(rango, horario2.HorarioInicio, horario2.HorarioFin)) {
+              solapados.push(horario2.idHorario);
+            }
+          }
+        });
+
+        if (solapados.length > 0) {
+          horariosMap.set(horario1.idHorario, solapados);
+        } else {
+          horariosMap.set(horario1.idHorario, []);
+        }
+      });
+
+      const resultFrecuencia = await pool
+        .request()
+        .input('id', idPeriod)
+        .input('version', version).query(`
+    SELECT distinct PA.idFrecuencia, F.NombreFrecuencia FROM [dbo].[ad_programacionAcademica] AS PA
+            INNER JOIN [dbo].[ad_frecuencia] AS F ON F.idFrecuencia=PA.idFrecuencia AND F.periodo=@id
+             where PA.idPeriodo=@id and  PA.idVersion =@version  and PA.vigente=1 and PA.cancelado=0
+      `);
+
+      const resultadoFrecuencia = resultFrecuencia.recordset;
+
+      const frecuenciaMap = new Map<number, number[]>();
+
+      resultadoFrecuencia.forEach((frecuencia1) => {
+        const solapados: number[] = [];
+
+        resultadoFrecuencia.forEach((frecuencia2) => {
+          if (frecuencia1.idFrecuencia !== frecuencia2.idFrecuencia) {
+            if (
+              solapamientoFrecuencia(
+                convertirFrecuencia(frecuencia1.NombreFrecuencia),
+                convertirFrecuencia(frecuencia2.NombreFrecuencia)
+              )
+            ) {
+              solapados.push(frecuencia2.idFrecuencia);
+            }
+          }
+        });
+
+        if (solapados.length > 0) {
+          frecuenciaMap.set(frecuencia1.idFrecuencia, solapados);
+        } else {
+          frecuenciaMap.set(frecuencia1.idFrecuencia, []);
+        }
+      });
+
+      const fId = resultCurso.recordset[0]?.idFrecuencia;
+      const hid = resultCurso.recordset[0]?.idHorario;
+      let cadenaPC = ``;
+
+      const arraryFrecuencias = frecuenciaMap.get(Number(fId)) || [Number(fId)];
+      const arraryHorario = horariosMap.get(Number(hid)) || [Number(hid)];
+
+      arraryFrecuencias.forEach((element1) => {
+        arraryHorario.forEach((element2) => {
+          cadenaPC += maquetarDatos(element1.toString(), element2.toString(), `PC`);
+        });
+      });
+
       // obtner todos los docentes que enseñen el curso, -- ver si diferenciar por sede o no
 
       let resultDocentes;
@@ -242,9 +359,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         resultDocentes = await pool
           .request()
           .input('id', idPeriod)
+          .input('idCurso', resultCurso.recordset[0]?.idCurso)
           .input('tiempoCurso', resultCurso.recordset[0]?.minutosTotales)
-          .input('version', version).query(`
-                SELECT 					D.idDocente as DocenteID,
+          .input('version', version)
+          .input('idFrecuencia', resultCurso.recordset[0]?.idFrecuencia)
+          .input('idHorario', resultCurso.recordset[0]?.idHorario)
+          .query(
+            `
+                SELECT 					
+                D.idDocente as DocenteID,
                    D.NombreCompletoProfesor, 
                      D.nombreSede,
                    D.FechaInicioContrato,
@@ -279,15 +402,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              D.periodo = @id  AND
              D.vigente=1
 			AND D.FechaInicioContrato IS NOT NULL
+       AND NOT EXISTS (
+                SELECT 1
+                FROM (
+                    SELECT 
+                        PC.idSede, 
+                        PC.idPeriodo, 
+                        PC.idCurso, 
+                        PC.idFrecuencia, 
+                        PC.idHorario
+                    FROM 
+                        [dbo].[ad_programacionAcademica] AS PC
+                    WHERE 
+                        PC.idDocente = D.idDocente
+                        AND PC.idPeriodo = @id
+                        AND PC.idVersion= @version
+						AND (
+        (PC.idFrecuencia = @idFrecuencia AND PC.idHorario = @idHorario)  
+		 ` +
+              cadenaPC +
+              `    )
+                )  AS ClasesAsignadasDocente 
+            )
             ORDER BY Equidad
-        `);
+        `
+          );
       } else {
         resultDocentes = await pool
           .request()
           .input('id', idPeriod)
+          .input('idCurso', resultCurso.recordset[0]?.idCurso)
           .input('tiempoCurso', resultCurso.recordset[0]?.minutosTotales)
-          .input('idSede', idSedeCurso)
-          .input('version', version).query(`
+          .input('version', version)
+          .input('idFrecuencia', resultCurso.recordset[0]?.idFrecuencia)
+          .input('idHorario', resultCurso.recordset[0]?.idHorario)
+          .query(
+            `
             SELECT 					D.idDocente as DocenteID,
                    D.NombreCompletoProfesor, 
                      D.nombreSede,
@@ -324,8 +474,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              D.vigente=1
 			AND D.FechaInicioContrato IS NOT NULL
 			AND D.idSede=@idSede
+  AND NOT EXISTS (
+                SELECT 1
+                FROM (
+                    SELECT 
+                        PC.idSede, 
+                        PC.idPeriodo, 
+                        PC.idCurso, 
+                        PC.idFrecuencia, 
+                        PC.idHorario
+                    FROM 
+                        [dbo].[ad_programacionAcademica] AS PC
+                    WHERE 
+                        PC.idDocente = D.idDocente
+                        AND PC.idPeriodo = @id
+                        AND PC.idVersion= @version
+						AND (
+        (PC.idFrecuencia = @idFrecuencia AND PC.idHorario = @idHorario)  
+		 ` +
+              cadenaPC +
+              `    )
+                )  AS ClasesAsignadasDocente 
+            )
             ORDER BY Equidad
-        `);
+        `
+          );
       }
 
       interface DocenteInterface {
@@ -338,7 +511,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const ListaDocentes = resultDocentes.recordset;
 
-      console.log(ListaDocentes);
       const DocentesActos: DocenteInterface[] = [];
 
       for (const docente of ListaDocentes) {
@@ -457,6 +629,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           nombreSede: '',
         });
       }
+      console.log(DocentesActos);
 
       return res.status(200).json({ data: DocentesActos });
     } catch (error) {
