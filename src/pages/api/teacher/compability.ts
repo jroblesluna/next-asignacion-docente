@@ -205,7 +205,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       pool = await connectToDatabase();
 
       const { idPeriod, uuidSlot, version } = req.query;
+      const DocentesActos: DocenteInterface[] = [];
 
+      const result = await pool
+        .request()
+        .input('id', idPeriod)
+        .query(`select * from [dbo].[ad_periodo] where idPeriodo=@id`);
+
+      const periodoData = result.recordset[0];
+      if (periodoData.estado != 'ACTIVO') {
+        DocentesActos.push({
+          id: -1,
+          nombre:
+            'No se pudo Iniciar la busqueda para el periodo ' +
+            periodoData.idPeriodo +
+            ' por que su estado es: ' +
+            periodoData.estado,
+          minutosTotales: '',
+          tipoContrato: '',
+          nombreSede: '',
+        });
+        return res.status(200).json({ data: DocentesActos });
+      }
       // Datos del curso
       const resultCurso = await pool
         .request()
@@ -510,8 +531,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const ListaDocentes = resultDocentes.recordset;
-
-      const DocentesActos: DocenteInterface[] = [];
 
       for (const docente of ListaDocentes) {
         // validacion de horas maximas

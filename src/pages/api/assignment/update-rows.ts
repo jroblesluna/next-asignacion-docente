@@ -15,6 +15,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       pool = await connectToDatabase();
 
+      const result = await pool
+        .request()
+        .input('id', idPeriodo)
+        .query(`select * from [dbo].[ad_periodo] where idPeriodo=@id`);
+
+      const periodoData = result.recordset[0];
+      if (periodoData.estado != 'ACTIVO') {
+        return res.status(200).json({
+          message:
+            'No se pudo editar la asignación para el periodo ' +
+            periodoData.idPeriodo +
+            ' por que su estado es: ' +
+            periodoData.estado,
+          data: false,
+        });
+      }
+
       if (idDocente === '-1') {
         await pool
           .request()

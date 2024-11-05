@@ -116,6 +116,11 @@ const assigmentService = {
         uuidFila,
         idDocente,
       });
+
+      if (!data.data) {
+        alert(data.message);
+      }
+
       return data;
     } catch (error) {
       console.error('Error al actualizar las filas de asignación:', error);

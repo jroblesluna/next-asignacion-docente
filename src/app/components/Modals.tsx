@@ -228,7 +228,6 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
 
   const onhandleClick = (newTeacher: string, selectIdTeacher: string) => {
     setFunction(newTeacher);
-    console.log(selectIdTeacher);
     uploadRowTeacher(selectIdTeacher);
     UpdateTeacher(idRow, newTeacher);
   };
@@ -291,10 +290,9 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
                   className="bg-primary py-2 text-white font-semibold hover:bg-primary_light w-48 text-center"
                   onClick={() => {
                     const modal = document.getElementById(idModal) as HTMLDialogElement;
-                    if (data[0].id !== -1) {
+                    if (data[0].id !== -1 && selectNewTeacher !== '-1') {
                       onhandleClick(selectNewTeacher, selectNewIdTeacher);
                     }
-
                     setSelectNewTeacher('-1');
                     modal?.close();
                   }}
@@ -457,10 +455,9 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
                   className="bg-primary py-2 text-white font-semibold hover:bg-primary_light w-48 text-center"
                   onClick={() => {
                     const modal = document.getElementById(idModal) as HTMLDialogElement;
-                    if (data[0].id !== -1) {
+                    if (data[0].id !== -1 && selectNewTeacher !== '-1') {
                       onhandleClick(selectNewTeacher, selectNewIdTeacher);
                     }
-
                     setSelectNewTeacher('-1');
                     modal?.close();
                   }}
