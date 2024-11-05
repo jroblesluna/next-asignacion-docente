@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                      H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, C.codigoCurso
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
-                    ON D.idDocente =PA.idDocente AND PA.idPeriodo=1 AND PA.idVersion=@idVersion
+                    ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
                     INNER JOIN [dbo].[dim_tipo_contrato] AS TC     
                     ON  D.idTipoContrato =TC.TipoContratoID
                     LEFT JOIN [dbo].[ad_horario]as H
