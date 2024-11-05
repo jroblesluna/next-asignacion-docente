@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await pool.request().input('id', idPeriod).query(`
                IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo =  @id)
                 BEGIN
-               SELECT Distinct S.nombreSede as NombreSede FROM [dbo].[ad_programacionAcademica] AS PA 
+            SELECT Distinct S.nombreSede as NombreSede FROM [dbo].[ad_programacionAcademica] AS PA 
             INNER JOIN [dbo].[ad_sede] as S ON S.idSede=PA.idSede  and S.periodo=@id
              where PA.idPeriodo =@id
                 END

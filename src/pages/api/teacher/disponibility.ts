@@ -386,6 +386,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('version', version)
           .input('idFrecuencia', resultCurso.recordset[0]?.idFrecuencia)
           .input('idHorario', resultCurso.recordset[0]?.idHorario)
+          .input('idVirtual', virtualID)
           .query(
             `
                 SELECT 					
@@ -423,6 +424,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			    WHERE
              D.periodo = @id  AND
              D.vigente=1
+             AND D.idSede <> @idVirtual
 			AND D.FechaInicioContrato IS NOT NULL
        AND NOT EXISTS (
                 SELECT 1

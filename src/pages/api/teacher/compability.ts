@@ -385,6 +385,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('version', version)
           .input('idFrecuencia', resultCurso.recordset[0]?.idFrecuencia)
           .input('idHorario', resultCurso.recordset[0]?.idHorario)
+          .input('idVirtual', virtualID)
           .query(
             `SELECT LD.*, 
                    D.NombreCompletoProfesor, 
@@ -420,6 +421,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 AND D.periodo = @id 
                 AND D.FechaInicioContrato IS NOT NULL
                 AND D.vigente=1
+                AND D.idSede <> @idVirtual
             INNER JOIN [dbo].[dim_tipo_contrato] AS TC ON TC.TipoContratoID = D.idTipoContrato
             WHERE LD.CursoID = @idCurso
             AND NOT EXISTS (
