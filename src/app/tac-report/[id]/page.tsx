@@ -4,7 +4,7 @@ import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
 import { ModalWarning } from '../../components/Modals';
 import { useParams } from 'next/navigation';
-import { singsCompare, timeDaily, timeWeekend } from '../../constants/data';
+import { singsCompare, timeDaily, timeSunday, timeWeekend } from '../../constants/data';
 import { numberCompare, frecuencyData } from '../../constants/data';
 import { TableTacReport } from '../../components/Rows';
 import { evaluateExpression } from '../../utils/managmentTime';
@@ -407,6 +407,14 @@ const Page = () => {
                       <th
                         key={`weekend-${index}`}
                         className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24"
+                      >
+                        {time}
+                      </th>
+                    ))}
+                    {timeSunday.map((time, index) => (
+                      <th
+                        key={`weekend-${index}`}
+                        className="py-2.5 uppercase font-inter border bg-[#296984] sticky top-0 text-white min-w-24"
                       >
                         {time}
                       </th>

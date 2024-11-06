@@ -23,13 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await pool.request().input('id', idPeriod).query(`
                IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo =  @id)
                 BEGIN
-                SELECT distinct NombreSede from [dbo].[ad_docente]
-             where periodo=@id and NombreSede is not null and Nombresede <> 'Virtual'
+                SELECT distinct NombreSede from [dbo].[ad_docente] 
+             where periodo=@id and NombreSede is not null and Nombresede <> 'Virtual' AND vigente=1 AND dictaClase=1 
                 END
               ELSE
                 BEGIN
                  SELECT distinct NombreSede from [dbo].[ad_docente]
-             where periodo=1 and NombreSede is not null and Nombresede <> 'Virtual'
+             where periodo=1 and NombreSede is not null and Nombresede <> 'Virtual'AND vigente=1 AND dictaClase=1 
               END      
              `);
 

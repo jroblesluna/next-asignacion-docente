@@ -10,16 +10,8 @@ export const timeDaily = [
   '21:15',
 ];
 
-export const timeWeekend = [
-  '7:00',
-  '8:55',
-  '10:55',
-  '12:45',
-  '14:40',
-  '16:35',
-  '18:30',
-  '9:00',
-];
+export const timeWeekend = ['7:00', '8:55', '10:55', '12:45', '14:40', '16:35', '18:30'];
+export const timeSunday = ['9:00'];
 
 export const numberCompare = ['0', '1', '2', '3', '4', '5'];
 

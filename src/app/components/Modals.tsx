@@ -235,13 +235,19 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
   return (
     <>
       <dialog id={idModal} className={'modal overflow-hidden cursor-default select-none'}>
-        <div className="modal-box py-14 px-10 min-h-[600px] min-w-[800px]">
+        <div className="modal-box py-5 px-10 min-h-[650px] min-w-[800px]">
           <div className="modal-action">
             <form method="dialog" className="flex w-full flex-col">
-              <div className="w-full overflow-auto min-h-[400px] max-h-[400px] ">
-                <div className=" text-center font-bold">LISTA DE DOCENTES DISPONIBLES</div>
+              <div className=" text-center font-bold">LISTA DE DOCENTES DISPONIBLES</div>
+              <div className="w-full mt-5 flex flex-row">
+                <p className="px-4 py-2 border w-[58%] font-bold">Docente</p>
+                <p className="px-4 py-2 border w-[10%] font-bold">TC</p>
+                <p className="px-4 py-2 border w-[14%] font-bold">HA</p>
+                <p className="px-4 py-2 border w-[18%] font-bold">SEDE</p>
+              </div>
 
-                <table className="w-full mt-10">
+              <div className="w-full overflow-auto min-h-[350px] max-h-[350px] ">
+                <table className="w-full mt-2">
                   {data.length === 0 ? (
                     <tbody>
                       <tr>
@@ -284,6 +290,28 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
                   )}
                 </table>
               </div>
+
+              <div className="flex flex-col text-xs gap-2 mt-5">
+                <p className="font-bold">
+                  {' '}
+                  Leyenda - Docentes que no necesariamente dictan el curso y estan disponibles
+                </p>
+                <div className="flex flex-row gap-4">
+                  <p>
+                    <span className="font-bold">PT:</span> Part time
+                  </p>
+                  <p>
+                    <span className="font-bold">FT:</span> Full time
+                  </p>
+                  <p>
+                    <span className="font-bold">TC:</span> Tipo de Contrato
+                  </p>
+                  <p>
+                    <span className="font-bold">HA:</span> Horas acumuladas mensuales
+                  </p>
+                </div>
+              </div>
+
               <div className="w-full flex flex-row gap-10 justify-center mt-5">
                 <button
                   type="button"
@@ -398,15 +426,21 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
   return (
     <>
       <dialog id={idModal} className={'modal overflow-hidden cursor-default select-none'}>
-        <div className="modal-box py-14 px-10 min-h-[600px] min-w-[800px]">
+        <div className="modal-box py-5 px-10 min-h-[650px] min-w-[800px]">
           <div className="modal-action">
             <form method="dialog" className="flex w-full flex-col">
-              <div className="w-full overflow-auto min-h-[400px] max-h-[400px] ">
-                <div className=" text-center font-bold">
-                  LISTA DE DOCENTES COMPATIBLES Y RECOMENDADOS
-                </div>
+              <div className=" text-center font-bold">
+                LISTA DE DOCENTES COMPATIBLES Y RECOMENDADOS
+              </div>
+              <div className="w-full mt-5 flex flex-row">
+                <p className="px-4 py-2 border w-[58%] font-bold">Docente</p>
+                <p className="px-4 py-2 border w-[10%] font-bold">TC</p>
+                <p className="px-4 py-2 border w-[14%] font-bold">HA</p>
+                <p className="px-4 py-2 border w-[18%] font-bold">SEDE</p>
+              </div>
 
-                <table className="w-full mt-10">
+              <div className="w-full overflow-auto min-h-[350px] max-h-[350px] ">
+                <table className="w-full mt-2">
                   {data.length === 0 ? (
                     <tbody>
                       <tr>
@@ -449,6 +483,28 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
                   )}
                 </table>
               </div>
+
+              <div className="flex flex-col text-xs gap-2 mt-5">
+                <p className="font-bold">
+                  {' '}
+                  Leyenda - Docentes que dictan el curso y estan disponibles
+                </p>
+                <div className="flex flex-row gap-4">
+                  <p>
+                    <span className="font-bold">PT:</span> Part time
+                  </p>
+                  <p>
+                    <span className="font-bold">FT:</span> Full time
+                  </p>
+                  <p>
+                    <span className="font-bold">TC:</span> Tipo de Contrato
+                  </p>
+                  <p>
+                    <span className="font-bold">HA:</span> Horas acumuladas mensuales
+                  </p>
+                </div>
+              </div>
+
               <div className="w-full flex flex-row gap-10 justify-center mt-5">
                 <button
                   type="button"

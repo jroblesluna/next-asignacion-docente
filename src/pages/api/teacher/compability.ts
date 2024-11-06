@@ -421,6 +421,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 AND D.periodo = @id 
                 AND D.FechaInicioContrato IS NOT NULL
                 AND D.vigente=1
+                AND D.dictaClase=1
                 AND D.idSede <> @idVirtual
             INNER JOIN [dbo].[dim_tipo_contrato] AS TC ON TC.TipoContratoID = D.idTipoContrato
             WHERE LD.CursoID = @idCurso
@@ -495,6 +496,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 AND D.FechaInicioContrato IS NOT NULL
                 AND D.idSede=@idSede
                 AND D.vigente=1
+                AND D.dictaClase=1
             INNER JOIN [dbo].[dim_tipo_contrato] AS TC ON TC.TipoContratoID = D.idTipoContrato
             WHERE LD.CursoID = @idCurso
               AND NOT EXISTS (

@@ -50,12 +50,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=@id
             LEFT JOIN [dbo].[ad_curso] as C
              ON C.idCurso= PA.idCurso AND C.periodo=@id
-            WHERE D.periodo=@id and D.vigente =1 AND FechaInicioContrato IS NOT NULL
+            WHERE D.periodo=@id and D.vigente =1 AND D.FechaInicioContrato IS NOT NULL  AND D.dictaClase=1 
             ORDER BY FechaInicioContrato 
         END
         ELSE
         BEGIN
-                             SELECT D.uuidDocente, D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
+                      SELECT D.uuidDocente, D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
                      H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, C.codigoCurso
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
@@ -68,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                      ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=1
                     LEFT JOIN [dbo].[ad_curso] as C
                      ON C.idCurso= PA.idCurso AND C.periodo=1
-                    WHERE D.periodo=1 and D.vigente =1 AND FechaInicioContrato IS NOT NULL
+                    WHERE D.periodo=1 and D.vigente =1 AND FechaInicioContrato IS NOT NULL AND D.dictaClase=1 
                     ORDER BY FechaInicioContrato 
         END
       `);

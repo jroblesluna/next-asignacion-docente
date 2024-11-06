@@ -1,3 +1,4 @@
+// la funcion esta modificada para que tenga tolerancia de un minuto
 export function isTimeInRange(time: string, range: string): boolean {
   const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.split(':').map(Number);
@@ -7,8 +8,8 @@ export function isTimeInRange(time: string, range: string): boolean {
   const [startTime, endTime] = range.split(' - ').map(timeToMinutes);
   const timeInMinutes = timeToMinutes(time);
 
-  // Incluye la hora final del rango como válida
-  return timeInMinutes >= startTime && timeInMinutes <= endTime + 1;
+  // Incluye la hora inicial del rango como válida
+  return timeInMinutes >= startTime && timeInMinutes <= endTime - 2;
 }
 
 export function evaluateExpression(a: number, b: string, operator: string): boolean {

@@ -284,8 +284,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .query(`SELECT  * FROM [dbo].[ad_avanceAlgoritmo] where idPeriodo=@id`);
 
       const dataAvance = resultadoAvance.recordset;
-      // console.log(dataAvance);
-      // console.log(dataAvance[0]?.idSede);
+
       if (dataAvance[0].idSede === null) {
         flagAvance = false;
       }
@@ -299,6 +298,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('nombreCreador', sql.VarChar, correo)
           .execute('ad_crearVersion');
 
+        // SNAPTSHOT solo la primera vez
+        await pool
+          .request()
+          .input('periodo', sql.Int, periodo)
+          .execute('ad_capturaDatosNuevoPeriodo');
+
+        // copia de la programación academica  del nuevo periodo
+
+        await pool
+          .request()
+          .input('periodo', sql.Int, periodo)
+          .execute('ad_CrearNuevaProgramacionAcademica');
+
+        // Falta implementar logica -- EVENTOS
         // SI NO HAY VERSIÓN PARA ESE PERIODO
         // SE CREA UNA VERSIÓN =1  Y SE HACER UNA COPIA , VERSION 1 , SE PROCIGUE EL ALGORITMO
         //  SI HAY SE CREA UNA VERSION SIGUIENTE Y SE ACTUALIZAN LAS TABLAS EN EL PERIODO , Y LA PROGRAMACIÓN CURSO DADA
@@ -354,14 +367,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       															INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
       															WHERE TC2.TipoJornada = 'PT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
       															D2.vigente = 1 AND D2.FechaInicioContrato IS NOT NULL  and D2.periodo=@id
-      														AND  D2.idSede <> @virtualID ) / 3.0
+      														AND  D2.idSede <> @virtualID  AND D2.dictaClase=1    ) / 3.0
       													) +
       													(SELECT COUNT(TC2.TipoJornada)
       														FROM [dbo].[ad_docente] AS D2
       														INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
       														WHERE  TC2.TipoJornada = 'FT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
       															D2.vigente = 1 AND D2.FechaInicioContrato IS NOT NULL
-      														AND  D2.idSede <>@virtualID and  D2.periodo=@id  )
+      														AND  D2.idSede <>@virtualID and  D2.periodo=@id AND D2.dictaClase=1  )
       												)
       											)*100 ,3)
 
@@ -377,7 +390,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       											AND D.FechaInicioContrato IS NOT NULL
       											AND  D.idSede <> @virtualID
       											and  D.periodo=@id
-                            				AND S.vigente=1
+                            AND D.dictaClase=1
+                            AND S.vigente=1
       									GROUP BY
       											S.idSede,
       											S.NombreSede
@@ -681,6 +695,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                       AND D.FechaInicioContrato IS NOT NULL
                                       AND D.idSede <> @virtualID
                                       AND D.periodo = @id
+                                      AND D.dictaClase=1
                                   GROUP BY
                                       D.idDocente,
                                       TC.TipoJornada,
@@ -767,7 +782,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               }
 
               console.log('Paso 7.1 susccess');
-              //         //P7.2: Validar Cumplimiento de Disponibilidad (durante todo el curso).
+              //P7.2: Validar Cumplimiento de Disponibilidad (durante todo el curso).
 
               const docenteDisponibleData = ObtenerDocenteDisponiblePorID(docente.DocenteID);
               if (
@@ -1018,6 +1033,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                   D.idSede = @idSede
                                   AND D.vigente = 1
                                   AND D.FechaInicioContrato IS NOT NULL
+                                  AND D.dictaClase=1
                           		AND D.periodo=@id
                           )
                           SELECT
@@ -1088,7 +1104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                               			AND PC.idVersion=@idVersion
                                     AND PC.idDocente is not null
                                   ) AS ClasesAsignadasDocente
-                                  INNER JOIN [dbo].[ad_docente] AS D ON ClasesAsignadasDocente.idDocente = D.idDocente AND D.periodo=@id
+                                  INNER JOIN [dbo].[ad_docente] AS D ON ClasesAsignadasDocente.idDocente = D.idDocente AND D.periodo=@id AND D.dictaClase=1
                                   INNER JOIN [dbo].[dim_tipo_contrato] AS TC ON D.idTipoContrato = TC.TipoContratoID
                               )
 

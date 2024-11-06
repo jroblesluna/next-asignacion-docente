@@ -258,7 +258,7 @@ interface TeacherAssignment {
   classSchedule: ClassSchedule[];
 }
 
-import { timeDaily, timeWeekend } from '../constants/data';
+import { timeDaily, timeSunday, timeWeekend } from '../constants/data';
 import { isTimeInRange, containsDaysOfWeek } from '../utils/managmentTime';
 import Link from 'next/link';
 export const TableTacReport: React.FC<TeacherAssignment> = ({
@@ -303,6 +303,27 @@ export const TableTacReport: React.FC<TeacherAssignment> = ({
                 (classItem) =>
                   isTimeInRange(time, classItem.schedule) &&
                   !containsDaysOfWeek(classItem.frecuency)
+              )
+              .map((classItem, index, array) => (
+                <span key={index}>
+                  {classItem.room + (index !== array.length - 1 ? '/' : '')}
+                </span>
+              ))}
+          </p>
+        </td>
+      ))}
+      {timeSunday.map((time, index) => (
+        <td
+          key={`weekend-${index}`}
+          className="py-2 uppercase font-inter border text-center min-w-24"
+        >
+          <p className="text-xs">
+            {classSchedule
+              .filter(
+                (classItem) =>
+                  isTimeInRange(time, classItem.schedule) &&
+                  !containsDaysOfWeek(classItem.frecuency) &&
+                  classItem.frecuency == 'D'
               )
               .map((classItem, index, array) => (
                 <span key={index}>

@@ -10,14 +10,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       pool = await connectToDatabase();
 
       const { idPeriod } = req.query;
-      const result = await pool.request().input('id', idPeriod)
-        .query(`SELECT  D.*,TC.TipoJornada, ISNULL( DD.EstadoDisponible ,1) AS 
-                      EstadoDisponible FROM [dbo].[dim_docente] as D
-                      INNER JOIN [dbo].[dim_tipo_contrato] AS TC 
-                      ON  D.TipoContratoID =TC.TipoContratoID
-                      LEFT JOIN [dbo].[disponibilidad_docente]AS DD 
-                      ON  DD.DocenteID=D.DocenteID AND DD.PeriodoAcademico=@id
-                      where D.FlagVigente=1  ORDER BY  D.FechaInicioContrato
+      const result = await pool.request().input('id', idPeriod).query(`WITH CTE_Docente AS (
+                            SELECT  
+                                D.*, 
+                                TC.TipoJornada, 
+                                ISNULL(DD.EstadoDisponible, 1) AS EstadoDisponible,
+                                (CASE 
+                                    WHEN EXISTS (SELECT 1 
+                                                 FROM [dbo].[LibroPorDocente] 
+                                                 WHERE [dbo].[LibroPorDocente].DocenteID = D.DocenteID) 
+                                    THEN 1 
+                                    ELSE 0 
+                                 END) AS dictaClase
+                            FROM 
+                                [dbo].[dim_docente] AS D
+                            INNER JOIN 
+                                [dbo].[dim_tipo_contrato] AS TC ON D.TipoContratoID = TC.TipoContratoID
+                            LEFT JOIN 
+                                [dbo].[disponibilidad_docente] AS DD ON DD.DocenteID = D.DocenteID AND DD.PeriodoAcademico = @id
+                            WHERE 
+                                D.FlagVigente = 1
+                        		AND D.FechaInicioContrato is not null
+                        )
+                        SELECT * 
+                        FROM CTE_Docente
+                        WHERE dictaClase = 1
+                        ORDER BY FechaInicioContrato
                   `);
 
       return res.status(200).json({ data: result.recordset });
