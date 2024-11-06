@@ -60,10 +60,6 @@ const solapaHorarioBloqueado = (
   return finRango > inicioHorario && finHorario > inicioRango;
 };
 
-const convertirFrecuencia = (frecuencia: string): string => {
-  return frecuenciaEquivalenteMap[frecuencia] || 'Frecuencia no encontrada';
-};
-
 const obtenerNumerosPorDias = (frecuencia: string): number[] => {
   let numerosDias: number[] = [];
 
@@ -142,30 +138,6 @@ const claseSolapada = (
   return true;
 };
 
-const frecuenciaEquivalenteMap: { [key: string]: string } = {
-  Diario: 'LV',
-  Interdiario: 'MJ',
-  'Interdiario L-M': 'LM',
-  'Interdiario M-V': 'MV',
-  'Interdiario L-M-V': 'LMV',
-  Dominical: 'D',
-  Sabatino: 'S',
-  'Sabatino Dominical': 'SD',
-  'Interdiario M-J': 'MJ',
-  'Interdiario M-J-S': 'MJS',
-  'Interdiario M-J-V': 'MJV',
-  Lunes: 'L',
-  Jueves: 'J',
-  Martes: 'M',
-  Miercoles: 'M',
-  Viernes: 'V',
-  'Semipresencial A': 'no se está ofreciendo',
-  'Interdiario L-S': 'no se está ofreciendo',
-  'Semipresencial B': 'no se está ofreciendo',
-  'Interdiario X-S': 'no se está ofreciendo',
-  'Blended J': 'no se está ofreciendo',
-};
-
 const solapamientoHorario = (rango: string, horarioInicio: string, horarioFin: string) => {
   function convertirHora(cadenaHora: string): Date {
     const [horas, minutos] = cadenaHora.split(':').map(Number);
@@ -237,7 +209,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     FORMAT(CONVERT(DATETIME, p.inicioClase), 'dd-MM-yyyy') AS InicioClase,
                             FORMAT(CONVERT(DATETIME, p.finalClase), 'dd-MM-yyyy') AS FinClase,
                         H.HorarioInicio, H.HorarioFin, H.MinutosReal, aux.NumDias,
-                        (H.MinutosReal * aux.NumDias) AS minutosTotales, F.NombreFrecuencia
+                        (H.MinutosReal * aux.NumDias) AS minutosTotales, F.NombreFrecuencia, F.NombreAgrupFrecuencia
                     FROM [dbo].[ad_programacionAcademica] P
                     INNER JOIN [dbo].[ad_horario] AS H
                         ON P.idHorario = H.idHorario and H.periodo=@id
@@ -327,7 +299,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .request()
         .input('id', idPeriod)
         .input('version', version).query(`
-    SELECT distinct PA.idFrecuencia, F.NombreFrecuencia FROM [dbo].[ad_programacionAcademica] AS PA
+    SELECT distinct PA.idFrecuencia, F.NombreFrecuencia , F.NombreAgrupFrecuencia FROM [dbo].[ad_programacionAcademica] AS PA
             INNER JOIN [dbo].[ad_frecuencia] AS F ON F.idFrecuencia=PA.idFrecuencia AND F.periodo=@id
              where PA.idPeriodo=@id and  PA.idVersion =@version  and PA.vigente=1 and PA.cancelado=0
       `);
@@ -343,8 +315,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (frecuencia1.idFrecuencia !== frecuencia2.idFrecuencia) {
             if (
               solapamientoFrecuencia(
-                convertirFrecuencia(frecuencia1.NombreFrecuencia),
-                convertirFrecuencia(frecuencia2.NombreFrecuencia)
+                frecuencia1.NombreAgrupFrecuencia,
+                frecuencia2.NombreAgrupFrecuencia
               )
             ) {
               solapados.push(frecuencia2.idFrecuencia);
@@ -568,7 +540,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const respuesta = BloquesBloqueados.every((item) => {
             return !solapaHorarioBloqueado(
               item.CodigoBloque,
-              convertirFrecuencia(resultCurso.recordset[0]?.NombreFrecuencia),
+              resultCurso.recordset[0]?.NombreAgrupFrecuencia,
               item.BloqueHorario,
               resultCurso.recordset[0]?.HorarioInicio,
               resultCurso.recordset[0]?.HorarioFin
@@ -592,7 +564,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 PC.idHorario, 
                                 H.HorarioInicio, 
                                 H.HorarioFin, 
-                                F.NombreFrecuencia
+                                F.NombreFrecuencia, 
+                                F.NombreAgrupFrecuencia
                                 FROM 
                                  [dbo].[ad_programacionAcademica] AS PC
                                 INNER JOIN 
@@ -608,16 +581,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (ClasesAsignadas.length > 0) {
           const respuesta = ClasesAsignadas.every((item) => {
-            if (convertirFrecuencia(item.NombreFrecuencia) === 'Frecuencia no encontrada') {
+            if (item.NombreAgrupFrecuencia === 'no se está ofreciendo') {
               console.log(item.NombreFrecuencia);
+              console.log(item.NombreAgrupFrecuencia);
               return false;
             }
 
             return !claseSolapada(
-              convertirFrecuencia(item.NombreFrecuencia),
+              item.NombreAgrupFrecuencia,
               item.HorarioInicio,
               item.HorarioFin,
-              convertirFrecuencia(resultCurso.recordset[0]?.NombreFrecuencia),
+              resultCurso.recordset[0]?.NombreAgrupFrecuencia,
               resultCurso.recordset[0]?.HorarioInicio,
               resultCurso.recordset[0]?.HorarioFin
             );

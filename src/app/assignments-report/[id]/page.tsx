@@ -22,7 +22,6 @@ import {
 } from '@/app/interface/datainterface';
 import periodService from '@/services/period';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
-import { frecuenciaEquivalenteMap } from '@/app/utils/other';
 
 const ReportAssignments = () => {
   const { id } = useParams() as { id: string };
@@ -140,7 +139,7 @@ const ReportAssignments = () => {
         location: item.nombreSede,
         course: item.codigoCurso || 'No Encontrado',
         schedule: `${item.HorarioInicio} - ${item.HorarioFin}`,
-        frequency: frecuenciaEquivalenteMap[item.NombreFrecuencia] || item.NombreFrecuencia,
+        frequency: item.NombreAgrupFrecuencia,
         classroom: item.identificadorFisico || '-',
         teacher:
           item.nombreSede === item.nombreSedeAlojada

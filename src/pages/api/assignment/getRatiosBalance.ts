@@ -33,8 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       `);
     const idSedeVirtual = result.recordset[0].idSede;
 
-    console.log(idSedeVirtual);
-
     const resultData = await pool
       .request()
       .input('id', idPeriod)

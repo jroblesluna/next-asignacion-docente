@@ -17,7 +17,7 @@ import {
   versionData,
 } from '@/app/interface/datainterface';
 import assigmentService from '@/services/assigment';
-import { frecuenciaEquivalenteMap } from '@/app/utils/other';
+import {} from '@/app/utils/other';
 import { downloadExcelTac } from '@/app/utils/downloadExcel';
 import periodService from '@/services/period';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
@@ -90,8 +90,7 @@ const Page = () => {
         classSchedule: ProgramacionAcademicaData.filter(
           (item2) => item2.uuidDocente === item.uuidDocente && item2.idFrecuencia !== null
         ).map((elemento) => ({
-          frecuency:
-            frecuenciaEquivalenteMap[elemento.NombreFrecuencia] || elemento.NombreFrecuencia,
+          frecuency: elemento.NombreAgrupFrecuencia,
           schedule: elemento.HorarioInicio + ' - ' + elemento.HorarioFin,
           room: elemento.codigoCurso,
         })),

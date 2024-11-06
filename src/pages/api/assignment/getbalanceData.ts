@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .input('idVersion', selectedVersion).query(`
         IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
-          SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
+          SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,  F.NombreAgrupFrecuencia,
            D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
            S.nombreSede , (H.MinutosReal * aux.NumDias) as minutosCurso  , (H.MinutosReal * aux.NumDias)/(36*60.0) as carga
           FROM [dbo].[ad_programacionAcademica] AS PA  
@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         END
         ELSE
         BEGIN
-         SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
+         SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,   F.NombreAgrupFrecuencia,
            D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
            S.nombreSede , (H.MinutosReal * aux.NumDias) as minutosCurso  , (H.MinutosReal * aux.NumDias)/(36*60.0) as carga
           FROM [dbo].[ad_programacionAcademica] AS PA  

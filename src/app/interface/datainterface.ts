@@ -22,6 +22,7 @@ export interface ProgramacionAcademica {
   HorarioInicio: string;
   HorarioFin: string;
   NombreFrecuencia: string;
+  NombreAgrupFrecuencia: string;
   identificadorFisico: string;
   idSedeAlojada: number;
   nombreSedeAlojada: string;
@@ -100,6 +101,7 @@ export interface docentesTac {
   HorarioInicio: string;
   HorarioFin: string;
   NombreFrecuencia: string;
+  NombreAgrupFrecuencia: string;
   codigoCurso: string;
 }
 
@@ -135,6 +137,7 @@ export interface balanceDataInterface {
   HorarioInicio: string;
   HorarioFin: string;
   NombreFrecuencia: string;
+  NombreAgrupFrecuencia: string;
   idSedeAlojada: number;
   nombreSedeAlojada: string;
   nombreSede: string;

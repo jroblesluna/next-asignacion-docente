@@ -38,6 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
           SELECT PA.*, D.NombreCompletoProfesor, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
+          F.NombreAgrupFrecuencia, 
             A.identificadorFisico, D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
             C.codigoCurso, S.nombreSede 
           FROM [dbo].[ad_programacionAcademica] AS PA  
@@ -51,7 +52,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         END
         ELSE
         BEGIN
-          SELECT PA.*, D.NombreCompletoProfesor, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
+          SELECT PA.*, D.NombreCompletoProfesor, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,
+          F.NombreAgrupFrecuencia, 
             A.identificadorFisico, D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
             C.codigoCurso, S.nombreSede 
           FROM [dbo].[ad_programacionAcademica] AS PA  

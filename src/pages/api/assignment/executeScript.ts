@@ -6,34 +6,7 @@ import { connectToDatabase } from '../lib/db';
 import sql from 'mssql';
 import { sendEmail } from '../lib/conectEmail';
 
-// REMPLAZAR POR LA COLUMNA DE LA BD
-const frecuenciaEquivalenteMap: { [key: string]: string } = {
-  Diario: 'LV',
-  Interdiario: 'LMV',
-  'Interdiario L-M': 'LM',
-  'Interdiario M-V': 'MV',
-  'Interdiario L-M-V': 'LMV',
-  Dominical: 'D',
-  Sabatino: 'S',
-  'Sabatino Dominical': 'SD',
-  'Interdiario M-J': 'MJ',
-  'Interdiario M-J-S': 'MJS',
-  'Interdiario M-J-V': 'MJV',
-  Lunes: 'L',
-  Jueves: 'J',
-  Martes: 'M',
-  Miercoles: 'M',
-  Viernes: 'V',
-  'Semipresencial A': 'no se está ofreciendo',
-  'Interdiario L-S': 'no se está ofreciendo',
-  'Semipresencial B': 'no se está ofreciendo',
-  'Interdiario X-S': 'no se está ofreciendo',
-  'Blended J': 'no se está ofreciendo',
-};
-
-const convertirFrecuencia = (frecuencia: string): string => {
-  return frecuenciaEquivalenteMap[frecuencia] || 'Frecuencia no encontrada';
-};
+// AGREGAR LA CONVERSIÓN DE FRECUENCIAS A NUMEROS SI ES NECESARIO A FUTURO
 
 const obtenerNumerosPorDias = (frecuencia: string): number[] => {
   let numerosDias: number[] = [];
@@ -52,7 +25,7 @@ const obtenerNumerosPorDias = (frecuencia: string): number[] => {
       numerosDias = [2, 3, 5];
       break;
     case 'MJS':
-      numerosDias = [2, 4, 7];
+      numerosDias = [2, 4, 6];
       break;
     case 'MJV':
       numerosDias = [2, 4, 5];
@@ -83,7 +56,7 @@ const obtenerNumerosPorDias = (frecuencia: string): number[] => {
       break;
 
     default:
-      throw new Error('Frecuencia no válidaASDASD');
+      throw new Error('Frecuencia no válida');
   }
 
   return numerosDias;
@@ -157,6 +130,8 @@ const solapaHorarioBloqueado = (
   }
   const diasHabiles = ['L', 'M', 'J', 'V'];
   const diasFinDeSemana = ['S', 'D'];
+  //SEMANAL = S
+  // DOMINICAL =D
 
   if (
     (tipoSemana[0] === 'S' && diasHabiles.some((dia) => frecuencia.includes(dia))) ||
@@ -439,7 +414,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                        FORMAT(CONVERT(DATETIME, p.inicioClase), 'dd-MM-yyyy') AS InicioClase,
                        FORMAT(CONVERT(DATETIME, p.finalClase), 'dd-MM-yyyy') AS FinClase,
                         H.HorarioInicio, H.HorarioFin, H.MinutosReal, aux.NumDias,
-                        (H.MinutosReal * aux.NumDias) AS minutosTotales, F.NombreFrecuencia,
+                        (H.MinutosReal * aux.NumDias) AS minutosTotales,   F.NombreFrecuencia, F.NombreAgrupFrecuencia,
                         (SELECT COUNT(*)
                          FROM [dbo].[ad_programacionAcademica] AS PC
                          WHERE PC.idHorario = P.idHorario
@@ -550,7 +525,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .request()
           .input('id', periodo)
           .input('version', version).query(`
-    SELECT distinct PA.idFrecuencia, F.NombreFrecuencia FROM [dbo].[ad_programacionAcademica] AS PA
+    SELECT distinct PA.idFrecuencia, F.NombreFrecuencia, F.NombreAgrupFrecuencia FROM [dbo].[ad_programacionAcademica] AS PA
             INNER JOIN [dbo].[ad_frecuencia] AS F ON F.idFrecuencia=PA.idFrecuencia AND F.periodo=@id
              where PA.idPeriodo=@id and  PA.idVersion =@version  and PA.vigente=1 and PA.cancelado=0
       `);
@@ -566,8 +541,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (frecuencia1.idFrecuencia !== frecuencia2.idFrecuencia) {
               if (
                 solapamientoFrecuencia(
-                  convertirFrecuencia(frecuencia1.NombreFrecuencia),
-                  convertirFrecuencia(frecuencia2.NombreFrecuencia)
+                  frecuencia1.NombreAgrupFrecuencia,
+                  frecuencia2.NombreAgrupFrecuencia
                 )
               ) {
                 solapados.push(frecuencia2.idFrecuencia);
@@ -794,7 +769,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   (item: { CodigoBloque: string; BloqueHorario: string }) => {
                     return !solapaHorarioBloqueado(
                       item.CodigoBloque,
-                      convertirFrecuencia(cursosXsede.NombreFrecuencia),
+                      cursosXsede.NombreAgrupFrecuencia,
                       item.BloqueHorario,
                       cursosXsede.HorarioInicio,
                       cursosXsede.HorarioFin
@@ -824,7 +799,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                       idHorario,
                                       HorarioInicio,
                                       HorarioFin,
-                                      NombreFrecuencia
+                                      NombreFrecuencia,
+                                      NombreAgrupFrecuencia
                                     FROM (
                                         SELECT
                                             S.idSede,
@@ -834,7 +810,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                             PA.idHorario,
                                             H.HorarioInicio,
                                             H.HorarioFin,
-                                            F.NombreFrecuencia
+                                            F.NombreFrecuencia,
+                                            F.NombreAgrupFrecuencia
                                         FROM
                                             [dbo].[ad_pivoteAsignacion] AS PA
                                         INNER JOIN
@@ -860,7 +837,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                             PA.idHorario,
                                             H.HorarioInicio,
                                             H.HorarioFin,
-                                            F.NombreFrecuencia
+                                            F.NombreFrecuencia,
+                                            F.NombreAgrupFrecuencia
                                         FROM
                                             [dbo].[ad_programacionAcademica] AS PA
                                         INNER JOIN
@@ -883,15 +861,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               if (ClasesAsignadas.length > 0) {
                 const respuesta = ClasesAsignadas.every(
                   (item: {
-                    NombreFrecuencia: string;
+                    NombreAgrupFrecuencia: string;
                     HorarioInicio: string;
                     HorarioFin: string;
                   }) => {
                     return !claseSolapada(
-                      convertirFrecuencia(item.NombreFrecuencia),
+                      item.NombreAgrupFrecuencia,
                       item.HorarioInicio,
                       item.HorarioFin,
-                      convertirFrecuencia(cursosXsede.NombreFrecuencia),
+                      cursosXsede.NombreAgrupFrecuencia,
                       cursosXsede.HorarioInicio,
                       cursosXsede.HorarioFin
                     );

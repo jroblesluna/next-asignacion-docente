@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import assigmentService from '@/services/assigment';
 import { balanceDataInterface, esquemaFrecuenciaHorario } from '../interface/datainterface';
-import { frecuenciaEquivalenteMap } from '../utils/other';
 // import { docentesTac, tacData } from '../interface/datainterface';
 // import periodService from '@/services/period';
 // import teacherService from '@/services/teacher';
@@ -58,14 +57,17 @@ function Page() {
       const result: esquemaFrecuenciaHorario[] = [];
 
       balancaDatarray.forEach(
-        (item: { NombreFrecuencia: string; HorarioInicio: string; HorarioFin: string }) => {
-          const comboKey = `${item.NombreFrecuencia}, ${item.HorarioInicio} - ${item.HorarioFin}`;
+        (item: {
+          NombreAgrupFrecuencia: string;
+          HorarioInicio: string;
+          HorarioFin: string;
+        }) => {
+          const comboKey = `${item.NombreAgrupFrecuencia}, ${item.HorarioInicio} - ${item.HorarioFin}`;
 
           if (!uniqueCombinations.has(comboKey)) {
             uniqueCombinations.add(comboKey);
             result.push({
-              frecuencia:
-                frecuenciaEquivalenteMap[item.NombreFrecuencia] || item.NombreFrecuencia,
+              frecuencia: item.NombreAgrupFrecuencia,
               horario: `${item.HorarioInicio} - ${item.HorarioFin}`,
             });
           }

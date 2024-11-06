@@ -187,7 +187,6 @@ export const exportBalance = (
   ratiosData: ratioData[],
   balancaDatarray: balanceDataInterface[],
   filteredSchedules: esquemaFrecuenciaHorario[],
-  frecuenciaEquivalenteMap: Record<string, string>,
   periodo: string
 ) => {
   const workbook = new ExcelJS.Workbook();
@@ -280,13 +279,13 @@ export const exportBalance = (
       item.horario,
       balancaDatarray.filter(
         (row) =>
-          frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+          row.NombreAgrupFrecuencia === item.frecuencia &&
           `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario
       ).length,
       ...ratiosData.map((location) => {
         const count = balancaDatarray.filter(
           (row) =>
-            frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+            row.NombreAgrupFrecuencia === item.frecuencia &&
             `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario &&
             row.nombreSede === location.NombreSede &&
             row.idDocente !== null
@@ -295,20 +294,20 @@ export const exportBalance = (
       }),
       balancaDatarray.filter(
         (row) =>
-          frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+          row.NombreAgrupFrecuencia === item.frecuencia &&
           `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario &&
           row.idDocente === null
       ).length,
       ...ratiosData.map((location) => {
         const totalMatches = balancaDatarray.filter(
           (row) =>
-            frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+            row.NombreAgrupFrecuencia === item.frecuencia &&
             `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario
         ).length;
         if (totalMatches === 0) return '';
         const matchCount = balancaDatarray.filter(
           (row) =>
-            frecuenciaEquivalenteMap[row.NombreFrecuencia] === item.frecuencia &&
+            row.NombreAgrupFrecuencia === item.frecuencia &&
             `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario &&
             row.nombreSede === location.NombreSede
         ).length;

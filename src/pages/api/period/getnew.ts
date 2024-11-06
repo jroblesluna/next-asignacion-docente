@@ -18,7 +18,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           `SELECT top 1  * FROM [dbo].[ad_periodo] where estado = 'ACTIVO' OR estado = 'CARGANDO'`
         );
 
-      console.log(resultVerificar.recordset);
       if (resultVerificar.recordset.length !== 0) {
         return res.status(200).json({
           message:

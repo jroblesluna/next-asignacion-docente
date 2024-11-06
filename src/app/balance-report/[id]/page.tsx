@@ -14,7 +14,6 @@ import {
   ratioData,
 } from '@/app/interface/datainterface';
 import assigmentService from '@/services/assigment';
-import { frecuenciaEquivalenteMap } from '@/app/utils/other';
 import { exportBalance } from '@/app/utils/downloadExcel';
 const Page = () => {
   const { id } = useParams() as { id: string };
@@ -92,13 +91,7 @@ const Page = () => {
 
   const descargarBalance = () => {
     if (ratiosData.length > 0 && balancaDatarray.length > 0 && filteredSchedules.length > 0) {
-      exportBalance(
-        ratiosData,
-        balancaDatarray,
-        filteredSchedules,
-        frecuenciaEquivalenteMap,
-        id
-      );
+      exportBalance(ratiosData, balancaDatarray, filteredSchedules, id);
     }
   };
 
@@ -108,14 +101,17 @@ const Page = () => {
       const result: esquemaFrecuenciaHorario[] = [];
 
       balancaDatarray.forEach(
-        (item: { NombreFrecuencia: string; HorarioInicio: string; HorarioFin: string }) => {
-          const comboKey = `${item.NombreFrecuencia}, ${item.HorarioInicio} - ${item.HorarioFin}`;
+        (item: {
+          NombreAgrupFrecuencia: string;
+          HorarioInicio: string;
+          HorarioFin: string;
+        }) => {
+          const comboKey = `${item.NombreAgrupFrecuencia}, ${item.HorarioInicio} - ${item.HorarioFin}`;
 
           if (!uniqueCombinations.has(comboKey)) {
             uniqueCombinations.add(comboKey);
             result.push({
-              frecuencia:
-                frecuenciaEquivalenteMap[item.NombreFrecuencia] || item.NombreFrecuencia,
+              frecuencia: item.NombreAgrupFrecuencia,
               horario: `${item.HorarioInicio} - ${item.HorarioFin}`,
             });
           }
@@ -328,8 +324,7 @@ const Page = () => {
                         {
                           balancaDatarray.filter(
                             (rowBalance) =>
-                              frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
-                                item.frecuencia &&
+                              rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
                               `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                 item.horario
                           ).length
@@ -341,8 +336,7 @@ const Page = () => {
                           {
                             balancaDatarray.filter(
                               (rowBalance) =>
-                                frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
-                                  item.frecuencia &&
+                                rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
                                 `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                   item.horario &&
                                 rowBalance.nombreSede === itemLocation.NombreSede &&
@@ -355,8 +349,7 @@ const Page = () => {
                         {
                           balancaDatarray.filter(
                             (rowBalance) =>
-                              frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
-                                item.frecuencia &&
+                              rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
                               `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                 item.horario &&
                               rowBalance.idDocente === null
@@ -368,27 +361,21 @@ const Page = () => {
                         <td className="text-center border" key={index}>
                           {balancaDatarray.filter(
                             (rowBalance) =>
-                              frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] &&
-                              frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
-                                item.frecuencia &&
+                              rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
                               `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                 item.horario
                           ).length !== 0
                             ? (
                                 (balancaDatarray.filter(
                                   (rowBalance) =>
-                                    frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] &&
-                                    frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
-                                      item.frecuencia &&
+                                    rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
                                     `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                       item.horario &&
                                     rowBalance.nombreSede === itemLocation.NombreSede
                                 ).length /
                                   balancaDatarray.filter(
                                     (rowBalance) =>
-                                      frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] &&
-                                      frecuenciaEquivalenteMap[rowBalance.NombreFrecuencia] ===
-                                        item.frecuencia &&
+                                      rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
                                       `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                         item.horario
                                   ).length) *
