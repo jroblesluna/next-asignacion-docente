@@ -1,6 +1,6 @@
 export const frecuenciaEquivalenteMap: { [key: string]: string } = {
   Diario: 'LV',
-  Interdiario: 'MJ',
+  Interdiario: 'LMV',
   'Interdiario L-M': 'LM',
   'Interdiario M-V': 'MV',
   'Interdiario L-M-V': 'LMV',

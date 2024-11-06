@@ -6,9 +6,10 @@ import { connectToDatabase } from '../lib/db';
 import sql from 'mssql';
 import { sendEmail } from '../lib/conectEmail';
 
+// REMPLAZAR POR LA COLUMNA DE LA BD
 const frecuenciaEquivalenteMap: { [key: string]: string } = {
   Diario: 'LV',
-  Interdiario: 'MJ',
+  Interdiario: 'LMV',
   'Interdiario L-M': 'LM',
   'Interdiario M-V': 'MV',
   'Interdiario L-M-V': 'LMV',
@@ -304,7 +305,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('periodo', sql.Int, periodo)
           .execute('ad_capturaDatosNuevoPeriodo');
 
-        // copia de la programación academica  del nuevo periodo
+        // Copia de la programación academica  del nuevo periodo solo la primera vez
 
         await pool
           .request()
@@ -329,9 +330,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const version = resultadoVersion.recordset[0]?.Lastversion;
 
       // P3:  Obtener orden de sedes
-
-      // await sql.query`INSERT INTO testLogsTiempo (estado, fechaHoraActual, periodo, escenario, sede)
-      //               VALUES ('Inicio del Algoritmo', DATEADD(HOUR, -5, GETDATE()), ${periodo}, '-', 1);`;
 
       // obtener ID SEDE VIRTUAL
 
@@ -419,18 +417,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const ListaEscenario = resultadoEscenariosActivos.recordset;
 
-      // console.log(ListaEscenario[0].logica);
-      // console.log(ListaEscenario[0].escenario);
-
       for (const sede of sedesArray) {
         if (Number(dataAvance[0].idSede) != Number(sede.idSede) && flagAvance === true) {
           continue;
         }
-
-        //   await sql.query`INSERT INTO testLogsTiempo (estado, fechaHoraActual, periodo, escenario, sede)
-        //               VALUES ( ${
-        //                 'Inicio de la sede ' + sede.NombreSede
-        //               }  , DATEADD(HOUR, -5, GETDATE()), ${periodo}, '-', ${sede.SedeID});`;
 
         console.log(
           '#################| SEDE: ' +
@@ -532,6 +522,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const resultadoHorario = resultH.recordset;
 
+        // CALCULO DE HORARIOS SOLAPADOS
+
         const horariosMap = new Map<number, number[]>();
 
         resultadoHorario.forEach((horario1) => {
@@ -552,6 +544,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             horariosMap.set(horario1.idHorario, []);
           }
         });
+        // CALCULO DE FREUENCIA SOLAPADOS
 
         const resultFrecuencia = await pool
           .request()
@@ -598,20 +591,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             continue;
           }
 
-          //     await sql.query`INSERT INTO testLogsTiempo (estado, fechaHoraActual, periodo, escenario, sede)
-          //               VALUES ( ${
-          //                 'Inicio de la sede/escenario ' + sede.NombreSede
-          //               }  , DATEADD(HOUR, -5, GETDATE()), ${periodo}, ${escenario}, ${
-          //       sede.SedeID
-          //     });`;
-
-          //     // Contador de slots
+          //      Contador de slots
           let i = 0;
           const orderByClause = escenario.logica;
 
           let ordenDisponibilidadVirtuales: { idSede: string }[] = [];
           let iteradorOrden = 0;
-          //etiqueta de bucle - utilizado solamente para la sede virtual
 
           let x = 0;
           reiniciar: for (; x < cursosXsedeArray.length; x++) {
@@ -991,16 +976,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               continue;
             }
 
-            // break; // slots x sede
+            //FIN  slots x sede
           }
-
-          //     await sql.query`INSERT INTO testLogsTiempo (estado, fechaHoraActual, periodo, escenario, sede)
-          //               VALUES ( ${
-          //                 'Fin de la sede/escenario ' + sede.NombreSede
-          //               }  , DATEADD(HOUR, -5, GETDATE()), ${periodo}, ${escenario}, ${
-          //       sede.SedeID
-          //     });`;
-        } // break;  escenarios
+        } // FIN escenarios
 
         interface escenariosComparacion {
           escenario: string;
@@ -1206,12 +1184,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await sql.query`UPDATE ad_pivoteAsignacion
                     SET flagVigente = 0 where  idPeriodo = ${periodo}  and idSede = ${sede.idSede}  and idVersion =${version} `;
 
-        //   // break; // sedes
-
-        //   await sql.query`INSERT INTO testLogsTiempo (estado, fechaHoraActual, periodo, escenario, sede)
-        //               VALUES ( ${
-        //                 'Fin de la sede ' + sede.NombreSede
-        //               }  , DATEADD(HOUR, -5, GETDATE()), ${periodo}, '-', ${sede.SedeID});`;
+        //   FIN sedes
       }
 
       console.log(
@@ -1226,9 +1199,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                         idVersion=null,
                                         correo=null
                                     WHERE idPeriodo = ${periodo};`;
-
-      // await sql.query`INSERT INTO testLogsTiempo (estado, fechaHoraActual, periodo, escenario, sede)
-      //               VALUES ('Fin del Algoritmo', DATEADD(HOUR, -5, GETDATE()), ${periodo}, '-', 1 );`;
 
       await pool
         .request()
