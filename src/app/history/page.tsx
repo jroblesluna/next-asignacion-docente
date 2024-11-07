@@ -74,6 +74,7 @@ function Page() {
 
   const savePeriod = (period: string) => {
     localStorage.setItem('flagReproceso', 'true');
+    localStorage.setItem('addEvents', 'false');
     localStorage.setItem('periodo', period);
   };
 

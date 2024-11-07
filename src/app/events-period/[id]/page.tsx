@@ -42,8 +42,14 @@ const Page = () => {
   // Filtra los eventos según el estado seleccionado
   const filteredEvents = dataEvento.filter((event) => {
     if (selectedState.toLocaleLowerCase() === 'Todas'.toLocaleLowerCase()) return true;
-    return event.estado === true ? 'Ejecutado' : 'No iniciado' === selectedState;
+    return (event.estado === true ? 'Ejecutado' : 'No iniciado') === selectedState;
   });
+
+  const addEventToAssigments = (period: string) => {
+    localStorage.setItem('flagReproceso', 'true');
+    localStorage.setItem('addEvents', 'true');
+    localStorage.setItem('periodo', period);
+  };
 
   return (
     <LayoutValidation>
@@ -53,11 +59,22 @@ const Page = () => {
         <div className="w-[90%] flex justify-center mx-auto flex-col">
           <div className="w-[95%] flex flex-row gap-5 justify-end -mt-8">
             <button
-              className="bg-secundary font-roboto py-2 px-8 text-[14px] text-white font-semibold hover:bg-secundary_ligth flex flex-row items-center gap-1"
+              className={`font-roboto py-2 px-8 text-[14px]
+               text-white font-semibold  flex flex-row items-center gap-1  ${
+                 dataPerido?.estado &&
+                 dataPerido?.estado === 'ACTIVO' &&
+                 dataEvento.filter((event) => {
+                   return event.estado === false;
+                 }).length > 0
+                   ? 'bg-secundary  hover:bg-secundary_ligth'
+                   : 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none'
+               } `}
               onClick={() => {
-                const modal = document.getElementById('my_modal_6');
-                if (modal) {
-                  (modal as HTMLDialogElement).showModal();
+                if (dataPerido?.estado && dataPerido?.estado === 'ACTIVO') {
+                  const modal = document.getElementById('reprocesarEvento-' + id);
+                  if (modal) {
+                    (modal as HTMLDialogElement).showModal();
+                  }
                 }
               }}
             >
@@ -91,12 +108,10 @@ const Page = () => {
           </div>
           <ModalWarning
             linkTo={'/loading'}
-            subtitle="Esta acción es irreversible."
+            subtitle={'Esta acción es creara una nueva versión para periodo ' + id + '.'}
             title="¿Está seguro de incorporar los eventos? "
-            idModal="my_modal_6"
-            setFunction={(s: string) => {
-              console.log(s);
-            }}
+            idModal={'reprocesarEvento-' + id}
+            setFunction={addEventToAssigments}
           />
         </div>
         <div className="w-[90%] mx-auto flex flex-col gap-3 p-2 mt-3">

@@ -204,9 +204,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const pool = await connectToDatabase();
 
     try {
-      const { periodo, correo } = req.query;
+      const { periodo, correo, addEvents } = req.query;
 
-      if (!periodo && !correo) {
+      if (!periodo && !correo && !addEvents) {
         return res
           .status(400)
           .json({ message: 'Faltan campos en el query string', data: false });
@@ -278,6 +278,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await pool
           .request()
           .input('periodo', sql.Int, periodo)
+          .input('nombreCreador', sql.VarChar, correo)
           .execute('ad_capturaDatosNuevoPeriodo');
 
         // Copia de la programación academica  del nuevo periodo solo la primera vez
@@ -287,10 +288,72 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('periodo', sql.Int, periodo)
           .execute('ad_CrearNuevaProgramacionAcademica');
 
-        // Falta implementar logica -- EVENTOS
-        // SI NO HAY VERSIÓN PARA ESE PERIODO
-        // SE CREA UNA VERSIÓN =1  Y SE HACER UNA COPIA , VERSION 1 , SE PROCIGUE EL ALGORITMO
-        //  SI HAY SE CREA UNA VERSION SIGUIENTE Y SE ACTUALIZAN LAS TABLAS EN EL PERIODO , Y LA PROGRAMACIÓN CURSO DADA
+        // VERIFICA SI SE INCORPORAN O NO LOS EVENTOS
+        if (addEvents == 'true') {
+          const resultEvents = await pool.request().input('id', periodo).query(`
+                SELECT  * FROM  ad_evento WHERE periodo=@id and estado=0 `);
+
+          // VERIFICA SI HAY EVENTOS
+          const listaEventos = resultEvents.recordset;
+          if (listaEventos.length !== 0) {
+            // se crea la version si hay eventos
+            const resultNewVersion = await pool
+              .request()
+              .input('idPeriodo', sql.Int, periodo)
+              .input('nombreCreador', sql.VarChar, correo)
+              .execute('ad_crearVersion');
+            console.log(resultNewVersion.recordset[0].nuevoIdVersion);
+            const nuevaIdVersion = resultNewVersion.recordset[0].nuevoIdVersion;
+
+            // COPIAR LA PROGRAMACIÓN CURSO Y AGREGARLE UNA NUEVA VERSIÓN
+
+            await pool
+              .request()
+              .input('periodo', sql.Int, periodo)
+              .input('idVersion', sql.Int, nuevaIdVersion)
+              .execute('ad_copiarProgramacionAcademicaConNuevaVersion');
+
+            for (const evento of listaEventos) {
+              // Identificar los evento que modifican indirectamente la tabla PA
+              // VIGENCIA DE UN DOCENTE - LO DESASIGNA AUTOMATICAMENTE
+              // SU DISPONIBILIDAD CAMBIA
+              //   SI HAY UN NUEVO HORARIO BLOQUEADO?
+              // AGREGAR UN NUEVO CURSO
+              // CAMBIAR LA VIGENCIA DE UN CURSO
+              // teniendo el id version ya puedo modificar todos los eventos
+
+              // ver condicional si son tablas snaptshot
+
+              // ACTUALIZACIÓN DE LAS TABLAS SNAPTSHOT
+              await pool
+                .request()
+                .input('periodo', sql.Int, evento.periodo)
+                .input('uuid', sql.VarChar, evento.uuidEntidad)
+                .input('NombreTabla', sql.VarChar, evento.entidadReferencia.split('.')[1])
+                .execute('ad_ActualizarTablasSnaptshot');
+
+              //actualiza el estado de cada evento despues de incorporarlo
+              await pool
+                .request()
+                .input('id', periodo)
+                .input('idEvento', evento.indice)
+                .query(
+                  `UPDATE ad_evento  SET estado=1 , fechaCambio=DATEADD(HOUR, -5, GETDATE())  WHERE periodo=@id and indice=@idEvento`
+                );
+            }
+          }
+        }
+
+        // actualizar las dicta clase de los docentes
+
+        await pool.request().input('id', periodo)
+          .query(`UPDATE  [dbo].[ad_docente] set dictaClase =(CASE 
+           WHEN EXISTS (SELECT 1 
+                        FROM [dbo].[LibroPorDocente] 
+                        WHERE [dbo].[LibroPorDocente].DocenteID = ad_docente.idDocente) 
+           THEN 1 
+           ELSE 0 
+       END)         WHERE periodo=@id`);
       }
 
       // obtener el max id version del periodo en actividad academica

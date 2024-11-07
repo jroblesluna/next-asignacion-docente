@@ -61,12 +61,13 @@ const assigmentService = {
     }
   },
 
-  execute: async (periodo: string, correo: string) => {
+  execute: async (periodo: string, correo: string, addEvents: string) => {
     try {
       const { data } = await axios.get(`${BASE_URL}/executeScript`, {
         params: {
           periodo,
           correo,
+          addEvents,
         },
       });
       return data;

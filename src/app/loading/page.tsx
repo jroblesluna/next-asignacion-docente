@@ -5,26 +5,39 @@ import LayoutValidation from '../LayoutValidation';
 import Link from 'next/link';
 import Image from 'next/image';
 import assigmentService from '@/services/assigment';
+import periodService from '@/services/period';
 
 function Page() {
   const [isloadingComplete, setIsLoadingComplete] = useState(false);
+  const [isSafeClosed, setIsSafeClosed] = useState(false);
+
   const [reprocesoPeriodo, setReprocesoPeriodo] = useState('');
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const loadData = async (p: string, correo: string) => {
-    const res = await assigmentService.execute(p, correo);
-    setIsLoadingComplete(res.data);
+  const loadData = async (p: string, correo: string, addEvents: string) => {
+    // hacer otra pantalla de carga que valide si esta activo
+    const resPerido = await periodService.verify();
+    if (resPerido.data.estado == 'ACTIVO') {
+      setIsSafeClosed(true);
+      const res = await assigmentService.execute(p, correo, addEvents);
+      setIsLoadingComplete(res.data);
+    } else {
+      localStorage.setItem('flagReproceso', 'false');
+      alert('Ya hay se esta procesando la ejcución. Por favor intentelo mas tarde.');
+      window.location.href = '/home';
+    }
   };
 
   useEffect(() => {
     const periodoId = localStorage.getItem('periodo');
     const correo = localStorage.getItem('user');
     const flagReproceso = localStorage.getItem('flagReproceso');
+    const addEvents = localStorage.getItem('addEvents');
 
-    if (periodoId && correo && flagReproceso === 'true') {
+    if (periodoId && correo && flagReproceso === 'true' && addEvents) {
       localStorage.setItem('flagReproceso', 'false');
       setReprocesoPeriodo(periodoId);
-      loadData(periodoId, correo);
+      loadData(periodoId, correo, addEvents);
     } else {
       localStorage.setItem('flagReproceso', 'false');
       alert(
@@ -41,10 +54,17 @@ function Page() {
         {!isloadingComplete ? (
           <div className="w-[90%]  mx-auto flex flex-col items-center min-h-[75vh]  gap-20 justify-end py-6 ">
             <span className="loading loading-spinner text-info w-52 "></span>
-            <p className="text-5xl font-bold leading-tight  mx-auto  w-[90%]  ml-24 ">
-              Estamos procesando la asignación docente. Puede cerrar esta ventana; se le
-              notificará por correo electrónico cuando el proceso esté finalizado.
-            </p>
+            {!isSafeClosed ? (
+              <p className="text-5xl font-bold leading-tight  mx-auto  w-[90%]  ml-24 ">
+                Estamos procesando la asignación docente. Por favor, espere y no cierre la
+                pestaña hasta que el proceso se Inicie correctamente.
+              </p>
+            ) : (
+              <p className="text-5xl font-bold leading-tight  mx-auto  w-[90%]  ml-24 ">
+                Estamos procesando la asignación docente. Puede cerrar esta ventana; se le
+                notificará por correo electrónico cuando el proceso esté finalizado.
+              </p>
+            )}
           </div>
         ) : (
           <div className="w-[90%]   mx-auto flex flex-col items-center min-h-[60vh]  gap-2 justify-end py-6 ">

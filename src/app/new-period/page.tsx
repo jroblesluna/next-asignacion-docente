@@ -90,6 +90,7 @@ const Page = () => {
 
   const abrirPeriodo = async (idPeriodo: string) => {
     localStorage.setItem('flagReproceso', 'true');
+    localStorage.setItem('addEvents', 'false');
     localStorage.setItem('periodo', idPeriodo);
     await periodService.updateState(idPeriodo, 'ACTIVO');
   };
