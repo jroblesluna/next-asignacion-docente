@@ -17,7 +17,6 @@ import {
   versionData,
 } from '@/app/interface/datainterface';
 import assigmentService from '@/services/assigment';
-import {} from '@/app/utils/other';
 import { downloadExcelTac } from '@/app/utils/downloadExcel';
 import periodService from '@/services/period';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
