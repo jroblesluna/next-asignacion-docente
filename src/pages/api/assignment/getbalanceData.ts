@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase
 				AND PA.idPeriodo = aux.PeriodoAcademico
                               				) AS aux
-          WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0 and S.nombreSede<>'virtual'
+          WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0 
           and S.nombreSede <> 'VECOR'
 		  ORDER BY F.NombreFrecuencia ,H.HorarioInicio
         END
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				AND PA.idPeriodo = aux.PeriodoAcademico
                               				) AS aux
           WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 
-          AND PA.cancelado = 0 and S.nombreSede<>'virtual' and S.nombreSede <> 'VECOR'
+          AND PA.cancelado = 0  and S.nombreSede <> 'VECOR'
 		  ORDER BY  F.NombreFrecuencia ,H.HorarioInicio
         END
       `);

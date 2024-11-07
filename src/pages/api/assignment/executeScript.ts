@@ -1183,7 +1183,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('id', periodo)
         .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
 
-      const to = 'ext.jrobles@icpna-virtual.edu.pe';
       const subject = 'Asignación Docente';
       const plainText =
         'Algoritmo de asignación docente terminado exitosamente para el periodo ' + periodo;
