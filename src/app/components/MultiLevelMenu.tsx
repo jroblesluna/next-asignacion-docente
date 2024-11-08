@@ -38,7 +38,6 @@ export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = (
                   modal?.showModal();
                 }}
               >
-                {' '}
                 <p>CAMBIAR ASIGNACIÓN A</p>
               </div>
             </a>

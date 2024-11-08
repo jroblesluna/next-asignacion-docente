@@ -1224,21 +1224,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     WHERE
                       escenario = ${MenorDesviacion.escenario}
                       AND idPeriodo = ${periodo}
-                      AND idSede = ${sede.idSede}
                       AND idVersion=${version}
+                      AND idSede = ${sede.idSede}
                       AND flagVigente = 1; `;
 
-        await sql.query`
-                  UPDATE pc
+        await pool
+          .request()
+          .input('id', periodo)
+          .input('idversion', version)
+          .input('escenario', MenorDesviacion.escenario)
+          .input('idSede', sede.idSede).query(`
+                UPDATE pc
                   SET pc.idDocente = ta.idDocente
-                  FROM ad_programacionAcademica pc
-                  JOIN [dbo].[ad_pivoteAsignacion] ta ON ta.uuuidProgramacionAcademica = pc.uuuidProgramacionAcademica
-                  WHERE ta.escenario = ${MenorDesviacion.escenario}
-                    AND ta.idPeriodo = ${periodo}
-                    AND ta.idSede = ${sede.idSede}
-                    AND ta.idVersion=${version}
+                  FROM [dbo].[ad_programacionAcademica] as  pc
+                  JOIN [dbo].[ad_pivoteAsignacion] as ta ON ta.uuuidProgramacionAcademica = pc.uuuidProgramacionAcademica 
+                  WHERE ta.escenario = @escenario
+                    AND ta.idPeriodo = @id
+                    AND ta.idSede = @idSede
+                    AND ta.idVersion=@idversion
                     AND ta.flagVigente = 1
-                    AND ta.seleccionado=1; `;
+                    AND ta.seleccionado=1 
+                    AND pc.idperiodo=@id
+                    AND pc.idversion=@idversion
+                    `);
 
         await sql.query`UPDATE ad_pivoteAsignacion
                     SET flagVigente = 0 where  idPeriodo = ${periodo}  and idSede = ${sede.idSede}  and idVersion =${version} `;

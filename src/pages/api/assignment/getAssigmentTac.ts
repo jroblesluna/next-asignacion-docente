@@ -72,6 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     ORDER BY FechaInicioContrato 
         END
       `);
+
     if (resultData.recordset[0].uuuidProgramacionAcademica == null) {
       return res.status(200).json({
         message: 'Datos para esa versión no encontrada',
