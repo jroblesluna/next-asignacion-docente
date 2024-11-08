@@ -49,6 +49,7 @@ const Page = () => {
     localStorage.setItem('flagReproceso', 'true');
     localStorage.setItem('addEvents', 'true');
     localStorage.setItem('periodo', period);
+    localStorage.setItem('tipo', 'normal');
   };
 
   return (

@@ -75,7 +75,7 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
 
             <ul
               tabIndex={0}
-              className="dropdown-content menu rounded-box z-[1] w-40  p-1 mb-2  shadow  bg-white hover:opacity-80 border-none"
+              className="dropdown-content menu rounded-box z-[1] w-44 p-1 mb-2  shadow  bg-white hover:opacity-80 border-none"
             >
               <li>
                 <Link className="" href={`/events-period/${idPeriod}`}>
@@ -92,7 +92,20 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
                     }
                   }}
                 >
-                  Reprocesar
+                  Reprocesar Faltantes
+                </button>
+              </li>
+              <li>
+                <button
+                  className=""
+                  onClick={() => {
+                    const modal = document.getElementById('reprocesarTotal-' + idPeriod);
+                    if (modal) {
+                      (modal as HTMLDialogElement).showModal();
+                    }
+                  }}
+                >
+                  Volver a procesar
                 </button>
               </li>
               <li>
@@ -126,8 +139,8 @@ interface ReportAsigmnentTableInterface {
   teacher: string;
   teacherId: string;
   numberOfStudents: number;
-  isRoomClosed: boolean;
-  isTeacherClosed: boolean;
+  isRoomClosed: string | null;
+  isTeacherClosed: string | null;
   isEditable: boolean;
 }
 
@@ -164,7 +177,7 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
             alt="img"
             height={20}
             src={'/locked-icon.svg'}
-            onClick={() => alert(assignmentId)}
+            onClick={() => alert('Modicado por ' + isTeacherClosed)}
           />
         ) : (
           <p className="text-transparent">●</p>
@@ -175,12 +188,12 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
       <td className="font-inter text-center  py-3">{schedule}</td>
       <td className="font-inter text-center  py-3">{frequency}</td>
       <td className="font-inter text-center py-3">
-        {/* {isEditable ? (
-          <MultiLevelMenuClassroom classRoom={classroom} data={data} idRow={assignmentId} />
+        {true ? (
+          <MultiLevelMenuClassroom classRoom={classroom} idRow={assignmentId} />
         ) : (
           <p>{classroom}</p>
-        )} */}
-        <p>{classroom}</p>
+        )}
+        {/* <p>{classroom}</p> */}
       </td>
       <td className="font-inter text-start  py-3 uppercase">
         {isEditable ? (
@@ -302,7 +315,8 @@ export const TableTacReport: React.FC<TeacherAssignment> = ({
               .filter(
                 (classItem) =>
                   isTimeInRange(time, classItem.schedule) &&
-                  !containsDaysOfWeek(classItem.frecuency)
+                  !containsDaysOfWeek(classItem.frecuency) &&
+                  (classItem.frecuency == 'S' || classItem.frecuency == 'SD')
               )
               .map((classItem, index, array) => (
                 <span key={index}>

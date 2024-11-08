@@ -5,7 +5,6 @@ import { useContext, useState } from 'react';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
 import Image from 'next/image';
-import { ModalWarning } from '../../components/Modals';
 import { ReportAsigmnentTable } from '../../components/Rows';
 import {
   ContextAssignmentReport,
@@ -101,10 +100,6 @@ const ReportAssignments = () => {
     }
   };
 
-  const saludar = (mensaje: string) => {
-    console.log(mensaje);
-  };
-
   const loadDataTest = async () => {
     const resPerido = await periodService.getById(id);
     if (!resPerido.data) {
@@ -152,7 +147,6 @@ const ReportAssignments = () => {
         isEditable: dataPerido?.estado == 'ACTIVO',
       }));
       setAssignments(assignmentsConvertido);
-      console.log(assignmentsConvertido);
     }
   }, [ProgramacionAcademicaData]);
 
@@ -292,20 +286,6 @@ const ReportAssignments = () => {
               </p>
             </div>
           </div>
-          <ModalWarning
-            linkTo={'/history'}
-            subtitle="Esta acción es irreversible."
-            title="¿Está seguro de realizar los cambios? "
-            idModal="my_modal_5"
-            setFunction={saludar}
-          />
-          <ModalWarning
-            linkTo={'/history'}
-            subtitle="El sistema se bloqueará mientras se esté ejecutando."
-            title="¿Está seguro de sincronizar la data con el sistema Inicio? "
-            idModal="my_modal_25"
-            setFunction={saludar}
-          />
         </div>
         {ProgramacionAcademicaData.length === 0 &&
         nombresSedesData.length === 0 &&

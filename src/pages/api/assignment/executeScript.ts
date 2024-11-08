@@ -204,9 +204,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const pool = await connectToDatabase();
 
     try {
-      const { periodo, correo, addEvents } = req.query;
+      const { periodo, correo, addEvents, tipo } = req.query;
 
-      if (!periodo && !correo && !addEvents) {
+      if (!periodo && !correo && !addEvents && !tipo) {
         return res
           .status(400)
           .json({ message: 'Faltan campos en el query string', data: false });
@@ -268,12 +268,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Logica de creación de versiones
 
       if (!flagAvance) {
-        await pool
-          .request()
-          .input('idPeriodo', sql.Int, periodo)
-          .input('nombreCreador', sql.VarChar, correo)
-          .execute('ad_crearVersion');
-
         // SNAPTSHOT solo la primera vez
         await pool
           .request()
@@ -354,6 +348,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
            THEN 1 
            ELSE 0 
        END)         WHERE periodo=@id`);
+      }
+
+      if (tipo == 'total') {
+        // se crea la version por que es un reproceso total
+        const resultNewVersion = await pool
+          .request()
+          .input('idPeriodo', sql.Int, periodo)
+          .input('nombreCreador', sql.VarChar, correo)
+          .execute('ad_crearVersion');
+
+        const nuevaIdVersion = resultNewVersion.recordset[0].nuevoIdVersion;
+        // COPIAR LA PROGRAMACIÓN CURSO Y AGREGARLE UNA NUEVA VERSIÓN
+        await pool
+          .request()
+          .input('periodo', sql.Int, periodo)
+          .input('idVersion', sql.Int, nuevaIdVersion)
+          .execute('ad_copiarProgramacionAcademicaConNuevaVersion');
       }
 
       // obtener el max id version del periodo en actividad academica
@@ -468,6 +479,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ' |#################'
         );
 
+        if (tipo == 'total') {
+          await pool.request().input('id', periodo).input('idVersion', version).query(`
+                  UPDATE ad_programacionAcademica 
+                  SET idDocente = NULL
+                  WHERE  docenteModificado is null and idVersion=@idVersion and idPeriodo=@id`);
+        }
+
         const resultCursos = await pool
           .request()
           .input('id', periodo)
@@ -505,7 +523,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       							AND P.idVersion=@idVersion
                     AND P.idSede = @idSede
       							AND P.idDocente IS NULL
-
+                    
                     ORDER BY
                         numeroCursos DESC,
                         P.idHorario,
@@ -669,7 +687,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .request()
                 .input('id', periodo)
                 .input('virtualID', virtualID)
-                .input('idVersion', sql.Int, cursosXsede.idVersion)
+                .input('idVersion', sql.Int, version)
                 .input('escenario', escenario.escenario).query(`
                                WITH CTE_MediaPorDocente AS (
                                   SELECT
@@ -777,7 +795,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               .input('Escenario', sql.VarChar, escenario.escenario)
               .input('idFrecuencia', sql.Int, cursosXsede.idFrecuencia)
               .input('idSedeVirtual', sql.Int, virtualID)
-              .input('idVersion', sql.Int, cursosXsede.idVersion)
+              .input('idVersion', sql.Int, version)
               .input(
                 'idSede',
                 sql.Int,

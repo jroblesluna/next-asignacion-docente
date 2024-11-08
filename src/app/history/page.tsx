@@ -72,10 +72,18 @@ function Page() {
 
   const filteredDataActive = historyData.filter((period) => period.estado === 'ACTIVO');
 
-  const savePeriod = (period: string) => {
+  const reprocesadoBase = (period: string) => {
     localStorage.setItem('flagReproceso', 'true');
     localStorage.setItem('addEvents', 'false');
     localStorage.setItem('periodo', period);
+    localStorage.setItem('tipo', 'normal');
+  };
+
+  const reprocesadoConModificaciones = (period: string) => {
+    localStorage.setItem('flagReproceso', 'true');
+    localStorage.setItem('addEvents', 'false');
+    localStorage.setItem('periodo', period);
+    localStorage.setItem('tipo', 'total');
   };
 
   const cerrarPeriodo = async (idPeriodo: string) => {
@@ -155,10 +163,18 @@ function Page() {
                     <ModalWarning
                       linkTo={'/loading'}
                       subtitle="Se bloqueara las acciones del periodo mientras se esta ejecutando"
-                      title="¿Está seguro de reprocesar las asignaciones?"
+                      title="¿Está seguro de reprocesar las asignaciones faltantes?"
                       idModal={'reprocesar-' + period.idPeriodo}
-                      setFunction={savePeriod}
+                      setFunction={reprocesadoBase}
                     />
+                    <ModalWarning
+                      linkTo={'/loading'}
+                      subtitle="Se bloqueara las acciones del periodo mientras se esta ejecutando"
+                      title="¿Está seguro de reprocesar todas las asignaciones, solo se conservaran las modificadas manualemente?"
+                      idModal={'reprocesarTotal-' + period.idPeriodo}
+                      setFunction={reprocesadoConModificaciones}
+                    />
+
                     <ModalClosedPeriod
                       linkTo={'/history'}
                       subtitle="Esta acción es irreversible."

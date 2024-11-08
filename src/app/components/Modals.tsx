@@ -1,12 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useContext, useEffect, useState } from 'react';
 import { ContextAssignmentReport } from './MyContexts';
 import teacherService from '@/services/teacher';
 import assigmentService from '@/services/assigment';
-// import router from 'next/router';
 
 interface ModalProps {
   linkTo: string;
@@ -26,7 +24,7 @@ export const ModalWarning: React.FC<ModalProps> = ({
   const [cargando, setCargando] = useState(false);
   return (
     <dialog id={idModal} className="modal overflow-hidden ">
-      <div className="modal-box py-14 px-10">
+      <div className="modal-box py-14 px-10 ">
         {!cargando ? (
           <>
             <div className="flex flex-row gap-5 items-center">
@@ -157,6 +155,13 @@ interface teacherDisponibility {
   nombreSede: string;
 }
 
+interface RoomDisponibility {
+  id: number;
+  nombre: string;
+  capacidad: string;
+  nombreSede: string;
+}
+
 export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
   idModal,
   idRow,
@@ -173,7 +178,7 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
   }
 
   const { assignments, setAssignments, setModifications, period, LastVersionID } = context;
-
+  const correo = localStorage.getItem('user');
   const loadData = async () => {
     const res = await teacherService.getDisponibility(period, idRow, LastVersionID);
     console.log(res.data);
@@ -181,7 +186,13 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
   };
 
   const uploadRowTeacher = async (idTeacher: string) => {
-    await assigmentService.updateRows(period, LastVersionID, idRow, idTeacher);
+    await assigmentService.updateRows(
+      period,
+      LastVersionID,
+      idRow,
+      idTeacher,
+      correo || 'userDefault'
+    );
   };
 
   // Ejecuta loadData solo cuando el modal esté abierto
@@ -217,7 +228,7 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
         ? {
             ...assignment,
             teacher: newTeacher,
-            isTeacherClosed: newTeacher !== '-',
+            isTeacherClosed: newTeacher !== '-' ? correo : null,
           }
         : assignment
     );
@@ -354,7 +365,7 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
 }) => {
   const [selectNewTeacher, setSelectNewTeacher] = useState('-1');
   const [selectNewIdTeacher, setNewIdTeacher] = useState('');
-
+  const correo = localStorage.getItem('user');
   const [data, setData] = useState<teacherDisponibility[]>([]);
 
   const context = useContext(ContextAssignmentReport);
@@ -371,7 +382,13 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
   };
 
   const uploadRowTeacher = async (idTeacher: string) => {
-    await assigmentService.updateRows(period, LastVersionID, idRow, idTeacher);
+    await assigmentService.updateRows(
+      period,
+      LastVersionID,
+      idRow,
+      idTeacher,
+      correo || 'userDefault'
+    );
   };
 
   // Ejecuta loadData solo cuando el modal esté abierto
@@ -407,7 +424,7 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
         ? {
             ...assignment,
             teacher: newTeacher,
-            isTeacherClosed: newTeacher !== '-',
+            isTeacherClosed: newTeacher !== '-' ? correo : null,
           }
         : assignment
     );
@@ -526,6 +543,216 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
                   onClick={() => {
                     const modal = document.getElementById(idModal) as HTMLDialogElement;
                     setSelectNewTeacher('-1');
+                    modal?.close();
+                  }}
+                >
+                  Salir
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </dialog>
+    </>
+  );
+};
+
+export const ModalFormRoomCompatibility: React.FC<ModalFormTeacherProps> = ({
+  idModal,
+  idRow,
+  setFunction,
+}) => {
+  const [selectNewRoom, setSelectNewRoom] = useState('-1');
+  const [selectNewIdTeacher, setNewIdRoom] = useState('');
+  const correo = localStorage.getItem('user');
+  const [data, setData] = useState<RoomDisponibility[]>([]);
+
+  const context = useContext(ContextAssignmentReport);
+  if (!context) {
+    throw new Error('DisplayComponent debe ser usado dentro de MyContextProvider');
+  }
+
+  const { assignments, setAssignments, setModifications, period, LastVersionID } = context;
+
+  const loadData = async () => {
+    // const res = await teacherService.getCompatibility(period, idRow, LastVersionID);
+    // console.log(res.data);
+    // setData(res.data);
+  };
+
+  const uploadRowTeacher = async (idTeacher: string) => {
+    // await assigmentService.updateRows(
+    //   period,
+    //   LastVersionID,
+    //   idRow,
+    //   idTeacher,
+    //   correo || 'userDefault'
+    // );
+    alert(period + LastVersionID + idRow + idTeacher);
+  };
+
+  // Ejecuta loadData solo cuando el modal esté abierto
+
+  useEffect(() => {
+    const modal = document.getElementById(idModal) as HTMLDialogElement;
+
+    if (modal) {
+      const observer = new MutationObserver((mutationsList) => {
+        for (const mutation of mutationsList) {
+          if (
+            mutation.type === 'attributes' &&
+            mutation.attributeName === 'open' &&
+            modal.open
+          ) {
+            setSelectNewRoom('-1');
+            setNewIdRoom('');
+            setData([]);
+            loadData();
+          }
+        }
+      });
+
+      observer.observe(modal, { attributes: true });
+
+      return () => observer.disconnect();
+    }
+  }, [idModal]);
+
+  // const UpdateTeacher = (assignmentId: string, newTeacher: string) => {
+  //   const updatedAssignments = assignments.map((assignment) =>
+  //     assignment.assignmentId === assignmentId
+  //       ? {
+  //           ...assignment,
+  //           teacher: newTeacher,
+  //           isTeacherClosed: newTeacher !== '-' ? correo : null,
+  //         }
+  //       : assignment
+  //   );
+
+  //   setModifications((prevModifications) => [...prevModifications, assignmentId]);
+  //   setAssignments([...updatedAssignments]);
+  // };
+
+  const UpdateClasRoom = (assignmentId: string, classRoom: string) => {
+    const updatedAssignments = assignments.map((assignment) =>
+      assignment.assignmentId === assignmentId
+        ? {
+            ...assignment,
+            classroom: classRoom,
+            isRoomClosed: correo,
+          }
+        : assignment
+    );
+    setModifications((prevModifications) => [...prevModifications, assignmentId]);
+
+    setAssignments([...updatedAssignments]);
+  };
+
+  const onhandleClick = (newRoom: string, selectIdRoom: string) => {
+    console.log(selectIdRoom);
+    setFunction(newRoom);
+    console.log(selectIdRoom);
+    uploadRowTeacher(selectIdRoom);
+    UpdateClasRoom(idRow, newRoom);
+  };
+
+  return (
+    <>
+      <dialog id={idModal} className={'modal overflow-hidden cursor-default select-none'}>
+        <div className="modal-box py-5 px-10 min-h-[650px] min-w-[800px]">
+          <div className="modal-action">
+            <form method="dialog" className="flex w-full flex-col">
+              <div className=" text-center font-bold">LISTA DE AULAS COMPATIBLES Y LIBRES</div>
+              <div className="w-full mt-5 flex flex-row">
+                <p className="px-4 py-2 border w-[58%] font-bold">AULA ID</p>
+                <p className="px-4 py-2 border w-[18%] font-bold">SEDE</p>
+              </div>
+
+              <div className="w-full overflow-auto min-h-[350px] max-h-[350px] ">
+                <table className="w-full mt-2">
+                  {data.length === 0 ? (
+                    <tbody>
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]"
+                        >
+                          <span className="loading loading-bars loading-lg"></span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  ) : (
+                    <tbody>
+                      {data.map((item, index) => (
+                        <tr
+                          key={index}
+                          className={
+                            (data[0].id !== -1
+                              ? 'border w-full cursor-pointer hover:bg-cyan-300'
+                              : 'border ') +
+                            (selectNewRoom.toLowerCase() === item.nombre.toLowerCase() &&
+                            data[0].id !== -1
+                              ? ' bg-cyan-400'
+                              : '')
+                          }
+                          onClick={() => {
+                            if (data[0].id !== -1) {
+                              setSelectNewRoom(item.nombre);
+                              setNewIdRoom(item.id.toString());
+                            }
+                          }}
+                        >
+                          <td className="py-1 px-5">{item.nombre}</td>
+                          <td className="py-1 px-5">{item.capacidad}</td>
+                          <td className="py-1 px-5">{item.nombreSede}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  )}
+                </table>
+              </div>
+
+              <div className="flex flex-col text-xs gap-2 mt-5">
+                <p className="font-bold">
+                  Leyenda - Docentes que dictan el curso y estan disponibles
+                </p>
+                <div className="flex flex-row gap-4">
+                  <p>
+                    <span className="font-bold">PT:</span> Part time
+                  </p>
+                  <p>
+                    <span className="font-bold">FT:</span> Full time
+                  </p>
+                  <p>
+                    <span className="font-bold">TC:</span> Tipo de Contrato
+                  </p>
+                  <p>
+                    <span className="font-bold">HA:</span> Horas acumuladas mensuales
+                  </p>
+                </div>
+              </div>
+
+              <div className="w-full flex flex-row gap-10 justify-center mt-5">
+                <button
+                  type="button"
+                  className="bg-primary py-2 text-white font-semibold hover:bg-primary_light w-48 text-center"
+                  onClick={() => {
+                    const modal = document.getElementById(idModal) as HTMLDialogElement;
+                    if (data[0].id !== -1 && selectNewRoom !== '-1') {
+                      onhandleClick(selectNewRoom, selectNewIdTeacher);
+                    }
+                    setSelectNewRoom('-1');
+                    modal?.close();
+                  }}
+                >
+                  Aceptar
+                </button>
+                <button
+                  type="button"
+                  className="bg-secundary py-2 text-white font-semibold hover:bg-secondary_light w-48"
+                  onClick={() => {
+                    const modal = document.getElementById(idModal) as HTMLDialogElement;
+                    setSelectNewRoom('-1');
                     modal?.close();
                   }}
                 >

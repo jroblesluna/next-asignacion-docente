@@ -1,48 +1,22 @@
 import React, { useState, useContext } from 'react';
 import { ContextAssignmentReport } from './MyContexts';
 import useHover from '../utils/useHover';
-import { ModalFormTeacher, ModalFormTeacherCompatibility } from './Modals';
+import {
+  ModalFormRoomCompatibility,
+  ModalFormTeacher,
+  ModalFormTeacherCompatibility,
+} from './Modals';
 import assigmentService from '@/services/assigment';
 interface MultiLevelMenuClassroomProps {
   idRow: string;
   classRoom: string;
-  data: string[];
 }
 
 export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = ({
   idRow,
   classRoom,
-  data,
 }) => {
   const [selectedItem, setSelectedItem] = useState(classRoom);
-  const { handleMouseEnter, handleMouseLeave, isHovered } = useHover();
-  const context = useContext(ContextAssignmentReport);
-  if (!context) {
-    throw new Error('DisplayComponent debe ser usado dentro de MyContextProvider');
-  }
-
-  const { assignments, setAssignments, setModifications } = context;
-
-  const UpdateClasRoom = (assignmentId: string, classRoom: string) => {
-    const updatedAssignments = assignments.map((assignment) =>
-      assignment.assignmentId === assignmentId
-        ? {
-            ...assignment,
-            classroom: classRoom,
-            isRoomClosed: true,
-          }
-        : assignment
-    );
-    setModifications((prevModifications) => [...prevModifications, assignmentId]);
-
-    setAssignments([...updatedAssignments]);
-  };
-
-  const onhandleClick = (classRoom: string) => {
-    setSelectedItem(classRoom);
-    UpdateClasRoom(idRow, classRoom);
-  };
-
   return (
     <div className="relative inline-block cursor-pointer">
       <div className="flex flex-col">
@@ -52,34 +26,30 @@ export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = (
           </div>
           <ul
             tabIndex={0}
-            className="dropdown-content menu bg-base-100  z-[1] w-52 p-0 ml-2 shadow rounded-none"
+            className="dropdown-content menu bg-base-100  z-[1] w-60  p-0 ml-2 shadow rounded-none"
           >
-            <li
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              className="rounded-none"
-            >
-              <a className="rounded-none selection:bg-transparent">
+            <a className="rounded-none selection:bg-transparent">
+              <div
+                className="p-2 cursor-pointer hover:bg-gray-200"
+                onClick={() => {
+                  const modal = document.getElementById(
+                    'my_modalRoomCompatibility' + idRow
+                  ) as HTMLDialogElement;
+                  modal?.showModal();
+                }}
+              >
+                {' '}
                 <p>CAMBIAR ASIGNACIÓN A</p>
-                <div className="absolute left-full top-0 bg-white border border-gray-300 mt-1 shadow-lg   ">
-                  {data.map((item) => (
-                    <div
-                      className={
-                        'p-2 cursor-pointer hover:bg-gray-200 w-20 text-center block ' +
-                        (!isHovered ? 'hidden' : ' ')
-                      }
-                      key={item}
-                      onClick={() => onhandleClick(item)}
-                    >
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </a>
-            </li>
+              </div>
+            </a>
           </ul>
         </div>
       </div>
+      <ModalFormRoomCompatibility
+        idModal={'my_modalRoomCompatibility' + idRow}
+        idRow={idRow}
+        setFunction={setSelectedItem}
+      />
     </div>
   );
 };
@@ -101,7 +71,7 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
     handleMouseLeave: handleMouseLeave1,
     isHovered: isHovered1,
   } = useHover();
-
+  const correo = localStorage.getItem('user');
   const context = useContext(ContextAssignmentReport);
   if (!context) {
     throw new Error('DisplayComponent debe ser usado dentro de MyContextProvider');
@@ -115,7 +85,7 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
         ? {
             ...assignment,
             teacher: newTeacher,
-            isTeacherClosed: newTeacher !== '-',
+            isTeacherClosed: newTeacher !== '-' ? correo : null,
           }
         : assignment
     );
@@ -126,7 +96,13 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
   };
 
   const uploadRowTeacher = async (idTeacher: string) => {
-    await assigmentService.updateRows(period, LastVersionID, idRow, idTeacher);
+    await assigmentService.updateRows(
+      period,
+      LastVersionID,
+      idRow,
+      idTeacher,
+      correo || 'user'
+    );
   };
 
   const onhandleRemove = () => {
@@ -194,7 +170,6 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
           </ul>
         </div>
       </div>
-      {/* HACER OTRO MODAL CON EL TEACHER NECESARIO  */}
       <ModalFormTeacher
         idModal={'my_modal' + idRow}
         idRow={idRow}

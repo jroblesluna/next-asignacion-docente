@@ -61,13 +61,14 @@ const assigmentService = {
     }
   },
 
-  execute: async (periodo: string, correo: string, addEvents: string) => {
+  execute: async (periodo: string, correo: string, addEvents: string, tipo: string) => {
     try {
       const { data } = await axios.get(`${BASE_URL}/executeScript`, {
         params: {
           periodo,
           correo,
           addEvents,
+          tipo,
         },
       });
       return data;
@@ -108,14 +109,18 @@ const assigmentService = {
     idPeriodo: string,
     idVersion: string,
     uuidFila: string,
-    idDocente: string
+    idDocente: string,
+    userName: string
   ) => {
     try {
+      console.log(userName);
+
       const { data } = await axios.patch(`${BASE_URL}/update-rows`, {
         idPeriodo,
         idVersion,
         uuidFila,
         idDocente,
+        userName,
       });
 
       if (!data.data) {
@@ -125,6 +130,22 @@ const assigmentService = {
       return data;
     } catch (error) {
       console.error('Error al actualizar las filas de asignación:', error);
+      return null;
+    }
+  },
+
+  getRoomAvailable: async (idPeriod: string, uuidSlot: string, version: string) => {
+    try {
+      const { data } = await axios.get(BASE_URL + `/getRoomAvailable`, {
+        params: {
+          idPeriod,
+          uuidSlot,
+          version,
+        },
+      });
+      return data;
+    } catch (error) {
+      console.log(error);
       return null;
     }
   },

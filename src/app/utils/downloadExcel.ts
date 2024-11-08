@@ -8,7 +8,7 @@ import {
   ratioData,
   tacData,
 } from '../interface/datainterface';
-import { timeDaily, timeWeekend } from '../constants/data';
+import { timeDaily, timeSunday, timeWeekend } from '../constants/data';
 import { containsDaysOfWeek, isTimeInRange } from './managmentTime';
 
 export const handleDownload = (
@@ -91,7 +91,7 @@ export const handleDownload = (
 };
 
 // Función para descargar el archivo Excel
-export const downloadExcelTac = (data: tacData[]) => {
+export const downloadExcelTac = (data: tacData[], ID: string) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Teacher Assignment Report');
 
@@ -103,7 +103,8 @@ export const downloadExcelTac = (data: tacData[]) => {
     { header: 'Estado', width: 10 },
     ...timeDaily.map((time) => ({ header: time, width: 15 })),
     ...timeWeekend.map((time) => ({ header: time, width: 15 })),
-    { header: 'Clases Totales', width: 10 },
+    ...timeSunday.map((time) => ({ header: time, width: 15 })),
+    { header: 'Clases Totales', width: 15 },
   ];
   worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
 
@@ -134,7 +135,22 @@ export const downloadExcelTac = (data: tacData[]) => {
           .filter(
             (classItem) =>
               isTimeInRange(time, classItem.schedule) &&
-              !containsDaysOfWeek(classItem.frecuency)
+              !containsDaysOfWeek(classItem.frecuency) &&
+              (classItem.frecuency == 'S' || classItem.frecuency == 'SD')
+          )
+          .map((classItem) => classItem.room)
+          .join('/') || ''; // Cadena vacía si no hay clases
+      rowData.push(weekendClasses);
+    });
+
+    timeSunday.forEach((time) => {
+      const weekendClasses =
+        classSchedule
+          .filter(
+            (classItem) =>
+              isTimeInRange(time, classItem.schedule) &&
+              !containsDaysOfWeek(classItem.frecuency) &&
+              classItem.frecuency == 'D'
           )
           .map((classItem) => classItem.room)
           .join('/') || ''; // Cadena vacía si no hay clases
@@ -179,7 +195,7 @@ export const downloadExcelTac = (data: tacData[]) => {
   // Generar el archivo Excel y descargarlo
   workbook.xlsx.writeBuffer().then((buffer) => {
     const blob = new Blob([buffer], { type: 'application/octet-stream' });
-    saveAs(blob, 'Teacher_Assignment_Report.xlsx');
+    saveAs(blob, 'Teacher_Assignment_Report_' + ID + '.xlsx');
   });
 };
 

@@ -14,12 +14,11 @@ function Page() {
   const [reprocesoPeriodo, setReprocesoPeriodo] = useState('');
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const loadData = async (p: string, correo: string, addEvents: string) => {
-    // hacer otra pantalla de carga que valide si esta activo
+  const loadData = async (p: string, correo: string, addEvents: string, tipo: string) => {
     const resPerido = await periodService.verify();
     if (resPerido.data.estado == 'ACTIVO') {
       setIsSafeClosed(true);
-      const res = await assigmentService.execute(p, correo, addEvents);
+      const res = await assigmentService.execute(p, correo, addEvents, tipo);
       setIsLoadingComplete(res.data);
     } else {
       localStorage.setItem('flagReproceso', 'false');
@@ -33,11 +32,12 @@ function Page() {
     const correo = localStorage.getItem('user');
     const flagReproceso = localStorage.getItem('flagReproceso');
     const addEvents = localStorage.getItem('addEvents');
+    const tipo = localStorage.getItem('tipo');
 
-    if (periodoId && correo && flagReproceso === 'true' && addEvents) {
+    if (periodoId && correo && flagReproceso === 'true' && addEvents && tipo) {
       localStorage.setItem('flagReproceso', 'false');
       setReprocesoPeriodo(periodoId);
-      loadData(periodoId, correo, addEvents);
+      loadData(periodoId, correo, addEvents, tipo);
     } else {
       localStorage.setItem('flagReproceso', 'false');
       alert(

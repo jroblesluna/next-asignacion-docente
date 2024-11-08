@@ -20,15 +20,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const resultCheck = await pool.request().input('id', id).query(`
               IF EXISTS (SELECT 1 FROM [dbo].[ad_version] WHERE idPeriodo = @id)
                 BEGIN
-                SELECT nombreCreador, Format(fechaCreacion,'yyyy-MM-dd') as fecha,idVersion FROM [dbo].[ad_version] where idPeriodo=@id 
-                order by  idVersion desc
+                SELECT nombreCreador, Format(fechaCreacion,'yyyy-MM-dd') as fecha, FORMAT(fechaCreacion, 'HH:mm:ss') AS fechaHora, idVersion FROM [dbo].[ad_version] where idPeriodo=@id 
+                order by  idVersion desc 
                 END
               ELSE
                 BEGIN
                   SELECT
                   'system' AS nombreCreador, 
-                  (SELECT   top 1 FORMAT(CONVERT(DATETIME, tiempoModificado), 'yyyy-MM-dd')  FROM [dbo].[ad_frecuencia] 
-                  where periodo=1) AS fecha,
+                  (SELECT   top 1 FORMAT(CONVERT(DATETIME, tiempoModificado), 'yyyy-MM-dd')   FROM [dbo].[ad_frecuencia] 
+                  where periodo=1) AS fecha, (SELECT   top 1 FORMAT(CONVERT(DATETIME, tiempoModificado), 'HH:mm:ss')   FROM [dbo].[ad_frecuencia] 
+                  where periodo=1) AS fechaHora,
                   0 AS idVersion
               END  `);
 

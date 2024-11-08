@@ -15,8 +15,8 @@ export interface ProgramacionAcademica {
   vigente: boolean;
   cancelado: boolean;
   uidIdIntensidadFase: string;
-  aulaModificada: boolean;
-  docenteModificado: boolean;
+  aulaModificada: string | null;
+  docenteModificado: string | null;
   tiempoModificado: string;
   NombreCompletoProfesor: string;
   HorarioInicio: string;
@@ -32,8 +32,8 @@ export interface ProgramacionAcademica {
 
 export interface Assignment {
   assignmentId: string;
-  isRoomClosed: boolean;
-  isTeacherClosed: boolean;
+  isRoomClosed: string | null;
+  isTeacherClosed: string | null;
   location: string;
   course: string;
   schedule: string;
@@ -95,8 +95,8 @@ export interface docentesTac {
   vigente: boolean;
   cancelado: boolean;
   uidIdIntensidadFase: string;
-  aulaModificada: boolean;
-  docenteModificado: boolean;
+  aulaModificada: string | null;
+  docenteModificado: string | null;
   tiempoModificado: string;
   HorarioInicio: string;
   HorarioFin: string;
@@ -121,6 +121,7 @@ export interface tacData {
 export interface versionData {
   nombreCreador: string;
   fecha: string;
+  fechaHora: string;
   idVersion: string;
 }
 

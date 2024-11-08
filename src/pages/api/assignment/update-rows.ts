@@ -7,9 +7,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let pool;
 
     try {
-      const { idPeriodo, idVersion, uuidFila, idDocente } = req.body;
+      const { idPeriodo, idVersion, uuidFila, idDocente, userName } = req.body;
 
-      if (!idPeriodo || !idVersion || !uuidFila || !idDocente) {
+      if (!idPeriodo || !idVersion || !uuidFila || !idDocente || !userName) {
         return res.status(400).json({ message: 'Faltan campos en el body', data: false });
       }
 
@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('uuidFila', uuidFila)
           .input('idDocente', idDocente).query(`
         UPDATE [dbo].[ad_programacionAcademica] 
-        SET docenteModificado = 0, idDocente = NULL
+        SET docenteModificado = null, idDocente = NULL
         WHERE idPeriodo = @id 
         AND uuuidProgramacionAcademica = @uuidFila 
         AND idVersion = @idVersion
@@ -51,9 +51,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('id', idPeriodo)
           .input('idVersion', idVersion)
           .input('uuidFila', uuidFila)
-          .input('idDocente', idDocente).query(`
+          .input('idDocente', idDocente)
+          .input('userName', userName).query(`
         UPDATE [dbo].[ad_programacionAcademica] 
-        SET docenteModificado = 1, idDocente = @idDocente
+        SET docenteModificado = @userName, idDocente = @idDocente
         WHERE idPeriodo = @id 
         AND uuuidProgramacionAcademica = @uuidFila 
         AND idVersion = @idVersion

@@ -2,7 +2,6 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
-import { ModalWarning } from '../../components/Modals';
 import { useParams } from 'next/navigation';
 import { singsCompare, timeDaily, timeSunday, timeWeekend } from '../../constants/data';
 import { numberCompare, frecuencyData } from '../../constants/data';
@@ -36,6 +35,7 @@ const Page = () => {
   const [showHistoryVersion, setShowHistoryVersion] = useState(false);
   const { id } = useParams() as { id: string };
   const [nombresSedesData, setNombresSedeData] = useState<{ NombreSede: string }[]>([]);
+  const [dataVacia, setDataVacia] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -70,12 +70,28 @@ const Page = () => {
     setNombresSedeData(resSedesData.data);
     const res = await assigmentService.getTacAssigment(id, '-1');
     setData(res.data);
+
+    if (res.data.length === 0) {
+      setDataVacia(true);
+    }
   };
 
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, []);
+
+  const changeDataVersion = async (idVersion: string) => {
+    setSelectedVersion(idVersion);
+    setData([]);
+    setDataTac([]);
+    setDataVacia(false);
+    const res = await assigmentService.getTacAssigment(id, idVersion);
+    setData(res.data);
+    if (res.data.length === 0) {
+      setDataVacia(true);
+    }
+  };
 
   useEffect(() => {
     if (ProgramacionAcademicaData[0]) {
@@ -104,7 +120,7 @@ const Page = () => {
 
   const downloadExcel = () => {
     if (ProgramacionAcademicaDataTac[0]) {
-      downloadExcelTac(ProgramacionAcademicaDataTac);
+      downloadExcelTac(ProgramacionAcademicaDataTac, id);
     }
   };
 
@@ -288,7 +304,7 @@ const Page = () => {
             <button
               className="bg-[#50B403] font-roboto py-2 px-8 w-64 text-[14px] text-white font-semibold hover:opacity-80  flex flex-row items-center "
               onClick={() => {
-                downloadExcel();
+                ProgramacionAcademicaDataTac.length > 0 && !dataVacia && downloadExcel();
               }}
             >
               <Image
@@ -357,14 +373,17 @@ const Page = () => {
                           >
                             <span className="text-green-500 text-xl">*</span>
                             <span
-                              className="hover:underline cursor-pointer text-xs "
+                              className={
+                                'hover:underline cursor-pointer text-[10px] ' +
+                                (item.idVersion == selectVersion ? 'text-primary_ligth ' : '')
+                              }
                               onClick={() => {
-                                setSelectedVersion(item.idVersion);
+                                changeDataVersion(item.idVersion);
                               }}
                             >
                               {`N°${item.idVersion} - Modificado el  ${convertirFormatoFecha(
                                 item.fecha
-                              )} por el usario: ${item.nombreCreador}`}
+                              )} a las ${item.fechaHora} por el usario: ${item.nombreCreador}`}
                             </span>
                           </div>
                         );
@@ -375,79 +394,77 @@ const Page = () => {
               </div>
             </div>
           </div>
-          {ProgramacionAcademicaDataTac.length === 0 ? (
+          {ProgramacionAcademicaDataTac.length === 0 && !dataVacia ? (
             <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
               <span className="loading loading-bars loading-lg"></span>
             </div>
           ) : (
-            <div className="w-full max-w-[100vw] max-h-[27vw] min-h-[27vw]  overflow-auto">
-              <table className="w-full ">
-                <thead>
-                  <tr className="text-black">
-                    <th className="py-2.5 uppercase max-w-16 overflow-hidden font-inter sticky top-0 bg-[#19B050] text-white min-w-80">
-                      PROFESOR
-                    </th>
-                    <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-32">
-                      SEDE
-                    </th>
-                    <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-24">
-                      ESTADO
-                    </th>
-                    {timeDaily.map((time, index) => (
-                      <th
-                        key={`daily-${index}`}
-                        className="py-2.5 uppercase font-inter border bg-[#062060] sticky top-0 text-white min-w-24"
-                      >
-                        {time}
-                      </th>
-                    ))}
-                    {timeWeekend.map((time, index) => (
-                      <th
-                        key={`weekend-${index}`}
-                        className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24"
-                      >
-                        {time}
-                      </th>
-                    ))}
-                    {timeSunday.map((time, index) => (
-                      <th
-                        key={`weekend-${index}`}
-                        className="py-2.5 uppercase font-inter border bg-[#296984] sticky top-0 text-white min-w-24"
-                      >
-                        {time}
-                      </th>
-                    ))}
-                    <th className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24">
-                      Todas
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredDataTac.map((rowTac, index) => (
-                    <TableTacReport
-                      key={index}
-                      classSchedule={rowTac.classSchedule.filter(
-                        (item) => checkboxState[item.frecuency]
-                      )}
-                      location={rowTac.location}
-                      status={rowTac.status}
-                      teacher={rowTac.teacher}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              {dataVacia === true ? (
+                <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+                  <h1 className="font-bold text-5xl"> Datos No Encontrados</h1>
+                </div>
+              ) : (
+                <div className="w-full max-w-[100vw] max-h-[27vw] min-h-[27vw]  overflow-auto">
+                  <table className="w-full ">
+                    <thead>
+                      <tr className="text-black">
+                        <th className="py-2.5 uppercase max-w-16 overflow-hidden font-inter sticky top-0 bg-[#19B050] text-white min-w-80">
+                          PROFESOR
+                        </th>
+                        <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-32">
+                          SEDE
+                        </th>
+                        <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-24">
+                          ESTADO
+                        </th>
+                        {timeDaily.map((time, index) => (
+                          <th
+                            key={`daily-${index}`}
+                            className="py-2.5 uppercase font-inter border bg-[#062060] sticky top-0 text-white min-w-24"
+                          >
+                            {time}
+                          </th>
+                        ))}
+                        {timeWeekend.map((time, index) => (
+                          <th
+                            key={`weekend-${index}`}
+                            className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24"
+                          >
+                            {time}
+                          </th>
+                        ))}
+                        {timeSunday.map((time, index) => (
+                          <th
+                            key={`weekend-${index}`}
+                            className="py-2.5 uppercase font-inter border bg-[#296984] sticky top-0 text-white min-w-24"
+                          >
+                            {time}
+                          </th>
+                        ))}
+                        <th className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24">
+                          Todas
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredDataTac.map((rowTac, index) => (
+                        <TableTacReport
+                          key={index}
+                          classSchedule={rowTac.classSchedule.filter(
+                            (item) => checkboxState[item.frecuency]
+                          )}
+                          location={rowTac.location}
+                          status={rowTac.status}
+                          teacher={rowTac.teacher}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
-
-          <ModalWarning
-            linkTo={'/history'}
-            subtitle="Esta acción es irreversible."
-            title="¿Está seguro de cerrar el período?"
-            idModal="my_modal_3"
-            setFunction={(s: string) => {
-              console.log(s);
-            }}
-          />
         </div>
       </main>
     </LayoutValidation>
