@@ -1238,18 +1238,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   SET pc.idDocente = ta.idDocente
                   FROM [dbo].[ad_programacionAcademica] as  pc
                   JOIN [dbo].[ad_pivoteAsignacion] as ta ON ta.uuuidProgramacionAcademica = pc.uuuidProgramacionAcademica 
-                  WHERE ta.escenario = @escenario
+                    AND ta.escenario = @escenario
                     AND ta.idPeriodo = @id
                     AND ta.idSede = @idSede
                     AND ta.idVersion=@idversion
                     AND ta.flagVigente = 1
                     AND ta.seleccionado=1 
-                    AND pc.idperiodo=@id
+                  WHERE 
+                   pc.idperiodo=@id
                     AND pc.idversion=@idversion
                     `);
 
-        await sql.query`UPDATE ad_pivoteAsignacion
-                    SET flagVigente = 0 where  idPeriodo = ${periodo}  and idSede = ${sede.idSede}  and idVersion =${version} `;
+        await pool
+          .request()
+          .input('id', periodo)
+          .input('idversion', version)
+          .input('idSede', sede.idSede).query(`
+               UPDATE ad_pivoteAsignacion
+                    SET flagVigente = 0 where  idPeriodo = @id  and idSede = @idSede  and idVersion =@idversion
+                    `);
 
         //   FIN sedes
       }
