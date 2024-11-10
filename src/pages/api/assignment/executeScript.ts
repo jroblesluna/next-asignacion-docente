@@ -458,7 +458,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       console.log(sedesArray);
 
-      // // P4: Iteración por sede
+      if (tipo == 'total') {
+        await pool.request().input('id', periodo).input('idVersion', version).query(`
+                  UPDATE ad_programacionAcademica 
+                  SET idDocente = NULL
+                  WHERE  docenteModificado is null and idVersion=@idVersion and idPeriodo=@id`);
+      }
+
+      // P4: Iteración por sede
 
       const resultadoEscenariosActivos = await pool
         .request()
@@ -478,13 +485,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             sede.NombreSede +
             ' |#################'
         );
-
-        if (tipo == 'total') {
-          await pool.request().input('id', periodo).input('idVersion', version).query(`
-                  UPDATE ad_programacionAcademica 
-                  SET idDocente = NULL
-                  WHERE  docenteModificado is null and idVersion=@idVersion and idPeriodo=@id`);
-        }
 
         const resultCursos = await pool
           .request()
@@ -1218,48 +1218,56 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             MenorDesviacion.desviacion
         );
 
+        // await pool
+        //   .request()
+        //   .input('id', periodo)
+        //   .input('idversion', version)
+        //   .input('escenario', MenorDesviacion.escenario)
+        //   .input('idSede', sede.idSede).query(`
+        //         `);
+
+        console.log(
+          periodo + ' | ' + version + ' | ' + MenorDesviacion.escenario + ' | ' + sede.idSede
+        );
+
         await pool
           .request()
           .input('id', periodo)
           .input('idversion', version)
           .input('escenario', MenorDesviacion.escenario)
           .input('idSede', sede.idSede).query(`
+               BEGIN TRANSACTION;
+
                 UPDATE [dbo].[ad_pivoteAsignacion]
                     SET seleccionado = 1
                     WHERE
                       escenario = @escenario
                       AND idPeriodo = @id
-                      AND idVersion=@idversion
+                      AND idVersion= @idversion
                       AND idSede = @idSede
-                      AND flagVigente = 1;  `);
-
-        await pool
-          .request()
-          .input('id', periodo)
-          .input('idversion', version)
-          .input('escenario', MenorDesviacion.escenario)
-          .input('idSede', sede.idSede).query(`
-                UPDATE pc
-                  SET pc.idDocente = ta.idDocente
-                  FROM [dbo].[ad_programacionAcademica] as  pc
-                  JOIN [dbo].[ad_pivoteAsignacion] as ta ON ta.uuuidProgramacionAcademica = pc.uuuidProgramacionAcademica 
-                    AND ta.escenario = @escenario
-                    AND ta.idPeriodo = @id
-                    AND ta.idSede = @idSede
-                    AND ta.idVersion=@idversion
-                    AND ta.flagVigente = 1
-                    AND ta.seleccionado=1 
-                  WHERE 
-                   pc.idperiodo=@id
-                    AND pc.idversion=@idversion; `);
-
-        await pool
-          .request()
-          .input('id', periodo)
-          .input('idversion', version)
-          .input('idSede', sede.idSede).query(`
-               UPDATE ad_pivoteAsignacion
-                    SET flagVigente = 0 where  idPeriodo = @id  and idSede = @idSede  and idVersion =@idversion;`);
+                      AND flagVigente = 1; 
+              
+              MERGE INTO [dbo].[ad_programacionAcademica] AS PC
+                USING [dbo].[ad_pivoteAsignacion] AS TA
+                ON PC.uuuidProgramacionAcademica = TA.uuuidProgramacionAcademica
+                   AND TA.escenario = @escenario
+                   AND TA.idPeriodo = @id
+                   AND TA.idSede = @idSede
+                   AND TA.idVersion = @idversion
+                   AND TA.flagVigente = 1
+                   AND TA.seleccionado = 1
+                   AND PC.idperiodo = @id AND PC.idversion = @idversion
+                WHEN MATCHED AND PC.idperiodo = @id AND PC.idversion = @idversion THEN
+                    UPDATE SET PC.idDocente = TA.idDocente;
+                
+          
+              UPDATE ad_pivoteAsignacion
+              SET flagVigente = 0
+              WHERE idPeriodo = @id 
+                AND idSede = @idSede
+                AND idVersion = @idversion;
+          
+    COMMIT TRANSACTION; `);
 
         //   FIN sedes
       }
