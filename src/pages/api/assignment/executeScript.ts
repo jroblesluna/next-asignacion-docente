@@ -1218,15 +1218,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             MenorDesviacion.desviacion
         );
 
-        await sql.query`
-                   UPDATE [dbo].[ad_pivoteAsignacion]
+        await pool
+          .request()
+          .input('id', periodo)
+          .input('idversion', version)
+          .input('escenario', MenorDesviacion.escenario)
+          .input('idSede', sede.idSede).query(`
+                UPDATE [dbo].[ad_pivoteAsignacion]
                     SET seleccionado = 1
                     WHERE
-                      escenario = ${MenorDesviacion.escenario}
-                      AND idPeriodo = ${periodo}
-                      AND idVersion=${version}
-                      AND idSede = ${sede.idSede}
-                      AND flagVigente = 1; `;
+                      escenario = @escenario
+                      AND idPeriodo = @id
+                      AND idVersion=@idversion
+                      AND idSede = @idSede
+                      AND flagVigente = 1;  `);
 
         await pool
           .request()
@@ -1246,8 +1251,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND ta.seleccionado=1 
                   WHERE 
                    pc.idperiodo=@id
-                    AND pc.idversion=@idversion
-                    `);
+                    AND pc.idversion=@idversion; `);
 
         await pool
           .request()
@@ -1255,8 +1259,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('idversion', version)
           .input('idSede', sede.idSede).query(`
                UPDATE ad_pivoteAsignacion
-                    SET flagVigente = 0 where  idPeriodo = @id  and idSede = @idSede  and idVersion =@idversion
-                    `);
+                    SET flagVigente = 0 where  idPeriodo = @id  and idSede = @idSede  and idVersion =@idversion;`);
 
         //   FIN sedes
       }
