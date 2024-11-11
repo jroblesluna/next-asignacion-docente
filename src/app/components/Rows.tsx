@@ -137,6 +137,7 @@ interface ReportAsigmnentTableInterface {
   classroom: string;
   classroomId: string;
   classroomIdInitial: string;
+  identificadorFisicoinicial: string;
   frequency: string;
   teacher: string;
   teacherId: string;
@@ -157,6 +158,7 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
   course,
   frequency,
   isRoomClosed,
+  identificadorFisicoinicial,
   isTeacherClosed,
   numberOfStudents,
   schedule,
@@ -165,6 +167,10 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
   isEditable,
 }) => {
   const [selectedItem, setSelectedItem] = useState(classroom);
+
+  const cambiarAlIdentificadorInicial = () => {
+    setSelectedItem(identificadorFisicoinicial);
+  };
 
   return (
     <tr
@@ -217,7 +223,7 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
             {location != 'Virtual'
               ? selectedItem
               : classroomId == classroomIdInitial
-              ? classroom
+              ? selectedItem
               : 'CAD-' + selectedItem}
           </p>
         )}
@@ -226,8 +232,10 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
         {isEditable ? (
           <MultiLevelMenuTeacher
             teacher={teacher}
+            location={location}
             idRow={assignmentId}
             teacherId={teacherId}
+            setFuntion={cambiarAlIdentificadorInicial}
           />
         ) : (
           <p>{teacher}</p>

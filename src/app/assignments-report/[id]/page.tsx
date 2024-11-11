@@ -147,6 +147,7 @@ const ReportAssignments = () => {
         teacherId: item.idDocente !== null ? item.idDocente.toString() : '',
         numberOfStudents: item.matriculados,
         isEditable: dataPerido?.estado == 'ACTIVO',
+        identificadorFisicoinicial: item.identificadorFisicoinicial,
       }));
       setAssignments(assignmentsConvertido);
     }
@@ -349,6 +350,7 @@ const ReportAssignments = () => {
                         isEditable={assignment.isEditable}
                         teacherId={assignment.teacherId}
                         classroomId={assignment.classroomId}
+                        identificadorFisicoinicial={assignment.identificadorFisicoinicial}
                         classroomIdInitial={assignment.classroomIdInitial}
                       />
                     ))}

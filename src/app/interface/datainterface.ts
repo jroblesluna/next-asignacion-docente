@@ -25,6 +25,7 @@ export interface ProgramacionAcademica {
   NombreFrecuencia: string;
   NombreAgrupFrecuencia: string;
   identificadorFisico: string;
+  identificadorFisicoinicial: string;
   idSedeAlojada: number;
   nombreSedeAlojada: string;
   codigoCurso: string;
@@ -40,6 +41,7 @@ export interface Assignment {
   schedule: string;
   frequency: string;
   classroom: string;
+  identificadorFisicoinicial: string;
   classroomId: string;
   classroomIdInitial: string;
   teacher: string;

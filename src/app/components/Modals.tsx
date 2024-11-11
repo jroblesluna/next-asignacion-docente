@@ -161,11 +161,6 @@ interface RoomDisponibility {
   capacidad: string;
   nombreSede: string;
 }
-interface ModalFormRoomProps {
-  idModal: string;
-  idRow: string;
-  setFunction: (value1: string, value2: string) => void;
-}
 
 export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
   idModal,
@@ -561,6 +556,12 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
     </>
   );
 };
+
+interface ModalFormRoomProps {
+  idModal: string;
+  idRow: string;
+  setFunction: (value1: string, value2: string) => void;
+}
 
 export const ModalFormRoomCompatibility: React.FC<ModalFormRoomProps> = ({
   idModal,

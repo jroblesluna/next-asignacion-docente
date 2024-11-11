@@ -40,10 +40,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           SELECT PA.*, D.NombreCompletoProfesor, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
           F.NombreAgrupFrecuencia, 
             A.identificadorFisico, D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-            C.codigoCurso, S.nombreSede
+            C.codigoCurso, S.nombreSede, A2.identificadorFisico AS identificadorFisicoinicial
           FROM [dbo].[ad_programacionAcademica] AS PA  
           LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = @id
           LEFT JOIN ad_aula AS A ON A.idAula = PA.idAula AND A.periodo = @id
+           LEFT JOIN ad_aula AS A2 ON A2.idAula = PA.idAulaInicial AND A2.periodo = @id
           INNER JOIN ad_curso AS C ON C.idCurso = PA.idCurso AND C.periodo = @id
           INNER JOIN ad_horario AS H ON H.idHorario = PA.idHorario AND H.periodo = @id
           INNER JOIN ad_frecuencia AS F ON F.idFrecuencia = PA.idFrecuencia AND F.periodo = @id
@@ -55,10 +56,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           SELECT PA.*, D.NombreCompletoProfesor, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,
           F.NombreAgrupFrecuencia, 
             A.identificadorFisico, D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-            C.codigoCurso, S.nombreSede 
+            C.codigoCurso, S.nombreSede , A2.identificadorFisico AS identificadorFisicoinicial
           FROM [dbo].[ad_programacionAcademica] AS PA  
           LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = 1
           LEFT JOIN ad_aula AS A ON A.idAula = PA.idAula AND A.periodo = 1
+          LEFT JOIN ad_aula AS A2 ON A2.idAula = PA.idAulaInicial AND A2.periodo = 1
           INNER JOIN ad_curso AS C ON C.idCurso = PA.idCurso AND C.periodo = 1
           INNER JOIN ad_horario AS H ON H.idHorario = PA.idHorario AND H.periodo = 1
           INNER JOIN ad_frecuencia AS F ON F.idFrecuencia = PA.idFrecuencia AND F.periodo = 1

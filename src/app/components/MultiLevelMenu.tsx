@@ -73,12 +73,16 @@ export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = (
 interface MultiLevelMenuTeacherProps {
   teacher: string;
   idRow: string;
+  location: string;
   teacherId: string;
+  setFuntion: () => void;
 }
 
 export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
   teacher,
   idRow,
+  setFuntion,
+  location,
 }) => {
   const [selectedItem, setSelectedItem] = useState(teacher);
   const {
@@ -121,6 +125,7 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
   };
 
   const onhandleRemove = () => {
+    location == 'Virtual' && setFuntion();
     setSelectedItem('-');
     uploadRowTeacher('-1');
     UpdateTeacher(idRow, '-');
