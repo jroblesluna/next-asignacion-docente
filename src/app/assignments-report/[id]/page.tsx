@@ -131,6 +131,8 @@ const ReportAssignments = () => {
         assignmentId: item.uuuidProgramacionAcademica,
         isRoomClosed: item.aulaModificada,
         isTeacherClosed: item.docenteModificado,
+        classroomId: item.idAula !== null ? item.idAula.toString() : '',
+        classroomIdInitial: item.idAulaInicial !== null ? item.idAulaInicial.toString() : '',
         location: item.nombreSede,
         course: item.codigoCurso || 'No Encontrado',
         schedule: `${item.HorarioInicio} - ${item.HorarioFin}`,
@@ -346,6 +348,8 @@ const ReportAssignments = () => {
                         teacher={assignment.teacher}
                         isEditable={assignment.isEditable}
                         teacherId={assignment.teacherId}
+                        classroomId={assignment.classroomId}
+                        classroomIdInitial={assignment.classroomIdInitial}
                       />
                     ))}
                   </tbody>

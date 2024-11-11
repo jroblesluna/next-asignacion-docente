@@ -134,6 +134,35 @@ const assigmentService = {
     }
   },
 
+  updateRoomRows: async (
+    idPeriodo: string,
+    idVersion: string,
+    uuidFila: string,
+    idRoom: string,
+    userName: string
+  ) => {
+    try {
+      console.log(userName);
+
+      const { data } = await axios.patch(`${BASE_URL}/updateRoom-rows`, {
+        idPeriodo,
+        idVersion,
+        uuidFila,
+        idRoom,
+        userName,
+      });
+
+      if (!data.data) {
+        alert(data.message);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error al actualizar las filas de asignación:', error);
+      return null;
+    }
+  },
+
   getRoomAvailable: async (idPeriod: string, uuidSlot: string, version: string) => {
     try {
       const { data } = await axios.get(BASE_URL + `/getRoomAvailable`, {

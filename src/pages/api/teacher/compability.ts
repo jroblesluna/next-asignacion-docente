@@ -555,7 +555,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const resultClasesAsignadas = await pool
           .request()
           .input('id', idPeriod)
-          .input('idDocente', docente.DocenteID).query(`
+          .input('idDocente', docente.DocenteID)
+          .input('idVersion', version).query(`
                         SELECT 
                                 PC.idSede, 
                                 PC.idPeriodo, 
@@ -575,6 +576,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 WHERE 
                                 PC.idDocente = @idDocente
                                 AND PC.idPeriodo = @id
+                                AND PC.idVersion=@idVersion
                           `);
 
         const ClasesAsignadas = resultClasesAsignadas.recordset;

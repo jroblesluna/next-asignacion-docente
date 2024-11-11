@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           SELECT PA.*, D.NombreCompletoProfesor, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
           F.NombreAgrupFrecuencia, 
             A.identificadorFisico, D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-            C.codigoCurso, S.nombreSede 
+            C.codigoCurso, S.nombreSede
           FROM [dbo].[ad_programacionAcademica] AS PA  
           LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = @id
           LEFT JOIN ad_aula AS A ON A.idAula = PA.idAula AND A.periodo = @id

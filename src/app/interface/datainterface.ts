@@ -9,6 +9,7 @@ export interface ProgramacionAcademica {
   idFrecuencia: number;
   idDocente: number;
   idAula: number;
+  idAulaInicial: number;
   matriculados: number;
   inicioClase: string;
   finalClase: string;
@@ -39,6 +40,8 @@ export interface Assignment {
   schedule: string;
   frequency: string;
   classroom: string;
+  classroomId: string;
+  classroomIdInitial: string;
   teacher: string;
   teacherId: string;
   numberOfStudents: number;

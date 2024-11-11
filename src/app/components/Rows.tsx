@@ -135,6 +135,8 @@ interface ReportAsigmnentTableInterface {
   schedule: string;
   location: string;
   classroom: string;
+  classroomId: string;
+  classroomIdInitial: string;
   frequency: string;
   teacher: string;
   teacherId: string;
@@ -150,6 +152,8 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
   location,
   assignmentId,
   classroom,
+  classroomId,
+  classroomIdInitial,
   course,
   frequency,
   isRoomClosed,
@@ -160,7 +164,7 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
   teacherId,
   isEditable,
 }) => {
-  const data = ['105', '106', '107'];
+  const [selectedItem, setSelectedItem] = useState(classroom);
 
   return (
     <tr
@@ -171,14 +175,26 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
     >
       <td className="px-1">
         {isRoomClosed || isTeacherClosed ? (
-          <Image
-            className="size-[15px] opacity-70 z-0"
-            width={20}
-            alt="img"
-            height={20}
-            src={'/locked-icon.svg'}
-            onClick={() => alert('Modicado por ' + isTeacherClosed)}
-          />
+          <div
+            className="tooltip  tooltip-right "
+            data-tip={`${
+              !isTeacherClosed
+                ? 'No hay modificaciones de docente'
+                : 'Docente modificado por ' + isTeacherClosed
+            } /  ${
+              !isRoomClosed
+                ? 'No hay modificaciones de Aula'
+                : 'Aula modificado por ' + isRoomClosed
+            } `}
+          >
+            <Image
+              className="size-[15px] opacity-70 z-0"
+              width={20}
+              alt="img"
+              height={20}
+              src={'/locked-icon.svg'}
+            />
+          </div>
         ) : (
           <p className="text-transparent">●</p>
         )}
@@ -188,12 +204,23 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
       <td className="font-inter text-center  py-3">{schedule}</td>
       <td className="font-inter text-center  py-3">{frequency}</td>
       <td className="font-inter text-center py-3">
-        {true ? (
-          <MultiLevelMenuClassroom classRoom={classroom} idRow={assignmentId} />
+        {isEditable ? (
+          <MultiLevelMenuClassroom
+            classRoom={selectedItem}
+            classroomId={classroomId}
+            classroomIdInitial={classroomIdInitial}
+            location={location}
+            idRow={assignmentId}
+          />
         ) : (
-          <p>{classroom}</p>
+          <p>
+            {location != 'Virtual'
+              ? selectedItem
+              : classroomId == classroomIdInitial
+              ? classroom
+              : 'CAD-' + selectedItem}
+          </p>
         )}
-        {/* <p>{classroom}</p> */}
       </td>
       <td className="font-inter text-start  py-3 uppercase">
         {isEditable ? (
@@ -201,7 +228,6 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
             teacher={teacher}
             idRow={assignmentId}
             teacherId={teacherId}
-            dataRecomended={[]}
           />
         ) : (
           <p>{teacher}</p>
@@ -274,6 +300,7 @@ interface TeacherAssignment {
 import { timeDaily, timeSunday, timeWeekend } from '../constants/data';
 import { isTimeInRange, containsDaysOfWeek } from '../utils/managmentTime';
 import Link from 'next/link';
+import { useState } from 'react';
 export const TableTacReport: React.FC<TeacherAssignment> = ({
   classSchedule,
   location,

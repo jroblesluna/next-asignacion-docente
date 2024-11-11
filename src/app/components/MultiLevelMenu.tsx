@@ -10,19 +10,36 @@ import assigmentService from '@/services/assigment';
 interface MultiLevelMenuClassroomProps {
   idRow: string;
   classRoom: string;
+  classroomId: string;
+  classroomIdInitial: string;
+  location: string;
 }
 
 export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = ({
   idRow,
   classRoom,
+  classroomId,
+  classroomIdInitial,
+  location,
 }) => {
   const [selectedItem, setSelectedItem] = useState(classRoom);
+  const [selectedItemRoomId, setSelectedItemRoomId] = useState(classroomId);
+
+  const setearParametros = (value1: string, value2: string) => {
+    setSelectedItem(value1);
+    setSelectedItemRoomId(value2);
+  };
+
   return (
     <div className="relative inline-block cursor-pointer">
       <div className="flex flex-col">
         <div className="relative group dropdown dropdown-right rounded-none">
           <div tabIndex={0} role="button" className="rounded-none">
-            {selectedItem}
+            {location != 'Virtual'
+              ? selectedItem
+              : selectedItemRoomId == classroomIdInitial
+              ? selectedItem
+              : 'CAD-' + selectedItem}
           </div>
           <ul
             tabIndex={0}
@@ -47,7 +64,7 @@ export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = (
       <ModalFormRoomCompatibility
         idModal={'my_modalRoomCompatibility' + idRow}
         idRow={idRow}
-        setFunction={setSelectedItem}
+        setFunction={setearParametros}
       />
     </div>
   );
@@ -56,7 +73,6 @@ export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = (
 interface MultiLevelMenuTeacherProps {
   teacher: string;
   idRow: string;
-  dataRecomended: string[];
   teacherId: string;
 }
 

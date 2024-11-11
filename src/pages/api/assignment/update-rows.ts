@@ -32,19 +32,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
+      const resultInfo = await pool
+        .request()
+        .input('id', idPeriodo)
+        .input('uuidSlot', uuidFila)
+        .input('version', idVersion).query(`
+                SELECT  * FROM [dbo].[ad_programacionAcademica]
+                WHERE 
+    				    idPeriodo = @id
+    				    AND uuuidProgramacionAcademica=@uuidSlot AND idVersion=@version
+                  `);
+
+      const resultadoIDVirtual = await pool
+        .request()
+        .input('id', idPeriodo)
+        .query(
+          `SELECT idSede FROM [dbo].[ad_sede] where nombreSede = 'Virtual' and periodo=@id`
+        );
+
+      const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
+
+      const idCurso = resultInfo.recordset[0]?.idSede;
+
       if (idDocente === '-1') {
-        await pool
-          .request()
-          .input('id', idPeriodo)
-          .input('idVersion', idVersion)
-          .input('uuidFila', uuidFila)
-          .input('idDocente', idDocente).query(`
+        if (idCurso != virtualID) {
+          await pool
+            .request()
+            .input('id', idPeriodo)
+            .input('idVersion', idVersion)
+            .input('uuidFila', uuidFila)
+            .input('idDocente', idDocente).query(`
         UPDATE [dbo].[ad_programacionAcademica] 
         SET docenteModificado = null, idDocente = NULL
         WHERE idPeriodo = @id 
         AND uuuidProgramacionAcademica = @uuidFila 
         AND idVersion = @idVersion
     `);
+        } else {
+          await pool
+            .request()
+            .input('id', idPeriodo)
+            .input('idVersion', idVersion)
+            .input('uuidFila', uuidFila)
+            .input('idDocente', idDocente).query(`
+        UPDATE [dbo].[ad_programacionAcademica] 
+        SET docenteModificado = null, idDocente = NULL,
+        aulaModificada=null, idAula=idAulaInicial
+        WHERE idPeriodo = @id 
+        AND uuuidProgramacionAcademica = @uuidFila 
+        AND idVersion = @idVersion
+    `);
+        }
       } else {
         await pool
           .request()

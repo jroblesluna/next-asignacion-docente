@@ -161,6 +161,11 @@ interface RoomDisponibility {
   capacidad: string;
   nombreSede: string;
 }
+interface ModalFormRoomProps {
+  idModal: string;
+  idRow: string;
+  setFunction: (value1: string, value2: string) => void;
+}
 
 export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
   idModal,
@@ -557,13 +562,13 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
   );
 };
 
-export const ModalFormRoomCompatibility: React.FC<ModalFormTeacherProps> = ({
+export const ModalFormRoomCompatibility: React.FC<ModalFormRoomProps> = ({
   idModal,
   idRow,
   setFunction,
 }) => {
   const [selectNewRoom, setSelectNewRoom] = useState('-1');
-  const [selectNewIdTeacher, setNewIdRoom] = useState('');
+  const [selectNewIdRoom, setNewIdRoom] = useState('');
   const correo = localStorage.getItem('user');
   const [data, setData] = useState<RoomDisponibility[]>([]);
 
@@ -575,20 +580,19 @@ export const ModalFormRoomCompatibility: React.FC<ModalFormTeacherProps> = ({
   const { assignments, setAssignments, setModifications, period, LastVersionID } = context;
 
   const loadData = async () => {
-    // const res = await teacherService.getCompatibility(period, idRow, LastVersionID);
-    // console.log(res.data);
-    // setData(res.data);
+    const res = await assigmentService.getRoomAvailable(period, idRow, LastVersionID);
+    console.log(res.data);
+    setData(res.data);
   };
 
-  const uploadRowTeacher = async (idTeacher: string) => {
-    // await assigmentService.updateRows(
-    //   period,
-    //   LastVersionID,
-    //   idRow,
-    //   idTeacher,
-    //   correo || 'userDefault'
-    // );
-    alert(period + LastVersionID + idRow + idTeacher);
+  const uploadRowRoom = async (idRoom: string) => {
+    await assigmentService.updateRoomRows(
+      period,
+      LastVersionID,
+      idRow,
+      idRoom,
+      correo || 'userDefault'
+    );
   };
 
   // Ejecuta loadData solo cuando el modal esté abierto
@@ -618,27 +622,13 @@ export const ModalFormRoomCompatibility: React.FC<ModalFormTeacherProps> = ({
     }
   }, [idModal]);
 
-  // const UpdateTeacher = (assignmentId: string, newTeacher: string) => {
-  //   const updatedAssignments = assignments.map((assignment) =>
-  //     assignment.assignmentId === assignmentId
-  //       ? {
-  //           ...assignment,
-  //           teacher: newTeacher,
-  //           isTeacherClosed: newTeacher !== '-' ? correo : null,
-  //         }
-  //       : assignment
-  //   );
-
-  //   setModifications((prevModifications) => [...prevModifications, assignmentId]);
-  //   setAssignments([...updatedAssignments]);
-  // };
-
-  const UpdateClasRoom = (assignmentId: string, classRoom: string) => {
+  const UpdateClasRoom = (assignmentId: string, classRoom: string, idClasroomNew: string) => {
     const updatedAssignments = assignments.map((assignment) =>
       assignment.assignmentId === assignmentId
         ? {
             ...assignment,
             classroom: classRoom,
+            classroomId: idClasroomNew,
             isRoomClosed: correo,
           }
         : assignment
@@ -648,12 +638,11 @@ export const ModalFormRoomCompatibility: React.FC<ModalFormTeacherProps> = ({
     setAssignments([...updatedAssignments]);
   };
 
-  const onhandleClick = (newRoom: string, selectIdRoom: string) => {
+  const onhandleClick = (newRoom: string, selectIdRoom: string, idClassRoomNew: string) => {
+    setFunction(newRoom, selectIdRoom);
     console.log(selectIdRoom);
-    setFunction(newRoom);
-    console.log(selectIdRoom);
-    uploadRowTeacher(selectIdRoom);
-    UpdateClasRoom(idRow, newRoom);
+    uploadRowRoom(selectIdRoom);
+    UpdateClasRoom(idRow, newRoom, idClassRoomNew);
   };
 
   return (
@@ -664,8 +653,9 @@ export const ModalFormRoomCompatibility: React.FC<ModalFormTeacherProps> = ({
             <form method="dialog" className="flex w-full flex-col">
               <div className=" text-center font-bold">LISTA DE AULAS COMPATIBLES Y LIBRES</div>
               <div className="w-full mt-5 flex flex-row">
-                <p className="px-4 py-2 border w-[58%] font-bold">AULA ID</p>
-                <p className="px-4 py-2 border w-[18%] font-bold">SEDE</p>
+                <p className="px-4 py-2 border w-[30%] font-bold">ID FISICO</p>
+                <p className="px-4 py-2 border w-[28%] font-bold">CAPACIDAD</p>
+                <p className="px-4 py-2 border w-[42%] font-bold">SEDE</p>
               </div>
 
               <div className="w-full overflow-auto min-h-[350px] max-h-[350px] ">
@@ -714,20 +704,15 @@ export const ModalFormRoomCompatibility: React.FC<ModalFormTeacherProps> = ({
 
               <div className="flex flex-col text-xs gap-2 mt-5">
                 <p className="font-bold">
-                  Leyenda - Docentes que dictan el curso y estan disponibles
+                  Leyenda - Aulas compatibles y disponibles en ese horario
                 </p>
                 <div className="flex flex-row gap-4">
                   <p>
-                    <span className="font-bold">PT:</span> Part time
+                    <span className="font-bold">ID:</span> Identificador
                   </p>
                   <p>
-                    <span className="font-bold">FT:</span> Full time
-                  </p>
-                  <p>
-                    <span className="font-bold">TC:</span> Tipo de Contrato
-                  </p>
-                  <p>
-                    <span className="font-bold">HA:</span> Horas acumuladas mensuales
+                    <span className="font-bold">CAPACIDAD:</span> N° de alumnos maximos
+                    permitidos
                   </p>
                 </div>
               </div>
@@ -739,7 +724,7 @@ export const ModalFormRoomCompatibility: React.FC<ModalFormTeacherProps> = ({
                   onClick={() => {
                     const modal = document.getElementById(idModal) as HTMLDialogElement;
                     if (data[0].id !== -1 && selectNewRoom !== '-1') {
-                      onhandleClick(selectNewRoom, selectNewIdTeacher);
+                      onhandleClick(selectNewRoom, selectNewIdRoom, selectNewIdRoom);
                     }
                     setSelectNewRoom('-1');
                     modal?.close();
