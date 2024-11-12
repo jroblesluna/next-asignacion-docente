@@ -416,7 +416,7 @@ const Page = () => {
                           SEDE
                         </th>
                         <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-24">
-                          ESTADO
+                          TIPO DE CONTRATO
                         </th>
                         {timeDaily.map((time, index) => (
                           <th

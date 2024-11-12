@@ -289,6 +289,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           // VERIFICA SI HAY EVENTOS
           const listaEventos = resultEvents.recordset;
+
           if (listaEventos.length !== 0) {
             // se crea la version si hay eventos
             const resultNewVersion = await pool
@@ -310,8 +311,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             for (const evento of listaEventos) {
               // Identificar los evento que modifican indirectamente la tabla PA
               // VIGENCIA DE UN DOCENTE - LO DESASIGNA AUTOMATICAMENTE
+              //
               // SU DISPONIBILIDAD CAMBIA
-              //   SI HAY UN NUEVO HORARIO BLOQUEADO?
+              // SI HAY UN NUEVO HORARIO BLOQUEADO?
               // AGREGAR UN NUEVO CURSO
               // CAMBIAR LA VIGENCIA DE UN CURSO
               // teniendo el id version ya puedo modificar todos los eventos
@@ -463,6 +465,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   UPDATE ad_programacionAcademica 
                   SET idDocente = NULL
                   WHERE  docenteModificado is null and idVersion=@idVersion and idPeriodo=@id`);
+        await pool
+          .request()
+          .input('id', periodo)
+          .input('idVersion', version)
+          .input('idVirtual', virtualID).query(`
+                  UPDATE ad_programacionAcademica 
+                  SET idAula = idAulaInicial,  aulaModificada=null
+                  WHERE  idSede=@idVirtual and  aulaModicada is not null  and idVersion=@idVersion and idPeriodo=@id`);
       }
 
       // P4: Iteración por sede

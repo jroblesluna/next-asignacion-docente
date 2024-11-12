@@ -88,10 +88,12 @@ function Page() {
   // };
   const a = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT;
   const b = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT;
+  const c = process.env.DB_USER;
   return (
     <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
       <p>{a}</p>
       <p>{b}</p>
+      <p>{c}</p>
       {/* <p>{ProgramacionAcademicaData[0]?.uuidDocente}</p>
       <p>{JSON.stringify(ProgramacionAcademicaDataTac, null, 2)}</p> */}
       {/* {data}

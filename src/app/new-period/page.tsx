@@ -6,17 +6,19 @@ import { ModalWarning } from '../components/Modals';
 import { useEffect, useState } from 'react';
 import { TableActiveTeacher } from '../components/Rows';
 import Image from 'next/image';
-import { locationData, stateData } from '../constants/data';
+import { stateData } from '../constants/data';
 import LayoutValidation from '../LayoutValidation';
 import { DocentesActivos, PeriodoAcademico } from '../interface/datainterface';
 import periodService from '@/services/period';
 import teacherService from '@/services/teacher';
+import assigmentService from '@/services/assigment';
 const Page = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('Todas');
   const [selectedState, setSelectedState] = useState('Todas');
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [dataDocentesActivos, setDataDocentesActivos] = useState<DocentesActivos[]>([]);
+  const [nombresSedesData, setNombresSedeData] = useState<{ NombreSede: string }[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 100;
@@ -78,6 +80,9 @@ const Page = () => {
   }, []);
 
   const loadDataDocentes = async (id: string) => {
+    const resSedesData = await assigmentService.getLocationTac('-1');
+    console.log(resSedesData.data);
+    setNombresSedeData(resSedesData.data);
     const resDocentes = await teacherService.getAll(id);
     setDataDocentesActivos(resDocentes.data);
   };
@@ -165,23 +170,21 @@ const Page = () => {
                     <span className="label-text text-xs">Sede</span>
                   </div>
                   <select
-                    className="select select-bordered text-xs  capitalize"
+                    className="select select-bordered text-xs capitalize"
                     value={selectedLocation}
                     onChange={handleLocationChange}
                   >
                     <option value="Todas">Todas</option>
-                    {locationData.map((item, index) => {
-                      return (
-                        <option value={item} key={index}>
-                          {item.toLowerCase()}
-                        </option>
-                      );
-                    })}
+                    {nombresSedesData.map((item, index) => (
+                      <option key={index} value={item.NombreSede}>
+                        {item?.NombreSede?.toLowerCase() || ''}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label className="form-control w-full max-w-28 -mt-9">
                   <div className="label">
-                    <span className="label-text text-xs">Estado</span>
+                    <span className="label-text text-xs">Tipo de Contrato</span>
                   </div>
                   <select
                     className="select select-bordered text-xs"
@@ -210,7 +213,7 @@ const Page = () => {
                         SEDE
                       </th>
                       <th className="py-2 uppercase font-inter font-semibold sticky top-0 text-start bg-white">
-                        ESTADO
+                        TIPO DE CONTRATO
                       </th>
                     </tr>
                   </thead>

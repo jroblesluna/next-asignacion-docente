@@ -227,6 +227,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     				AND P.uuuidProgramacionAcademica=@uuidSlot AND P.idVersion=@version
                   `);
 
+      console.log(resultCurso.recordset);
+
       const resultadoIDVirtual = await pool
         .request()
         .input('id', idPeriod)
@@ -344,7 +346,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       });
 
-      // obtner todos los docentes que enseñen el curso, -- ver si diferenciar por sede o no
+      // obtner todos los docentes que enseñen el curso
 
       let resultDocentes;
 
@@ -359,7 +361,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('idHorario', resultCurso.recordset[0]?.idHorario)
           .input('idVirtual', virtualID)
           .query(
-            `SELECT LD.*, 
+            `SELECT DISTINCT LD.*, 
                    D.NombreCompletoProfesor, 
                    D.FechaInicioContrato,
                     D.nombreSede,
@@ -433,7 +435,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('idFrecuencia', resultCurso.recordset[0]?.idFrecuencia)
           .input('idHorario', resultCurso.recordset[0]?.idHorario)
           .query(
-            ` SELECT LD.*, 
+            ` SELECT DISTINCT LD.*, 
                    D.NombreCompletoProfesor, 
                      D.nombreSede,
                    D.FechaInicioContrato,

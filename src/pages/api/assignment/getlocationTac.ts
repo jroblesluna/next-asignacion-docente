@@ -20,14 +20,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let responseMessage = '';
       let responseData: object[] | null = null;
 
+      if (idPeriod == '-1') {
+        const result = await pool.request().query(`
+                SELECT  
+                                D.*, 
+                                TC.TipoJornada, 
+                                ISNULL(DD.EstadoDisponible, 1) AS EstadoDisponible,
+                                (CASE 
+                                    WHEN EXISTS (SELECT 1 
+                                                 FROM [dbo].[LibroPorDocente] 
+                                                 WHERE [dbo].[LibroPorDocente].DocenteID = D.DocenteID) 
+                                    THEN 1 
+                                    ELSE 0 
+                                 END) AS dictaClase
+                            FROM 
+                                [dbo].[dim_docente] AS D
+                            INNER JOIN 
+                                [dbo].[dim_tipo_contrato] AS TC ON D.TipoContratoID = TC.TipoContratoID
+                            LEFT JOIN 
+                                [dbo].[disponibilidad_docente] AS DD ON DD.DocenteID = D.DocenteID AND DD.PeriodoAcademico = @id
+                            WHERE 
+                                D.FlagVigente = 1
+                        		AND D.FechaInicioContrato is not null
+                        )
+                        SELECT Distinct  NombreSede
+                        FROM CTE_Docente
+                        WHERE dictaClase = 1  and Nombresede <> 'Virtual'
+                        ORDER BY FechaInicioContrato
+             `);
+
+        responseMessage = `Sedes del periodo nuevo periodo encontrados `;
+        responseData = result.recordset;
+
+        return res.status(200).json({
+          message: responseMessage,
+          data: responseData,
+        });
+      }
+
       const result = await pool.request().input('id', idPeriod).query(`
-               IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo =  @id)
-                BEGIN
+              IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo =  @id)
+              BEGIN
                 SELECT distinct NombreSede from [dbo].[ad_docente] 
              where periodo=@id and NombreSede is not null and Nombresede <> 'Virtual' AND vigente=1 AND dictaClase=1 
                 END
               ELSE
-                BEGIN
+              BEGIN
                  SELECT distinct NombreSede from [dbo].[ad_docente]
              where periodo=1 and NombreSede is not null and Nombresede <> 'Virtual'AND vigente=1 AND dictaClase=1 
               END      

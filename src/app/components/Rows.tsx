@@ -193,13 +193,41 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
                 : 'Aula modificado por ' + isRoomClosed
             } `}
           >
-            <Image
-              className="size-[15px] opacity-70 z-0"
-              width={20}
-              alt="img"
-              height={20}
-              src={'/locked-icon.svg'}
-            />
+            {isRoomClosed && !isTeacherClosed ? (
+              <Image
+                className="size-[15px]  z-0"
+                width={20}
+                alt="img"
+                height={20}
+                src={'/locked-icon2.svg'}
+              />
+            ) : (
+              <></>
+            )}
+
+            {!isRoomClosed && isTeacherClosed ? (
+              <Image
+                className="size-[15px]  z-0"
+                width={20}
+                alt="img"
+                height={20}
+                src={'/locked-icon.svg'}
+              />
+            ) : (
+              <></>
+            )}
+
+            {isRoomClosed && isTeacherClosed ? (
+              <Image
+                className="size-[15px]  z-0"
+                width={20}
+                alt="img"
+                height={20}
+                src={'/locked-icon2.svg'}
+              />
+            ) : (
+              <></>
+            )}
           </div>
         ) : (
           <p className="text-transparent">●</p>
