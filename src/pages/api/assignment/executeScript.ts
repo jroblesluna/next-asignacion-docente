@@ -156,8 +156,8 @@ const disponibleEnFecha = (
   fechaFinal2: string
 ) => {
   function convertirFecha(cadenaFecha: string): Date {
-    const [dia, mes, año] = cadenaFecha.split('-').map(Number);
-    return new Date(año, mes - 1, dia);
+    const [dia, mes, anio] = cadenaFecha.split('-').map(Number);
+    return new Date(anio, mes - 1, dia);
   }
 
   const inicio1 = convertirFecha(fechaInicio1);
@@ -274,6 +274,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Logica de creación de versiones
 
+      const resultDesponibilidad = await pool.request().input('id', periodo).query(`
+                      SELECT DocenteID, PeriodoAcademico,EstadoDisponible,FORMAT(FechaInicio, 'dd-MM-yyyy')
+                 as FechaInicio, FORMAT(FechaFin , 'dd-MM-yyyy') as FechaFin
+                 FROM [dbo].[disponibilidad_docente]  where  PeriodoAcademico=@id
+                        `);
+
+      const disponibilidadDocente = resultDesponibilidad.recordset;
+
+      const docentesMap = new Map<number, disponibilidadDocenteInterface>(
+        disponibilidadDocente.map((docente: disponibilidadDocenteInterface) => [
+          docente.DocenteID,
+          docente,
+        ])
+      );
+
+      const ObtenerDocenteDisponiblePorID = (
+        docenteID: number
+      ): disponibilidadDocenteInterface | null => {
+        return docentesMap.get(docenteID) || null;
+      };
+
+      // Bloques Horarios bloqueados de docente
+      const resultHorariosBloquedos = await pool.request().query(`
+                                  SELECT hbd.CodigoBloque, hbd.DocenteID, bh.BloqueHorario
+                                  FROM [dbo].[horario_bloqueado_docente] hbd
+                                  INNER JOIN [dbo].[BloqueHorario] bh
+                                      ON hbd.CodigoBloque = bh.bloque
+                                    `);
+      const BloquesBloqueadosCompletos = resultHorariosBloquedos.recordset;
+
       if (!flagAvance) {
         // SNAPTSHOT solo la primera vez
         await pool
@@ -283,7 +313,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .execute('ad_capturaDatosNuevoPeriodo');
 
         // Copia de la programación academica  del nuevo periodo solo la primera vez
-
         await pool
           .request()
           .input('periodo', sql.Int, periodo)
@@ -308,7 +337,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const nuevaIdVersion = resultNewVersion.recordset[0].nuevoIdVersion;
 
             // COPIAR LA PROGRAMACIÓN CURSO Y AGREGARLE UNA NUEVA VERSIÓN
-
             await pool
               .request()
               .input('periodo', sql.Int, periodo)
@@ -316,8 +344,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               .execute('ad_copiarProgramacionAcademicaConNuevaVersion');
 
             const Revisardocentes: EventosCambiosDocente[] = [];
+            const RevisarProgramacion: string[] = [];
 
-            // Filtramos para que `campo` solo acepte claves booleanas de `EventosCambiosDocente`
             const actualizarCampoDocente = <
               K extends keyof Omit<EventosCambiosDocente, 'idDocente'>
             >(
@@ -328,9 +356,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               const docente = Revisardocentes.find((d) => d.idDocente === idDocente);
 
               if (docente) {
-                docente[campo] = valor; // Actualiza el campo específico del docente encontrado
-              } else {
-                console.log(`Docente con id ${idDocente} no encontrado`);
+                docente[campo] = valor;
               }
             };
 
@@ -343,30 +369,305 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .input('NombreTabla', sql.VarChar, evento.entidadReferencia.split('.')[1])
                 .execute('ad_ActualizarTablasSnaptshot');
 
-              //Actualizar la tabla ad_docente si es dim_docente
-
               if (
                 !Revisardocentes.find((d) => d.idDocente === evento.entidadId) &&
-                evento.entidadReferencia.split('.')[1] == 'dim_docente'
+                (evento.entidadReferencia.split('.')[1] == 'dim_docente' ||
+                  evento.entidadReferencia.split('.')[1] == 'disponibilidad_docente' ||
+                  evento.entidadReferencia.split('.')[1] == 'LibroPorDocente' ||
+                  evento.entidadReferencia.split('.')[1] == 'horario_bloqueado_docente')
               ) {
                 Revisardocentes.push({
-                  idDocente: evento.uuidEntidad,
+                  idDocente: evento.entidadId,
                   cambioDisponibilidad: false,
                   cambioHorarioBloqueado: false,
                   cambioLibroDocente: false,
                 });
               }
-              // ver el campo si es igual o no
+
+              // ver el campo si es igual o no  (uuidEntidad o entidadDId)
               if (evento.entidadReferencia.split('.')[1] == 'disponibilidad_docente') {
-                actualizarCampoDocente(evento.uuidEntidad, 'cambioDisponibilidad', true);
+                actualizarCampoDocente(evento.entidadId, 'cambioDisponibilidad', true);
               }
 
               if (evento.entidadReferencia.split('.')[1] == 'LibroPorDocente') {
-                actualizarCampoDocente(evento.uuidEntidad, 'cambioLibroDocente', true);
+                actualizarCampoDocente(evento.entidadId, 'cambioLibroDocente', true);
               }
 
               if (evento.entidadReferencia.split('.')[1] == 'horario_bloqueado_docente') {
-                actualizarCampoDocente(evento.uuidEntidad, 'cambioHorarioBloqueado', true);
+                actualizarCampoDocente(evento.entidadId, 'cambioHorarioBloqueado', true);
+              }
+
+              if (evento.entidadReferencia.split('.')[1] == 'ProgramacionCursos') {
+                RevisarProgramacion.push(evento.uuidEntidad);
+              }
+            }
+
+            const resultadoIDVirtual = await pool
+              .request()
+              .input('id', periodo)
+              .query(
+                `SELECT idSede FROM [dbo].[ad_sede] where nombreSede = 'Virtual' and periodo=@id`
+              );
+
+            const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
+
+            for (const docenteAnalisis of Revisardocentes) {
+              const resultOneDocente = await pool
+                .request()
+                .input('id', periodo)
+                .input('idDocente', docenteAnalisis.idDocente).query(`
+                  SELECT  idDocente , vigente FROM [dbo].[ad_docente]
+                  WHERE idDocente = @idDocente AND  periodo = @id`);
+
+              if (resultOneDocente.recordset[0]?.vigente == 'False') {
+                await pool
+                  .request()
+                  .input('id', periodo)
+                  .input('idVersion', nuevaIdVersion)
+                  .input('idDocente', docenteAnalisis.idDocente)
+                  .input('idVirtual', virtualID).query(`
+                  BEGIN
+              
+                    UPDATE ad_programacionAcademica 
+                    SET idAula = idAulaInicial, aulaModificada = NULL
+                    WHERE idSede = @idVirtual 
+                    AND  idDocente = @idDocente 
+                    AND aulaModificada IS NOT NULL  
+                    AND idVersion = @idVersion 
+                    AND idPeriodo = @id;
+                    
+                    UPDATE [dbo].[ad_programacionAcademica]  
+                    SET idDocente = NULL
+                    WHERE idDocente = @idDocente 
+                    AND idPeriodo = @id
+                    AND idVersion = @idVersion;
+                    END `);
+                continue;
+              }
+
+              if (
+                !docenteAnalisis.cambioLibroDocente &&
+                !docenteAnalisis.cambioHorarioBloqueado &&
+                !docenteAnalisis.cambioDisponibilidad
+              ) {
+                continue;
+              }
+
+              const resultClasesAsignadas = await pool
+                .request()
+                .input('id', periodo)
+                .input('idDocente', docenteAnalisis.idDocente)
+                .input('idVersion', nuevaIdVersion).query(`
+                        SELECT 
+                                PC.idSede, 
+                                PC.uuuidProgramacionAcademica,
+                                PC.idPeriodo, 
+                                PC.idCurso, 
+                                PC.idFrecuencia, 
+                                PC.idHorario, 
+                                H.HorarioInicio, 
+                                H.HorarioFin, 
+                                F.NombreFrecuencia, 
+                                F.NombreAgrupFrecuencia,
+                                FORMAT(CONVERT(DATETIME, PC.inicioClase), 'dd-MM-yyyy') AS InicioClase,
+                                FORMAT(CONVERT(DATETIME, PC.finalClase), 'dd-MM-yyyy') AS FinClase
+                                FROM 
+                                 [dbo].[ad_programacionAcademica] AS PC
+                                INNER JOIN 
+                                [dbo].[ad_horario]  AS H ON PC.idHorario = H.idHorario and H.periodo = @id
+                                INNER JOIN 
+                                [dbo].[ad_frecuencia]  AS F ON PC.idFrecuencia = F.idFrecuencia and F.periodo = @id
+                                WHERE 
+                                PC.idDocente = @idDocente
+                                AND PC.idPeriodo = @id
+                                AND PC.idVersion=@idVersion
+                          `);
+
+              const ClasesAsignadas = resultClasesAsignadas.recordset;
+
+              for (const claseDocente of ClasesAsignadas) {
+                if (docenteAnalisis.cambioLibroDocente) {
+                  const resultDictaCurso = await pool
+                    .request()
+                    .input('idDocente', docenteAnalisis.idDocente)
+                    .input('idCurso', claseDocente.idCurso)
+                    .query(
+                      `SELECT top 1 * FROM [dbo].[LibroPorDocente] where DocenteID = @idDocente and CursoID= @idCurso`
+                    );
+
+                  if (resultDictaCurso.recordset.length === 0) {
+                    console.log('Desasignar --->');
+                    await pool
+                      .request()
+                      .input('id', periodo)
+                      .input('idVersion', nuevaIdVersion)
+                      .input(
+                        'uuuidProgramacionAcademica',
+                        claseDocente.uuuidProgramacionAcademica
+                      )
+                      .input('idDocente', docenteAnalisis.idDocente)
+                      .input('idVirtual', virtualID).query(`
+                                BEGIN
+                                UPDATE ad_programacionAcademica 
+                                SET idAula = idAulaInicial, aulaModificada = NULL
+                                WHERE idSede = @idVirtual 
+                                AND  idDocente = @idDocente 
+                                AND uuuidProgramacionAcademica=@uuuidProgramacionAcademica
+                                AND aulaModificada IS NOT NULL  
+                                AND idVersion = @idVersion 
+                                AND idPeriodo = @id;
+                                
+                                UPDATE [dbo].[ad_programacionAcademica]  
+                                SET idDocente = NULL
+                                WHERE idDocente = @idDocente 
+                                AND uuuidProgramacionAcademica=@uuuidProgramacionAcademica
+                                AND idPeriodo = @id
+                                AND idVersion = @idVersion;
+                                END `);
+                    continue;
+                  }
+                }
+
+                if (docenteAnalisis.cambioDisponibilidad) {
+                  const docenteDisponibleData = ObtenerDocenteDisponiblePorID(
+                    Number(docenteAnalisis.idDocente)
+                  );
+                  if (
+                    docenteDisponibleData !== null &&
+                    docenteDisponibleData.EstadoDisponible === 0 &&
+                    !disponibleEnFecha(
+                      docenteDisponibleData?.FechaInicio,
+                      docenteDisponibleData?.FechaFin,
+                      claseDocente.InicioClase,
+                      claseDocente.FinClase
+                    )
+                  ) {
+                    console.log('DESASIGNAR -->');
+                    await pool
+                      .request()
+                      .input('id', periodo)
+                      .input('idVersion', nuevaIdVersion)
+                      .input(
+                        'uuuidProgramacionAcademica',
+                        claseDocente.uuuidProgramacionAcademica
+                      )
+                      .input('idDocente', docenteAnalisis.idDocente)
+                      .input('idVirtual', virtualID).query(`
+                  BEGIN
+              
+                    UPDATE ad_programacionAcademica 
+                    SET idAula = idAulaInicial, aulaModificada = NULL
+                    WHERE idSede = @idVirtual 
+                    AND  idDocente = @idDocente 
+                    AND uuuidProgramacionAcademica=@uuuidProgramacionAcademica
+                    AND aulaModificada IS NOT NULL  
+                    AND idVersion = @idVersion 
+                    AND idPeriodo = @id;
+                    
+                    UPDATE [dbo].[ad_programacionAcademica]  
+                    SET idDocente = NULL
+                    WHERE idDocente = @idDocente 
+                    AND uuuidProgramacionAcademica=@uuuidProgramacionAcademica
+                    AND idPeriodo = @id
+                    AND idVersion = @idVersion;
+                    END `);
+
+                    continue;
+                  }
+                }
+                if (docenteAnalisis.cambioHorarioBloqueado) {
+                  const BloquesBloqueados = BloquesBloqueadosCompletos.filter(
+                    (horario: { DocenteID: number }) =>
+                      horario.DocenteID === Number(docenteAnalisis.idDocente)
+                  );
+
+                  if (BloquesBloqueados.length > 0) {
+                    const respuesta = BloquesBloqueados.every(
+                      (item: { CodigoBloque: string; BloqueHorario: string }) => {
+                        return !solapaHorarioBloqueado(
+                          item.CodigoBloque,
+                          claseDocente.NombreAgrupFrecuencia,
+                          item.BloqueHorario,
+                          claseDocente.HorarioInicio,
+                          claseDocente.HorarioFin
+                        );
+                      }
+                    );
+
+                    if (!respuesta) {
+                      console.log('DESASIGNAR--->');
+                      await pool
+                        .request()
+                        .input('id', periodo)
+                        .input('idVersion', nuevaIdVersion)
+                        .input(
+                          'uuuidProgramacionAcademica',
+                          claseDocente.uuuidProgramacionAcademica
+                        )
+                        .input('idDocente', docenteAnalisis.idDocente)
+                        .input('idVirtual', virtualID).query(`
+                                BEGIN
+                                UPDATE ad_programacionAcademica 
+                                SET idAula = idAulaInicial, aulaModificada = NULL
+                                WHERE idSede = @idVirtual 
+                                AND  idDocente = @idDocente 
+                                AND uuuidProgramacionAcademica=@uuuidProgramacionAcademica
+                                AND aulaModificada IS NOT NULL  
+                                AND idVersion = @idVersion 
+                                AND idPeriodo = @id;
+                                
+                                UPDATE [dbo].[ad_programacionAcademica]  
+                                SET idDocente = NULL
+                                WHERE idDocente = @idDocente 
+                                AND uuuidProgramacionAcademica=@uuuidProgramacionAcademica
+                                AND idPeriodo = @id
+                                AND idVersion = @idVersion;
+                                END `);
+
+                      continue;
+                    }
+                  }
+                }
+              }
+            }
+
+            for (const programacionAnailis of RevisarProgramacion) {
+              const resultOneProgramacion = await pool
+                .request()
+                .input('id', periodo)
+                .input('idVersion', nuevaIdVersion)
+                .input('uuidProgramacionAcademica', programacionAnailis).query(`
+                  SELECT  cancelado, vigente FROM [dbo].[ad_programacionAcademica]
+                  WHERE uuuidProgramacionAcademica = @uuidProgramacionAcademica  AND idPeriodo = @id 
+                  AND idVersion= @idVersion`);
+
+              if (
+                resultOneProgramacion.recordset[0]?.cancelado == 'True' ||
+                resultOneProgramacion.recordset[0]?.vigente == 'False'
+              ) {
+                await pool
+                  .request()
+                  .input('id', periodo)
+                  .input('idVersion', nuevaIdVersion)
+                  .input('uuidProgramacionAcademica', programacionAnailis)
+                  .input('idVirtual', virtualID).query(`
+                  BEGIN
+
+                    UPDATE [dbo].[ad_programacionAcademica]  
+                    SET idDocente = NULL
+                    WHERE uuidProgramacionAcademica = @uuidProgramacionAcademica 
+                    AND idPeriodo = @id
+                    AND idVersion = @idVersion;
+              
+                    UPDATE ad_programacionAcademica 
+                    SET idAula = idAulaInicial, aulaModificada = NULL
+                    WHERE idSede = @idVirtual 
+                    AND  uuidProgramacionAcademica = @uuidProgramacionAcademica 
+                    AND aulaModificada IS NOT NULL  
+                    AND idVersion = @idVersion 
+                    AND idPeriodo = @id;
+                  END
+  `);
               }
             }
 
@@ -592,36 +893,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Llamada a consultas estaticas
-
-        const resultDesponibilidad = await pool.request().input('id', periodo).query(`
-                      SELECT DocenteID, PeriodoAcademico,EstadoDisponible,FORMAT(FechaInicio, 'dd-MM-yyyy')
-                 as FechaInicio, FORMAT(FechaFin , 'dd-MM-yyyy') as FechaFin
-                 FROM [dbo].[disponibilidad_docente]  where  PeriodoAcademico=@id
-                        `);
-
-        const disponibilidadDocente = resultDesponibilidad.recordset;
-
-        const docentesMap = new Map<number, disponibilidadDocenteInterface>(
-          disponibilidadDocente.map((docente: disponibilidadDocenteInterface) => [
-            docente.DocenteID,
-            docente,
-          ])
-        );
-
-        const ObtenerDocenteDisponiblePorID = (
-          docenteID: number
-        ): disponibilidadDocenteInterface | null => {
-          return docentesMap.get(docenteID) || null;
-        };
-
-        // Bloques Horarios bloqueados de docente
-        const resultHorariosBloquedos = await pool.request().query(`
-                                  SELECT hbd.CodigoBloque, hbd.DocenteID, bh.BloqueHorario
-                                  FROM [dbo].[horario_bloqueado_docente] hbd
-                                  INNER JOIN [dbo].[BloqueHorario] bh
-                                      ON hbd.CodigoBloque = bh.bloque
-                                    `);
-        const BloquesBloqueadosCompletos = resultHorariosBloquedos.recordset;
 
         const resultH = await pool.request().input('id', periodo).input('version', version)
           .query(`
