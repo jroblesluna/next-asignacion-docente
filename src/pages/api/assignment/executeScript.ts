@@ -198,6 +198,13 @@ const maquetarDatos = (frecuenciaId: string, horarioId: string, cabezera: string
   return ` OR (${cabezera}.idFrecuencia =${frecuenciaId} AND ${cabezera}.idHorario = ${horarioId} )`;
 };
 
+interface EventosCambiosDocente {
+  idDocente: string;
+  cambioDisponibilidad: boolean;
+  cambioHorarioBloqueado: boolean;
+  cambioLibroDocente: boolean;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     console.log('GET@/pages/api/assignment/executeScript.ts');
@@ -308,18 +315,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               .input('idVersion', sql.Int, nuevaIdVersion)
               .execute('ad_copiarProgramacionAcademicaConNuevaVersion');
 
+            const Revisardocentes: EventosCambiosDocente[] = [];
+
+            // Filtramos para que `campo` solo acepte claves booleanas de `EventosCambiosDocente`
+            const actualizarCampoDocente = <
+              K extends keyof Omit<EventosCambiosDocente, 'idDocente'>
+            >(
+              idDocente: string,
+              campo: K,
+              valor: EventosCambiosDocente[K]
+            ) => {
+              const docente = Revisardocentes.find((d) => d.idDocente === idDocente);
+
+              if (docente) {
+                docente[campo] = valor; // Actualiza el campo específico del docente encontrado
+              } else {
+                console.log(`Docente con id ${idDocente} no encontrado`);
+              }
+            };
+
             for (const evento of listaEventos) {
-              // Identificar los evento que modifican indirectamente la tabla PA
-              // VIGENCIA DE UN DOCENTE - LO DESASIGNA AUTOMATICAMENTE
-              //
-              // SU DISPONIBILIDAD CAMBIA
-              // SI HAY UN NUEVO HORARIO BLOQUEADO?
-              // AGREGAR UN NUEVO CURSO
-              // CAMBIAR LA VIGENCIA DE UN CURSO
-              // teniendo el id version ya puedo modificar todos los eventos
-
-              // ver condicional si son tablas snaptshot
-
               // ACTUALIZACIÓN DE LAS TABLAS SNAPTSHOT
               await pool
                 .request()
@@ -328,6 +343,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .input('NombreTabla', sql.VarChar, evento.entidadReferencia.split('.')[1])
                 .execute('ad_ActualizarTablasSnaptshot');
 
+              //Actualizar la tabla ad_docente si es dim_docente
+
+              if (
+                !Revisardocentes.find((d) => d.idDocente === evento.entidadId) &&
+                evento.entidadReferencia.split('.')[1] == 'dim_docente'
+              ) {
+                Revisardocentes.push({
+                  idDocente: evento.uuidEntidad,
+                  cambioDisponibilidad: false,
+                  cambioHorarioBloqueado: false,
+                  cambioLibroDocente: false,
+                });
+              }
+              // ver el campo si es igual o no
+              if (evento.entidadReferencia.split('.')[1] == 'disponibilidad_docente') {
+                actualizarCampoDocente(evento.uuidEntidad, 'cambioDisponibilidad', true);
+              }
+
+              if (evento.entidadReferencia.split('.')[1] == 'LibroPorDocente') {
+                actualizarCampoDocente(evento.uuidEntidad, 'cambioLibroDocente', true);
+              }
+
+              if (evento.entidadReferencia.split('.')[1] == 'horario_bloqueado_docente') {
+                actualizarCampoDocente(evento.uuidEntidad, 'cambioHorarioBloqueado', true);
+              }
+            }
+
+            // actualizar todos esos luego de Hacer los cambios
+            for (const evento of listaEventos) {
               //actualiza el estado de cada evento despues de incorporarlo
               await pool
                 .request()

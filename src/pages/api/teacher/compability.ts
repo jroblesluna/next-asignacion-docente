@@ -435,7 +435,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('idFrecuencia', resultCurso.recordset[0]?.idFrecuencia)
           .input('idHorario', resultCurso.recordset[0]?.idHorario)
           .query(
-            ` SELECT DISTINCT LD.*, 
+            ` SELECT  DISTINCT  LD.*, 
                    D.NombreCompletoProfesor, 
                      D.nombreSede,
                    D.FechaInicioContrato,
