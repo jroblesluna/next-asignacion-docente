@@ -73,13 +73,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         END
       `);
 
-    if (resultData.recordset[0].uuuidProgramacionAcademica == null) {
-      return res.status(200).json({
-        message: 'Datos para esa versión no encontrada',
-        data: [],
-      });
-    }
-
     const responseMessage =
       idVersion === '-1'
         ? `Asignación docente del periodo ${idPeriod}, última versión encontrada correctamente`

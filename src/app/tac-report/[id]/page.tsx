@@ -378,7 +378,8 @@ const Page = () => {
                                 (item.idVersion == selectVersion ? 'text-primary_ligth ' : '')
                               }
                               onClick={() => {
-                                changeDataVersion(item.idVersion);
+                                dataPerido?.estado == 'ACTIVO' &&
+                                  changeDataVersion(item.idVersion);
                               }}
                             >
                               {`N°${item.idVersion} - Modificado el  ${convertirFormatoFecha(
@@ -415,7 +416,7 @@ const Page = () => {
                         <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-32">
                           SEDE
                         </th>
-                        <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-24">
+                        <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-24 text-xs">
                           TIPO DE CONTRATO
                         </th>
                         {timeDaily.map((time, index) => (

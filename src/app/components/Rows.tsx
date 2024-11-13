@@ -223,7 +223,7 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
                 width={20}
                 alt="img"
                 height={20}
-                src={'/locked-icon2.svg'}
+                src={'/locked-icon3.svg'}
               />
             ) : (
               <></>

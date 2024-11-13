@@ -33,10 +33,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (checkResult.recordset.length === 0) {
         return res
-          .status(404)
+          .status(200)
           .json({ message: 'Período académico no encontrado', data: false });
       }
       // no puedo cerrarlo mientras esta cargando
+
+      if (checkResult.recordset[0].estado == 'CARGANDO' && estado == 'CERRADO') {
+        return res.status(200).json({
+          message: 'No se puede cerrar el periodo Academico si su estado es cargando',
+          data: false,
+        });
+      }
+
+      if (estado == 'CERRADO') {
+        console.log('BORRAR LAS VERSIONES ');
+        await pool
+          .request()
+          .input('id', id)
+          .query(
+            ` DELETE ad_programacionAcademica WHERE idPeriodo = @id 
+         and idVersion <> (SELECT Max(idVersion) as Lastversion FROM [dbo].[ad_programacionAcademica] where idPeriodo =@id)`
+          );
+      }
 
       // Actualizar el estado del periodo
       await pool

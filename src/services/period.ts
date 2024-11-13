@@ -52,6 +52,9 @@ const periodService = {
   updateState: async (id: string, estado: string) => {
     try {
       const { data } = await axios.patch(`${BASE_URL}/update-state`, { id, estado });
+      if (!data.data) {
+        alert(data.message);
+      }
       return data;
     } catch (error) {
       console.error(`Error al actualizar el periodo con ID ${id}:`, error);
