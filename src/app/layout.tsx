@@ -2,7 +2,7 @@
 import { Roboto } from 'next/font/google';
 import './globals.css';
 import { MsalProvider } from '@azure/msal-react';
-import { msalInstance } from '../app/lib/msalConfig';
+import { msalInstance } from '../pages/api/lib/msalConfig';
 
 const roboto = Roboto({
   weight: ['400', '700'],

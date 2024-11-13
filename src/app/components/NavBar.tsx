@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useMsal } from '@azure/msal-react';
 import Image from 'next/image';
-import { msalInstance } from '../lib/msalConfig';
+import { msalInstance } from '../../pages/api/lib/msalConfig';
 import Link from 'next/link';
 
 const NavBar = () => {

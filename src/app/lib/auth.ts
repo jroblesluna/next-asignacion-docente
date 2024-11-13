@@ -1,6 +1,6 @@
 // src/lib/auth.ts
 
-import { msalInstance } from './msalConfig';
+import { msalInstance } from '../../pages/api/lib/msalConfig';
 import { AuthenticationResult } from '@azure/msal-browser';
 
 export async function verifyToken(token: string): Promise<boolean> {
