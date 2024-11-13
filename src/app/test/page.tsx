@@ -1,7 +1,4 @@
-'use client';
-
-// eslint-disable-next-line @next/next/no-async-client-component
-export default async function Page() {
+export default function Page() {
   const clientId = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT;
   const a = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT;
   const b = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT;
