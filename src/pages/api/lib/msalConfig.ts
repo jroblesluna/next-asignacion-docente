@@ -2,10 +2,9 @@ import { PublicClientApplication } from '@azure/msal-browser';
 
 const config = {
   auth: {
-    clientId: process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT || '',
+    clientId: process.env.AZURE_WEBAPP_ID_CLIENT || '',
     authority:
-      'https://login.microsoftonline.com/' +
-      (process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT || ''),
+      'https://login.microsoftonline.com/' + (process.env.AZURE_WEBAPP_ID_TENANT || ''),
     redirectUri: '/home',
     navigateToLoginRequestUrl: false,
     postLogoutRedirectUri: '/welcome',
