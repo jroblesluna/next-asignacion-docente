@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// 'use client';
+'use client';
 // import { useEffect, useState } from 'react';
 // import assigmentService from '@/services/assigment';
 // import { balanceDataInterface, esquemaFrecuenciaHorario } from '../interface/datainterface';
@@ -9,9 +9,6 @@
 // import versionService from '@/services/version';
 // import Notification from '../components/Notification';
 
-const a = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT;
-const b = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT;
-const c = process.env.DB_USER;
 function Page() {
   // const [balancaDatarray, setBalancaDatarray] = useState<balanceDataInterface[]>([]);
 
@@ -91,11 +88,12 @@ function Page() {
   //   }, 2000);
   // };
 
+  const a = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT;
+  const b = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT;
   return (
     <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
       <p>a: {a}</p>
       <p>b:{b}</p>
-      <p>c:{c}</p>
       {/* <p>{ProgramacionAcademicaData[0]?.uuidDocente}</p>
       <p>{JSON.stringify(ProgramacionAcademicaDataTac, null, 2)}</p> */}
       {/* {data}
