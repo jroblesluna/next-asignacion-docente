@@ -10,7 +10,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       pool = await connectToDatabase();
 
       const { idPeriod } = req.query;
-      const result = await pool.request().input('id', idPeriod).query(`WITH CTE_Docente AS (
+
+      const resultExist = await pool
+        .request()
+        .input('id', idPeriod)
+        .query(`SELECT distinct  idPeriodo FROM [dbo].[ad_periodo] where idPeriodo=@id`);
+
+      if (resultExist.recordset.length == 0) {
+        return res.status(200).json({ data: [] });
+      }
+
+      const resultExistDataProgramacion = await pool
+        .request()
+        .input('id', idPeriod)
+        .query(`SELECT distinct  Periodo FROM [dbo].[ProgramacionCursos] where Periodo=@id`);
+
+      if (resultExistDataProgramacion.recordset.length == 0) {
+        return res.status(200).json({ data: [] });
+      }
+
+      const result = await pool.request().input('id', idPeriod).query(`
+        WITH CTE_Docente AS (
                             SELECT  
                                 D.*, 
                                 TC.TipoJornada, 

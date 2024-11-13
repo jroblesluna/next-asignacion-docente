@@ -56,6 +56,10 @@ export function convertirFormatoFecha(dateString: string): string {
 }
 
 export function convertirFecha(codigo: string) {
+  if (codigo == '') {
+    return '';
+  }
+
   const codigoStr = codigo.toString();
   const año = codigoStr.slice(0, 4);
   const mesNumero = parseInt(codigoStr.slice(4, 6), 10);

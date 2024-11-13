@@ -205,6 +205,19 @@ interface EventosCambiosDocente {
   cambioLibroDocente: boolean;
 }
 
+const calcularCodigoAnterior = (codigo: string, mesesARestar: number) => {
+  const year = parseInt(codigo.slice(0, 4), 10);
+  const month = parseInt(codigo.slice(4, 6), 10);
+  const fechaOriginal = new Date(year, month - 1);
+
+  fechaOriginal.setMonth(fechaOriginal.getMonth() - mesesARestar);
+
+  const nuevoAnio = fechaOriginal.getFullYear();
+  const nuevoMes = (fechaOriginal.getMonth() + 1).toString().padStart(2, '0');
+
+  return Number(`${nuevoAnio}${nuevoMes}`);
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     console.log('GET@/pages/api/assignment/executeScript.ts');
@@ -532,6 +545,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   const docenteDisponibleData = ObtenerDocenteDisponiblePorID(
                     Number(docenteAnalisis.idDocente)
                   );
+
                   if (
                     docenteDisponibleData !== null &&
                     docenteDisponibleData.EstadoDisponible === 0 &&
@@ -1117,6 +1131,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               .input('idCurso', sql.Int, cursosXsede.idCurso)
               .input('idHorario', sql.Int, cursosXsede.idHorario)
               .input('idPeriodo', sql.Int, periodo)
+              .input(
+                'idPeriodoDiferido',
+                sql.Int,
+                calcularCodigoAnterior(periodo?.toString() || '', 2)
+              )
               .input('Escenario', sql.VarChar, escenario.escenario)
               .input('idFrecuencia', sql.Int, cursosXsede.idFrecuencia)
               .input('idSedeVirtual', sql.Int, virtualID)
