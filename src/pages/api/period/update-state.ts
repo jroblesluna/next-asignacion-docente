@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .request()
           .input('id', id)
           .query(
-            ` DELETE ad_programacionAcademica WHERE idPeriodo = @id 
+            ` DELETE from ad_programacionAcademica WHERE idPeriodo = @id 
          and idVersion <> (SELECT Max(idVersion) as Lastversion FROM [dbo].[ad_programacionAcademica] where idPeriodo =@id)`
           );
       }

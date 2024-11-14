@@ -109,7 +109,7 @@ const Page = () => {
           </div>
           <ModalWarning
             linkTo={'/loading'}
-            subtitle={'Esta acción es creara una nueva versión para periodo ' + id + '.'}
+            subtitle={'Esta acción creará una nueva versión para el periodo ' + id + '.'}
             title="¿Está seguro de incorporar los eventos? "
             idModal={'reprocesarEvento-' + id}
             setFunction={addEventToAssigments}
