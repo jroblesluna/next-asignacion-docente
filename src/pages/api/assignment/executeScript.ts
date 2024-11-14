@@ -226,6 +226,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { periodo, correo, addEvents, tipo } = req.query;
 
+      const MAX_HORAS_FT = parseInt(process.env.MAX_HORAS_FT || '48', 10);
+      const MAX_HORAS_PT = parseInt(process.env.MAX_HORAS_PT || '24', 10);
+
+      console.log(MAX_HORAS_PT);
+      console.log(MAX_HORAS_FT);
+
       if (!periodo && !correo && !addEvents && !tipo) {
         return res
           .status(400)
@@ -340,13 +346,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const listaEventos = resultEvents.recordset;
 
           if (listaEventos.length !== 0) {
+            console.log('Hay ' + listaEventos.length + ' eventos ');
+
             // se crea la version si hay eventos
             const resultNewVersion = await pool
               .request()
               .input('idPeriodo', sql.Int, periodo)
               .input('nombreCreador', sql.VarChar, correo)
               .execute('ad_crearVersion');
-            console.log(resultNewVersion.recordset[0].nuevoIdVersion);
+
             const nuevaIdVersion = resultNewVersion.recordset[0].nuevoIdVersion;
 
             // COPIAR LA PROGRAMACIÓN CURSO Y AGREGARLE UNA NUEVA VERSIÓN
@@ -375,22 +383,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             for (const evento of listaEventos) {
               // ACTUALIZACIÓN DE LAS TABLAS SNAPTSHOT
+              const entidad = evento.entidadReferencia.split('.')[1];
+
+              console.log('periodo: ' + Number(evento.periodo));
+              console.log('uuid: ' + evento.uuidEntidad.toString());
+              console.log('entidad: ' + entidad.toString());
+
               await pool
                 .request()
-                .input('periodo', sql.Int, evento.periodo)
+                .input('periodo', sql.Int, Number(evento.periodo))
                 .input('uuid', sql.VarChar, evento.uuidEntidad)
-                .input('NombreTabla', sql.VarChar, evento.entidadReferencia.split('.')[1])
+                .input('NombreTabla', sql.VarChar, entidad)
                 .execute('ad_ActualizarTablasSnaptshot');
 
               if (
-                !Revisardocentes.find((d) => d.idDocente === evento.entidadId) &&
+                !Revisardocentes.find((d) => d.idDocente == evento.entidadId.toString()) &&
                 (evento.entidadReferencia.split('.')[1] == 'dim_docente' ||
                   evento.entidadReferencia.split('.')[1] == 'disponibilidad_docente' ||
                   evento.entidadReferencia.split('.')[1] == 'LibroPorDocente' ||
                   evento.entidadReferencia.split('.')[1] == 'horario_bloqueado_docente')
               ) {
+                console.log('Añadiendo docente: ' + evento.entidadId.toString());
                 Revisardocentes.push({
-                  idDocente: evento.entidadId,
+                  idDocente: evento.entidadId.toString(),
                   cambioDisponibilidad: false,
                   cambioHorarioBloqueado: false,
                   cambioLibroDocente: false,
@@ -425,6 +440,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
 
             for (const docenteAnalisis of Revisardocentes) {
+              console.log('analisando el docente:  ' + docenteAnalisis.idDocente);
+
               const resultOneDocente = await pool
                 .request()
                 .input('id', periodo)
@@ -432,7 +449,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   SELECT  idDocente , vigente FROM [dbo].[ad_docente]
                   WHERE idDocente = @idDocente AND  periodo = @id`);
 
-              if (resultOneDocente.recordset[0]?.vigente == 'False') {
+              console.log(
+                resultOneDocente.recordset[0]?.vigente ? 'El docente sigue vigente' : ''
+              );
+
+              if (resultOneDocente.recordset[0]?.vigente == false) {
+                console.log('DESASIGNAR , ya no esta vigente el docente');
                 await pool
                   .request()
                   .input('id', periodo)
@@ -509,7 +531,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     );
 
                   if (resultDictaCurso.recordset.length === 0) {
-                    console.log('Desasignar --->');
+                    console.log(
+                      'Desasignar Slot ' +
+                        claseDocente.uuuidProgramacionAcademica +
+                        ' del docente:  ' +
+                        docenteAnalisis.idDocente
+                    );
                     await pool
                       .request()
                       .input('id', periodo)
@@ -556,7 +583,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                       claseDocente.FinClase
                     )
                   ) {
-                    console.log('DESASIGNAR -->');
+                    console.log(
+                      'Desasignar Slot ' +
+                        claseDocente.uuuidProgramacionAcademica +
+                        ' del docente:  ' +
+                        docenteAnalisis.idDocente
+                    );
                     await pool
                       .request()
                       .input('id', periodo)
@@ -609,7 +641,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     );
 
                     if (!respuesta) {
-                      console.log('DESASIGNAR--->');
+                      console.log(
+                        'Desasignar Slot ' +
+                          claseDocente.uuuidProgramacionAcademica +
+                          ' del docente:  ' +
+                          docenteAnalisis.idDocente
+                      );
                       await pool
                         .request()
                         .input('id', periodo)
@@ -656,8 +693,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   AND idVersion= @idVersion`);
 
               if (
-                resultOneProgramacion.recordset[0]?.cancelado == 'True' ||
-                resultOneProgramacion.recordset[0]?.vigente == 'False'
+                resultOneProgramacion.recordset[0]?.cancelado == true ||
+                resultOneProgramacion.recordset[0]?.vigente == false
               ) {
                 await pool
                   .request()
@@ -697,19 +734,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 );
             }
           }
+          if (listaEventos.length === 0) {
+            console.log('No Hay eventos');
+          }
         }
 
         // actualizar las dicta clase de los docentes
 
         await pool.request().input('id', periodo)
           .query(`UPDATE  [dbo].[ad_docente] set dictaClase =(CASE 
-           WHEN EXISTS (SELECT 1 
+           WHEN EXISTS (SELECT top 1 * 
                         FROM [dbo].[LibroPorDocente] 
                         WHERE [dbo].[LibroPorDocente].DocenteID = ad_docente.idDocente) 
            THEN 1 
            ELSE 0 
        END)         WHERE periodo=@id`);
       }
+      // ##########################pruebas #######################################################
+      if (addEvents == 'true') {
+        await pool
+          .request()
+          .input('id', periodo)
+          .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
+
+        return res.status(200).json({
+          message: 'Algoritmo de asignación docente terminado exitosamente',
+          data: true,
+        });
+      }
+      // ##########################pruebas #######################################################
 
       if (tipo == 'total') {
         // se crea la version por que es un reproceso total
@@ -1160,7 +1213,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
               if (
                 Number(docente.totalTiempo) + Number(cursosXsede.minutosTotales) >
-                Number(docente.HoraSemana) * 4 * 60
+                (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 4 * 60
               ) {
                 console.log('continue - P7.1 ');
                 continue;

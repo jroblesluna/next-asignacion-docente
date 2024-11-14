@@ -66,11 +66,10 @@ const Page = () => {
     setDataVersion(resVersion.data);
     setSelectedVersion(resVersion.data[0].idVersion);
     const resSedesData = await assigmentService.getLocationTac(id);
-    console.log(resSedesData.data);
     setNombresSedeData(resSedesData.data);
     const res = await assigmentService.getTacAssigment(id, '-1');
     setData(res.data);
-
+    console.log(resSedesData.data);
     if (res.data.length === 0) {
       setDataVacia(true);
     }

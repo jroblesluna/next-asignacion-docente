@@ -179,6 +179,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { idPeriod, uuidSlot, version } = req.query;
       const DocentesActos: DocenteInterface[] = [];
 
+      const MAX_HORAS_FT = parseInt(process.env.MAX_HORAS_FT || '48', 10);
+      const MAX_HORAS_PT = parseInt(process.env.MAX_HORAS_PT || '24', 10);
+
+      console.log(MAX_HORAS_PT);
+      console.log(MAX_HORAS_FT);
+
       const result = await pool
         .request()
         .input('id', idPeriod)
@@ -516,7 +522,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (
           Number(docente.MinutosAcumulados) +
             Number(resultCurso.recordset[0]?.minutosTotales) >
-          Number(docente.HoraSemana) * 4 * 60
+          (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 4 * 60
         ) {
           continue;
         }
@@ -587,8 +593,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (ClasesAsignadas.length > 0) {
           const respuesta = ClasesAsignadas.every((item) => {
             if (item.NombreAgrupFrecuencia === 'no se está ofreciendo') {
-              console.log(item.NombreFrecuencia);
-              console.log(item.NombreAgrupFrecuencia);
               return false;
             }
 

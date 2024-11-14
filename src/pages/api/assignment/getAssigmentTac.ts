@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .request()
       .input('id', idPeriod)
       .input('idVersion', selectedVersion).query(`
-        IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
+        IF EXISTS (SELECT  top 1 * FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
                       SELECT  D.uuidDocente,D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
              H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso
@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         END
         ELSE
         BEGIN
-                      SELECT D.uuidDocente, D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
+                    SELECT D.uuidDocente, D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
                      H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
