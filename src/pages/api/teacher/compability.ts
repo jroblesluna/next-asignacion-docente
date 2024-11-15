@@ -252,18 +252,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
            FROM [dbo].[disponibilidad_docente]  where  PeriodoAcademico=@id
                   `);
 
-      const docentesMap = new Map<number, disponibilidadDocenteInterface>(
-        resultDesponibilidad.recordset.map((docente: disponibilidadDocenteInterface) => [
-          docente.DocenteID,
-          docente,
-        ])
-      );
-
-      const ObtenerDocenteDisponiblePorID = (
-        docenteID: number
-      ): disponibilidadDocenteInterface | null => {
-        return docentesMap.get(docenteID) || null;
-      };
+      const disponibilidadDocente = resultDesponibilidad.recordset;
 
       // Bloques Horarios bloqueados de docente
       const resultHorariosBloquedos = await pool.request().query(`
@@ -527,18 +516,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // validacion de disponibilidad en todo el curso
-        const docenteDisponibleData = ObtenerDocenteDisponiblePorID(docente.DocenteID);
-        if (
-          docenteDisponibleData !== null &&
-          docenteDisponibleData.EstadoDisponible === 0 &&
-          !disponibleEnFecha(
-            docenteDisponibleData?.FechaInicio,
-            docenteDisponibleData?.FechaFin,
-            resultCurso.recordset[0]?.inicioClase,
-            resultCurso.recordset[0]?.finalClase
-          )
-        ) {
-          continue;
+
+        const docenteDisponibleData = disponibilidadDocente.filter(
+          (item: disponibilidadDocenteInterface) =>
+            item.DocenteID === Number(docente.DocenteID)
+        );
+
+        if (docenteDisponibleData.length > 0) {
+          const respuesta = docenteDisponibleData.every(
+            (item: disponibilidadDocenteInterface) => {
+              if (Number(item.EstadoDisponible) == 1) {
+                return true;
+              }
+              return disponibleEnFecha(
+                item?.FechaInicio,
+                item?.FechaFin,
+                resultCurso.recordset[0]?.inicioClase,
+                resultCurso.recordset[0]?.finalClase
+              );
+            }
+          );
+
+          if (!respuesta) {
+            continue;
+          }
         }
 
         const BloquesBloqueados = resultHorariosBloquedos.recordset.filter(

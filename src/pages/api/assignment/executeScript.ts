@@ -301,19 +301,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const disponibilidadDocente = resultDesponibilidad.recordset;
 
-      const docentesMap = new Map<number, disponibilidadDocenteInterface>(
-        disponibilidadDocente.map((docente: disponibilidadDocenteInterface) => [
-          docente.DocenteID,
-          docente,
-        ])
-      );
-
-      const ObtenerDocenteDisponiblePorID = (
-        docenteID: number
-      ): disponibilidadDocenteInterface | null => {
-        return docentesMap.get(docenteID) || null;
-      };
-
       // Bloques Horarios bloqueados de docente
       const resultHorariosBloquedos = await pool.request().query(`
                                   SELECT hbd.CodigoBloque, hbd.DocenteID, bh.BloqueHorario
@@ -569,36 +556,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
 
                 if (docenteAnalisis.cambioDisponibilidad) {
-                  const docenteDisponibleData = ObtenerDocenteDisponiblePorID(
-                    Number(docenteAnalisis.idDocente)
+                  const docenteDisponibleData = disponibilidadDocente.filter(
+                    (item: disponibilidadDocenteInterface) =>
+                      item.DocenteID === Number(docenteAnalisis.idDocente)
                   );
 
-                  if (
-                    docenteDisponibleData !== null &&
-                    docenteDisponibleData.EstadoDisponible === 0 &&
-                    !disponibleEnFecha(
-                      docenteDisponibleData?.FechaInicio,
-                      docenteDisponibleData?.FechaFin,
-                      claseDocente.InicioClase,
-                      claseDocente.FinClase
-                    )
-                  ) {
-                    console.log(
-                      'Desasignar Slot ' +
-                        claseDocente.uuuidProgramacionAcademica +
-                        ' del docente:  ' +
-                        docenteAnalisis.idDocente
+                  if (docenteDisponibleData.length > 0) {
+                    const respuesta = docenteDisponibleData.every(
+                      (item: disponibilidadDocenteInterface) => {
+                        if (Number(item.EstadoDisponible) == 1) {
+                          return true;
+                        }
+                        return disponibleEnFecha(
+                          item?.FechaInicio,
+                          item?.FechaFin,
+                          claseDocente.InicioClase,
+                          claseDocente.FinClase
+                        );
+                      }
                     );
-                    await pool
-                      .request()
-                      .input('id', periodo)
-                      .input('idVersion', nuevaIdVersion)
-                      .input(
-                        'uuuidProgramacionAcademica',
-                        claseDocente.uuuidProgramacionAcademica
-                      )
-                      .input('idDocente', docenteAnalisis.idDocente)
-                      .input('idVirtual', virtualID).query(`
+
+                    if (!respuesta) {
+                      console.log(
+                        'Desasignar Slot ' +
+                          claseDocente.uuuidProgramacionAcademica +
+                          ' del docente:  ' +
+                          docenteAnalisis.idDocente
+                      );
+                      await pool
+                        .request()
+                        .input('id', periodo)
+                        .input('idVersion', nuevaIdVersion)
+                        .input(
+                          'uuuidProgramacionAcademica',
+                          claseDocente.uuuidProgramacionAcademica
+                        )
+                        .input('idDocente', docenteAnalisis.idDocente)
+                        .input('idVirtual', virtualID).query(`
                   BEGIN
               
                     UPDATE ad_programacionAcademica 
@@ -618,9 +612,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND idVersion = @idVersion;
                     END `);
 
-                    continue;
+                      continue;
+                    }
                   }
                 }
+
                 if (docenteAnalisis.cambioHorarioBloqueado) {
                   const BloquesBloqueados = BloquesBloqueadosCompletos.filter(
                     (horario: { DocenteID: number }) =>
@@ -1222,20 +1218,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               console.log('Paso 7.1 susccess');
               //P7.2: Validar Cumplimiento de Disponibilidad (durante todo el curso).
 
-              const docenteDisponibleData = ObtenerDocenteDisponiblePorID(docente.DocenteID);
-              if (
-                docenteDisponibleData !== null &&
-                docenteDisponibleData.EstadoDisponible === 0 &&
-                !disponibleEnFecha(
-                  docenteDisponibleData?.FechaInicio,
-                  docenteDisponibleData?.FechaFin,
-                  cursosXsede.InicioClase,
-                  cursosXsede.FinClase
-                )
-              ) {
-                console.log('continue - P7.2');
-                continue;
+              const docenteDisponibleData = disponibilidadDocente.filter(
+                (item: disponibilidadDocenteInterface) =>
+                  item.DocenteID === Number(docente.DocenteID)
+              );
+
+              if (docenteDisponibleData.length > 0) {
+                const respuesta = docenteDisponibleData.every(
+                  (item: disponibilidadDocenteInterface) => {
+                    if (Number(item.EstadoDisponible) == 1) {
+                      return true;
+                    }
+                    return disponibleEnFecha(
+                      item?.FechaInicio,
+                      item?.FechaFin,
+                      cursosXsede.InicioClase,
+                      cursosXsede.FinClase
+                    );
+                  }
+                );
+
+                if (!respuesta) {
+                  console.log('continue - P7.2');
+                  continue;
+                }
               }
+
               console.log('Paso 7.2 susccess');
 
               const BloquesBloqueados = BloquesBloqueadosCompletos.filter(

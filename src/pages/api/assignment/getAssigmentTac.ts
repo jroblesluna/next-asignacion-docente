@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .input('idVersion', selectedVersion).query(`
         IF EXISTS (SELECT  top 1 * FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
-                      SELECT  D.uuidDocente,D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
+              SELECT  D.uuidDocente,D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
              H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso
             FROM [dbo].[ad_docente] AS D 
             LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=@id
             LEFT JOIN [dbo].[ad_curso] as C
              ON C.idCurso= PA.idCurso AND C.periodo=@id
-            WHERE D.periodo=@id and D.vigente =1 AND D.FechaInicioContrato IS NOT NULL  AND D.dictaClase=1 
+            WHERE D.periodo=@id AND D.FechaInicioContrato IS NOT NULL  AND D.dictaClase=1  and (D.vigente =1  or  PA.idDocente is not null)
             ORDER BY FechaInicioContrato 
         END
         ELSE
@@ -68,7 +68,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                      ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=1
                     LEFT JOIN [dbo].[ad_curso] as C
                      ON C.idCurso= PA.idCurso AND C.periodo=1
-                    WHERE D.periodo=1 and D.vigente =1 AND FechaInicioContrato IS NOT NULL AND D.dictaClase=1 
+                    WHERE D.periodo=1  AND FechaInicioContrato IS NOT NULL AND D.dictaClase=1 
+                      and (D.vigente =1  or  PA.idDocente is not null)
                     ORDER BY FechaInicioContrato 
         END
       `);
