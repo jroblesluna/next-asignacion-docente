@@ -463,7 +463,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND idPeriodo = @id;
                     
                     UPDATE [dbo].[ad_programacionAcademica]  
-                    SET idDocente = NULL
+                    SET idDocente = NULL, docenteModificado=NULL
                     WHERE idDocente = @idDocente 
                     AND idPeriodo = @id
                     AND idVersion = @idVersion;
@@ -549,7 +549,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 AND idPeriodo = @id;
                                 
                                 UPDATE [dbo].[ad_programacionAcademica]  
-                                SET idDocente = NULL
+                                SET idDocente = NULL, docenteModificado=NULL
                                 WHERE idDocente = @idDocente 
                                 AND uuuidProgramacionAcademica=@uuuidProgramacionAcademica
                                 AND idPeriodo = @id
@@ -609,7 +609,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND idPeriodo = @id;
                     
                     UPDATE [dbo].[ad_programacionAcademica]  
-                    SET idDocente = NULL
+                    SET idDocente = NULL, docenteModificado=NULL
                     WHERE idDocente = @idDocente 
                     AND uuuidProgramacionAcademica=@uuuidProgramacionAcademica
                     AND idPeriodo = @id
@@ -668,7 +668,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 AND idPeriodo = @id;
                                 
                                 UPDATE [dbo].[ad_programacionAcademica]  
-                                SET idDocente = NULL
+                                SET idDocente = NULL , docenteModificado=NULL
                                 WHERE idDocente = @idDocente 
                                 AND uuuidProgramacionAcademica=@uuuidProgramacionAcademica
                                 AND idPeriodo = @id
@@ -705,7 +705,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   BEGIN
 
                     UPDATE [dbo].[ad_programacionAcademica]  
-                    SET idDocente = NULL
+                    SET idDocente = NULL , docenteModificado=NULL
                     WHERE uuidProgramacionAcademica = @uuidProgramacionAcademica 
                     AND idPeriodo = @id
                     AND idVersion = @idVersion;
@@ -876,7 +876,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (tipo == 'total') {
         await pool.request().input('id', periodo).input('idVersion', version).query(`
                   UPDATE ad_programacionAcademica 
-                  SET idDocente = NULL, docenteModificado=NULL
+                  SET idDocente = NULL
                   WHERE  docenteModificado is null and idVersion=@idVersion and idPeriodo=@id`);
         await pool
           .request()
@@ -885,7 +885,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('idVirtual', virtualID).query(`
                   UPDATE ad_programacionAcademica 
                   SET idAula = idAulaInicial,  aulaModificada=null
-                  WHERE  idSede=@idVirtual and  aulaModicada is not null  and idVersion=@idVersion and idPeriodo=@id`);
+                  WHERE  idSede=@idVirtual and  aulaModificada is not null  and idVersion=@idVersion and idPeriodo=@id`);
       }
 
       // P4: Iteración por sede

@@ -430,8 +430,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('idHorario', resultCurso.recordset[0]?.idHorario)
           .input('idSede', resultCurso.recordset[0]?.idSede)
           .query(
-            `
-            SELECT 					D.idDocente as DocenteID,
+            `SELECT D.idDocente as DocenteID,
                    D.NombreCompletoProfesor, 
                      D.nombreSede,
                    D.FechaInicioContrato,
