@@ -72,7 +72,7 @@ const Page = () => {
       alert('Ya hay un periodo activo o en proceso. Redirigiendo a la página principal.');
       window.location.href = '/home';
     }
-
+    console.log(resPerido.data[0]);
     setDataPeriodo(resPerido.data[0]);
   };
 
@@ -99,6 +99,8 @@ const Page = () => {
 
   const abrirPeriodo = async (idPeriodo: string) => {
     localStorage.setItem('flagReproceso', 'true');
+    localStorage.setItem('tipo', 'normal');
+    localStorage.setItem('newPeriod', 'true');
     localStorage.setItem('addEvents', 'false');
     localStorage.setItem('periodo', idPeriodo);
     await periodService.updateState(idPeriodo, 'ACTIVO');
@@ -129,15 +131,15 @@ const Page = () => {
                 <div className="w-1/2 min-h-[400px]  p-5 flex items-center justify-center  ">
                   <div className="flex flex-col gap-2">
                     <p className="text-2xl">
-                      <strong>Periodo:</strong>
+                      <strong>Periodo: </strong>
                       {convertirFecha(dataPerido?.idPeriodo.toString() || '')}
                     </p>
                     <p className="text-2xl">
-                      <strong>Fecha de Inicio:</strong>
+                      <strong>Fecha de Inicio: </strong>
                       {convertirFormatoFecha(dataPerido?.fechaInicio || '')}
                     </p>
                     <p className="text-2xl">
-                      <strong>Fecha de Termino:</strong>
+                      <strong>Fecha de Termino: </strong>
                       {convertirFormatoFecha(dataPerido?.fechaFinal || '')}
                     </p>
 

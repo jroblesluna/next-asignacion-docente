@@ -50,7 +50,7 @@ export const ModalWarning: React.FC<ModalProps> = ({
                   onClick={() => {
                     setFunction(idModal.match(/\d+/)?.[0] || '');
                     setCargando(true);
-                    setTimeout(() => {}, 2000);
+                    setTimeout(() => {}, 3000);
 
                     // const modal = document.getElementById(idModal) as HTMLDialogElement;
                     // modal?.close();
@@ -113,9 +113,6 @@ export const ModalClosedPeriod: React.FC<ModalProps> = ({
                     setTimeout(() => {
                       window.location.reload();
                     }, 3000);
-
-                    // const modal = document.getElementById(idModal) as HTMLDialogElement;
-                    // modal?.close();
                   }}
                 >
                   Aceptar

@@ -15,14 +15,16 @@ function Page() {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const loadData = async (p: string, correo: string, addEvents: string, tipo: string) => {
+    const newPeriod = localStorage.getItem('newPeriod');
     const resPerido = await periodService.verify();
-    if (resPerido.data.estado == 'ACTIVO') {
+    if (resPerido.data.estado == 'ACTIVO' || newPeriod === 'true') {
       setIsSafeClosed(true);
+      localStorage.setItem('newPeriod', 'false');
       const res = await assigmentService.execute(p, correo, addEvents, tipo);
       setIsLoadingComplete(res.data);
     } else {
+      alert('Ya hay un procesamiento en ejecución. Por favor intentelo mas tarde.');
       localStorage.setItem('flagReproceso', 'false');
-      alert('Ya hay se esta procesando la ejcución. Por favor intentelo mas tarde.');
       window.location.href = '/home';
     }
   };

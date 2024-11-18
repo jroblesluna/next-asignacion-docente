@@ -239,7 +239,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .request()
         .input('id', idPeriod)
         .query(
-          `SELECT idSede FROM [dbo].[ad_sede] where nombreSede = 'Virtual' and periodo=@id`
+          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = '28894d3f-e9e1-476c-9314-764dc0bcd003'and  nombreSede = 'Virtual'    and periodo=@id`
         );
 
       const virtualID = resultadoIDVirtual.recordset[0]?.idSede;

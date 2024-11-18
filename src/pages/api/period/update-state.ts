@@ -46,13 +46,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (estado == 'CERRADO') {
-        console.log('BORRAR LAS VERSIONES ');
+        console.log('CERRANDO PERIDO Y  BORRANDO VERSIONES ');
+
+        await pool
+          .request()
+          .input('id', id)
+          .input('estado', estado)
+          .query('UPDATE ad_periodo SET estado = @estado WHERE idPeriodo = @id');
+
         await pool
           .request()
           .input('id', id)
           .query(
-            ` DELETE from ad_programacionAcademica WHERE idPeriodo = @id 
-         and idVersion <> (SELECT Max(idVersion) as Lastversion FROM [dbo].[ad_programacionAcademica] where idPeriodo =@id)`
+            ` DECLARE @LastVersion INT;
+            SELECT @LastVersion = MAX(idVersion)
+            FROM [dbo].[ad_programacionAcademica]
+            WHERE idPeriodo = @id;
+            
+            DELETE FROM [dbo].[ad_programacionAcademica]
+            WHERE idPeriodo = @id
+              AND idVersion <> @LastVersion;`
           );
       }
 

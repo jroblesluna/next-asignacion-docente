@@ -22,7 +22,7 @@ const config: DBConfig = {
   options: {
     encrypt: true,
     trustServerCertificate: false,
-    requestTimeout: 60000,
+    requestTimeout: 360000,
   },
 };
 

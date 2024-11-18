@@ -17,6 +17,7 @@ const Page = () => {
   const { id } = useParams() as { id: string };
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [dataEvento, setDataEvento] = useState<EventoData[]>([]);
+  const [dataVacia, setDataVacia] = useState(false);
 
   const loadData = async () => {
     const resPerido = await periodService.getById(id);
@@ -27,6 +28,9 @@ const Page = () => {
     setDataPeriodo(resPerido.data[0]);
     const resEvent = await eventService.getAll(id);
     setDataEvento(resEvent.data);
+    if (resEvent.data.length === 0) {
+      setDataVacia(true);
+    }
   };
 
   useEffect(() => {
@@ -120,7 +124,7 @@ const Page = () => {
             <h2 className="text-start mb-8 font-roboto text-3xl font-bold">
               Listado de Eventos:
             </h2>
-            <label className="form-control w-full max-w-28 -mt-8">
+            <label className="form-control w-full max-w-32 -mt-8">
               <div className="label">
                 <span className="label-text text-xs">Estado</span>
               </div>
@@ -135,42 +139,67 @@ const Page = () => {
               </select>
             </label>
           </div>
-
-          <div className="w-full max-h-[44vh] overflow-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-black">
-                  <th className="py-2 uppercase font-inter text-start font-semibold sticky top-0 bg-white">
-                    NOMBRE
-                  </th>
-                  <th className="py-2 uppercase overflow-hidden font-inter text-start font-semibold sticky top-0 bg-white">
-                    DESCRIPCIÓN
-                  </th>
-                  <th className="py-2 uppercase font-inter font-semibold text-start sticky top-0 bg-white">
-                    FECHA
-                  </th>
-                  <th className="py-2 uppercase font-inter font-semibold text-start sticky top-0 bg-white">
-                    HORA
-                  </th>
-                  <th className="py-2 uppercase font-inter font-semibold text-start sticky top-0 bg-white">
-                    ESTADO
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEvents.map((event, index) => (
-                  <TableEventReport
-                    key={index}
-                    date={event.date}
-                    description={event.description}
-                    name={event.name}
-                    status={event.estado === true ? 'Ejecutado' : 'No iniciado'}
-                    time={event.time}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {dataEvento.length === 0 && !dataVacia ? (
+            <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+              <span className="loading loading-bars loading-lg"></span>
+            </div>
+          ) : (
+            <>
+              {dataVacia === true ? (
+                <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+                  <h1 className="font-bold text-5xl"> No hay eventos para este periodo</h1>
+                </div>
+              ) : (
+                <>
+                  {filteredEvents.length === 0 ? (
+                    <div className="w-full flex gap-5 justify-center mx-auto flex-col items-center min-h-[40vh] ">
+                      <h1 className="font-bold text-5xl">
+                        {'No hay eventos del tipo ' +
+                          selectedState.toLocaleLowerCase() +
+                          ' para este periodo'}
+                      </h1>
+                    </div>
+                  ) : (
+                    <div className="w-full max-h-[44vh] overflow-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="text-black">
+                            <th className="py-2 uppercase font-inter text-start font-semibold sticky top-0 bg-white">
+                              NOMBRE
+                            </th>
+                            <th className="py-2 uppercase overflow-hidden font-inter text-start font-semibold sticky top-0 bg-white">
+                              DESCRIPCIÓN
+                            </th>
+                            <th className="py-2 uppercase font-inter font-semibold text-start sticky top-0 bg-white">
+                              FECHA
+                            </th>
+                            <th className="py-2 uppercase font-inter font-semibold text-start sticky top-0 bg-white">
+                              HORA
+                            </th>
+                            <th className="py-2 uppercase font-inter font-semibold text-start sticky top-0 bg-white">
+                              ESTADO
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredEvents.map((event, index) => (
+                            <TableEventReport
+                              key={index}
+                              date={event.date}
+                              description={event.description}
+                              name={event.name}
+                              status={event.estado === true ? 'Ejecutado' : 'No iniciado'}
+                              time={event.time}
+                            />
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
         </div>
       </main>
     </LayoutValidation>

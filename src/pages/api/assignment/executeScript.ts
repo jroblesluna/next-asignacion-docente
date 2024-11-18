@@ -251,6 +251,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const periodoData = result.recordset[0];
+      console.log(periodoData.estado);
+
       if (periodoData.estado != 'ACTIVO' && periodoData.estado != 'CARGANDO') {
         return res.status(200).json({
           message: 'No existe el  periodo ' + periodo,
@@ -312,16 +314,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (!flagAvance) {
         // SNAPTSHOT solo la primera vez
+        console.log('ad_capturaDatosNuevoPeriodo');
         await pool
           .request()
-          .input('periodo', sql.Int, periodo)
+          .input('periodo', sql.Int, Number(periodo))
           .input('nombreCreador', sql.VarChar, correo)
           .execute('ad_capturaDatosNuevoPeriodo');
 
+        console.log('ad_CrearNuevaProgramacionAcademica: ' + periodo);
         // Copia de la programación academica  del nuevo periodo solo la primera vez
         await pool
           .request()
-          .input('periodo', sql.Int, periodo)
+          .input('periodo', sql.Int, Number(periodo))
           .execute('ad_CrearNuevaProgramacionAcademica');
 
         // VERIFICA SI SE INCORPORAN O NO LOS EVENTOS
@@ -421,7 +425,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               .request()
               .input('id', periodo)
               .query(
-                `SELECT idSede FROM [dbo].[ad_sede] where nombreSede = 'Virtual' and periodo=@id`
+                `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = '28894d3f-e9e1-476c-9314-764dc0bcd003'and  nombreSede = 'Virtual'    and periodo=@id`
               );
 
             const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
@@ -796,11 +800,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .request()
         .input('id', periodo)
         .query(
-          `SELECT idSede FROM [dbo].[ad_sede] where nombreSede = 'Virtual' and periodo=@id`
+          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = '28894d3f-e9e1-476c-9314-764dc0bcd003'and  nombreSede = 'Virtual'    and periodo=@id`
         );
 
       const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
 
+      console.log('virtual: ' + virtualID);
       const resultadoSedes = await pool
         .request()
         .input('id', periodo)
@@ -871,7 +876,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (tipo == 'total') {
         await pool.request().input('id', periodo).input('idVersion', version).query(`
                   UPDATE ad_programacionAcademica 
-                  SET idDocente = NULL
+                  SET idDocente = NULL, docenteModificado=NULL
                   WHERE  docenteModificado is null and idVersion=@idVersion and idPeriodo=@id`);
         await pool
           .request()
