@@ -251,7 +251,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const periodoData = result.recordset[0];
-      console.log(periodoData.estado);
 
       if (periodoData.estado != 'ACTIVO' && periodoData.estado != 'CARGANDO') {
         return res.status(200).json({
@@ -305,7 +304,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Bloques Horarios bloqueados de docente
       const resultHorariosBloquedos = await pool.request().query(`
-                                  SELECT hbd.CodigoBloque, hbd.DocenteID, bh.BloqueHorario
+                                  SELECT distinct hbd.CodigoBloque, hbd.DocenteID, bh.BloqueHorario
                                   FROM [dbo].[horario_bloqueado_docente] hbd
                                   INNER JOIN [dbo].[BloqueHorario] bh
                                       ON hbd.CodigoBloque = bh.bloque
@@ -314,14 +313,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (!flagAvance) {
         // SNAPTSHOT solo la primera vez
-        console.log('ad_capturaDatosNuevoPeriodo');
         await pool
           .request()
           .input('periodo', sql.Int, Number(periodo))
           .input('nombreCreador', sql.VarChar, correo)
           .execute('ad_capturaDatosNuevoPeriodo');
 
-        console.log('ad_CrearNuevaProgramacionAcademica: ' + periodo);
         // Copia de la programación academica  del nuevo periodo solo la primera vez
         await pool
           .request()
@@ -365,7 +362,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               campo: K,
               valor: EventosCambiosDocente[K]
             ) => {
-              const docente = Revisardocentes.find((d) => d.idDocente === idDocente);
+              const docente = Revisardocentes.find((d) => d.idDocente == idDocente);
 
               if (docente) {
                 docente[campo] = valor;
@@ -406,18 +403,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               // ver el campo si es igual o no  (uuidEntidad o entidadDId)
               if (evento.entidadReferencia.split('.')[1] == 'disponibilidad_docente') {
                 actualizarCampoDocente(evento.entidadId, 'cambioDisponibilidad', true);
+                console.log('Entro a ' + 'cambioDisponibilidad');
               }
 
               if (evento.entidadReferencia.split('.')[1] == 'LibroPorDocente') {
                 actualizarCampoDocente(evento.entidadId, 'cambioLibroDocente', true);
+                console.log('Entro a ' + 'cambioLibroDocente');
               }
 
               if (evento.entidadReferencia.split('.')[1] == 'horario_bloqueado_docente') {
                 actualizarCampoDocente(evento.entidadId, 'cambioHorarioBloqueado', true);
+                console.log('Entro a ' + 'cambioHorarioBloqueado');
               }
 
               if (evento.entidadReferencia.split('.')[1] == 'ProgramacionCursos') {
                 RevisarProgramacion.push(evento.uuidEntidad);
+                console.log('Entro a ' + 'ProgramacionCursos');
               }
             }
 
@@ -476,6 +477,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 !docenteAnalisis.cambioHorarioBloqueado &&
                 !docenteAnalisis.cambioDisponibilidad
               ) {
+                console.log(
+                  'No hay mas analisis para el docente ' + docenteAnalisis.idDocente
+                );
                 continue;
               }
 
@@ -513,6 +517,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
               for (const claseDocente of ClasesAsignadas) {
                 if (docenteAnalisis.cambioLibroDocente) {
+                  console.log(
+                    'Analisando cambioLibroDocente para el docente ' +
+                      docenteAnalisis.idDocente
+                  );
+
                   const resultDictaCurso = await pool
                     .request()
                     .input('idDocente', docenteAnalisis.idDocente)
@@ -560,6 +569,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
 
                 if (docenteAnalisis.cambioDisponibilidad) {
+                  console.log(
+                    'Analisando cambioDisponibilidad para el docente ' +
+                      docenteAnalisis.idDocente
+                  );
+
                   const docenteDisponibleData = disponibilidadDocente.filter(
                     (item: disponibilidadDocenteInterface) =>
                       item.DocenteID === Number(docenteAnalisis.idDocente)
@@ -622,6 +636,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
 
                 if (docenteAnalisis.cambioHorarioBloqueado) {
+                  console.log(
+                    'Analisando cambioHorarioBloqueado para el docente ' +
+                      docenteAnalisis.idDocente
+                  );
+
                   const BloquesBloqueados = BloquesBloqueadosCompletos.filter(
                     (horario: { DocenteID: number }) =>
                       horario.DocenteID === Number(docenteAnalisis.idDocente)
@@ -658,7 +677,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         .input('idDocente', docenteAnalisis.idDocente)
                         .input('idVirtual', virtualID).query(`
                                 BEGIN
-                                UPDATE ad_programacionAcademica 
+                                UPDATE [dbo].[ad_programacionAcademica]  
                                 SET idAula = idAulaInicial, aulaModificada = NULL
                                 WHERE idSede = @idVirtual 
                                 AND  idDocente = @idDocente 
@@ -696,6 +715,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 resultOneProgramacion.recordset[0]?.cancelado == true ||
                 resultOneProgramacion.recordset[0]?.vigente == false
               ) {
+                console.log('Desasignar Docente de ' + programacionAnailis);
                 await pool
                   .request()
                   .input('id', periodo)
@@ -706,14 +726,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                     UPDATE [dbo].[ad_programacionAcademica]  
                     SET idDocente = NULL , docenteModificado=NULL
-                    WHERE uuidProgramacionAcademica = @uuidProgramacionAcademica 
+                    WHERE uuuidProgramacionAcademica = @uuidProgramacionAcademica 
                     AND idPeriodo = @id
                     AND idVersion = @idVersion;
               
-                    UPDATE ad_programacionAcademica 
+                    UPDATE [dbo].[ad_programacionAcademica]
                     SET idAula = idAulaInicial, aulaModificada = NULL
                     WHERE idSede = @idVirtual 
-                    AND  uuidProgramacionAcademica = @uuidProgramacionAcademica 
+                    AND  uuuidProgramacionAcademica = @uuidProgramacionAcademica 
                     AND aulaModificada IS NOT NULL  
                     AND idVersion = @idVersion 
                     AND idPeriodo = @id;
