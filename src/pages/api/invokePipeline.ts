@@ -1,6 +1,15 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 
+type PipelineRun = {
+    runId: string;
+    status: string;
+};
+
+type QueryResponse = {
+    value: PipelineRun[];
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
@@ -19,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!tenantID || !applicationID || !csValue) {
         throw new Error("Missing required environment variables");
     }
-    
+
     const msalConfig = {
         auth: {
             clientId: applicationID,
@@ -56,13 +65,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }),
         });
 
-        const queryData = await queryResponse.json();
+        const queryData: QueryResponse = await queryResponse.json();
         console.log("Query Data:", queryData);
 
-        const runningPipelines = queryData.value.filter((run: any) => run.status === "InProgress");
+        const runningPipelines = queryData.value.filter((run) => run.status === "InProgress");
 
         if (runningPipelines.length > 0) {
-            const runIds = runningPipelines.map((run: any) => run.runId);
+            const runIds = runningPipelines.map((run) => run.runId);
             return res.status(200).json({
                 message: "Pipeline is already running",
                 runningPipelines: runIds,
@@ -85,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const errorData = await pipelineResponse.json();
             res.status(500).json({ error: errorData.error.message });
         }
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
     }
 }

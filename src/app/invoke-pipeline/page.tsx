@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function invokePipeline() {
+export default function InvokePipeline() { // <-- Cambiar el nombre a mayúscula
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [runIds, setRunIds] = useState<string[]>([]);
@@ -30,8 +30,9 @@ export default function invokePipeline() {
       } else {
         setMessage(`Error: ${data.error}`);
       }
-    } catch (error: any) {
-      setMessage(`Error: ${error.message || "An unexpected error occurred"}`);
+    } catch (error: unknown) { // Evitar any aquí
+      const errorMessage = (error as Error).message || "An unexpected error occurred";
+      setMessage(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
