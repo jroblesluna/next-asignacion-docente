@@ -8,30 +8,53 @@ interface LayoutValidationProps {
 }
 
 const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
-  const { instance, inProgress } = useMsal();
-  const accounts = instance.getAllAccounts();
+  const { instance, inProgress, accounts } = useMsal();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  // const requiredGroupId = '7094a90a-d29d-4298-a613-2fb59f8eaf77';
+  const [shouldLogout, setShouldLogout] = useState(false);
+
+  const clearCookies = () => {
+    document.cookie.split(';').forEach((cookie) => {
+      const cookieName = cookie.split('=')[0].trim();
+      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    });
+  };
+
   useEffect(() => {
     if (inProgress === 'none') {
-      const authenticated = accounts.some((account) => !!account.idToken);
+      const accountsInstace = instance.getAllAccounts();
+      const authenticated = accountsInstace.some((account) => !!account.idToken);
       setIsAuthenticated(authenticated);
-      // if (authenticated) {
-      //   const account = accounts[0];
-      //   const userGroups = account.idTokenClaims?.groups || [];
-      //   console.log(account.idTokenClaims);
-      //   alert(account.idTokenClaims);
-      //   if (Array.isArray(userGroups) && userGroups.includes(requiredGroupId)) {
-      //     setIsAuthenticated(true);
-      //   } else {
-      //     setIsAuthenticated(false);
-      //   }
-      // }
-
       setLoading(false);
+
+      if (!authenticated || !accounts[0]?.idTokenClaims?.roles) {
+        setIsAuthenticated(false);
+        setShouldLogout(true);
+      }
     }
-  }, [accounts, inProgress]);
+  }, [inProgress, instance, accounts]);
+
+  useEffect(() => {
+    if (shouldLogout) {
+      console.log('hola');
+      instance.clearCache();
+      sessionStorage.clear();
+      localStorage.clear();
+      clearCookies();
+
+      setInterval(() => {
+        instance
+          .logoutRedirect({
+            onRedirectNavigate: () => true,
+            logoutHint: accounts[0]?.username,
+            postLogoutRedirectUri: '/welcome',
+          })
+          .catch((e) => {
+            console.error(e);
+          });
+      }, 3000);
+    }
+  }, [shouldLogout, instance, accounts]);
 
   if (loading) {
     return (
@@ -42,21 +65,6 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    instance.clearCache();
-    sessionStorage.clear();
-    localStorage.clear();
-
-    instance
-      .logoutRedirect({
-        onRedirectNavigate: () => false,
-      })
-      .then(() => {
-        window.location.href = '/welcome';
-      })
-      .catch((e) => {
-        console.error(e);
-      });
-
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
@@ -72,7 +80,8 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
               className="size-16"
             />
             <p className="text-gray-600">Usted no tiene permiso para ingresar</p>
-            <p className="text-gray-600">Redirigiendo al Inicio...</p>
+            <p className="text-gray-600">Redirigiendo al Inicio</p>
+            <span className="loading loading-dots loading-sm"></span>
           </div>
         </div>
       </div>

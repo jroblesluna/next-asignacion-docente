@@ -38,7 +38,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         IF EXISTS (SELECT  top 1 * FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
               SELECT  D.uuidDocente,D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
-             H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso
+             H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
+              (H.MinutosReal * aux.NumDias) as minutosCurso 
             FROM [dbo].[ad_docente] AS D 
             LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
             ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
@@ -50,13 +51,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=@id
             LEFT JOIN [dbo].[ad_curso] as C
              ON C.idCurso= PA.idCurso AND C.periodo=@id
+             OUTER APPLY (
+            			SELECT TOP 1 aux.NumDias
+            			FROM [dbo].[aux_intensidad_fase] AS aux
+            			WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase
+            				AND PA.idPeriodo = aux.PeriodoAcademico) AS aux
+            -- cambiar PeriodoAcademico por periodo
             WHERE D.periodo=@id AND D.FechaInicioContrato IS NOT NULL  AND D.dictaClase=1  and (D.vigente =1  or  PA.idDocente is not null)
             ORDER BY FechaInicioContrato 
         END
         ELSE
         BEGIN
                     SELECT D.uuidDocente, D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
-                     H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso
+                     H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
+                    (H.MinutosReal * aux.NumDias) as minutosCurso 
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
                     ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
@@ -68,6 +76,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                      ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=1
                     LEFT JOIN [dbo].[ad_curso] as C
                      ON C.idCurso= PA.idCurso AND C.periodo=1
+                     OUTER APPLY (
+			SELECT TOP 1 aux.NumDias
+			FROM [dbo].[aux_intensidad_fase] AS aux
+			WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase
+				AND PA.idPeriodo = aux.PeriodoAcademico
+                              				) AS aux
                     WHERE D.periodo=1  AND FechaInicioContrato IS NOT NULL AND D.dictaClase=1 
                       and (D.vigente =1  or  PA.idDocente is not null)
                     ORDER BY FechaInicioContrato 

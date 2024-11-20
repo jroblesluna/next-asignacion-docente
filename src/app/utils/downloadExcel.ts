@@ -104,7 +104,8 @@ export const downloadExcelTac = (data: tacData[], ID: string) => {
     ...timeDaily.map((time) => ({ header: time, width: 15 })),
     ...timeWeekend.map((time) => ({ header: time, width: 15 })),
     ...timeSunday.map((time) => ({ header: time, width: 15 })),
-    { header: 'Clases Totales', width: 15 },
+    { header: 'N° de clases asignadas', width: 25 },
+    { header: 'N° de clases completas', width: 25 },
   ];
   worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
 
@@ -158,9 +159,15 @@ export const downloadExcelTac = (data: tacData[], ID: string) => {
     });
 
     const totalClasses = classSchedule.length;
+    const totalClasesCompletas = (
+      classSchedule.reduce((total, num) => total + num.minutosCurso, 0) /
+      (36 * 60)
+    ).toFixed(2);
 
     // Agregar la fila con los datos
+
     rowData.push(totalClasses);
+    rowData.push(totalClasesCompletas);
     worksheet.addRow(rowData);
   });
 

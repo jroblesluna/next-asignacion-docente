@@ -21,6 +21,7 @@ import {
 } from '@/app/interface/datainterface';
 import periodService from '@/services/period';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
+import { getCookie } from '@/app/utils/other';
 
 const ReportAssignments = () => {
   const { id } = useParams() as { id: string };
@@ -113,6 +114,9 @@ const ReportAssignments = () => {
 
     const resSedesData = await assigmentService.getLocation(id);
     setNombresSedeData(resSedesData.data);
+
+    const tiposRol = getCookie('rol');
+    console.log(tiposRol);
 
     if (res.data.length === 0) {
       setDataVacia(true);

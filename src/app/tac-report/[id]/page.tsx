@@ -107,6 +107,7 @@ const Page = () => {
           frecuency: elemento.NombreAgrupFrecuencia,
           schedule: elemento.HorarioInicio + ' - ' + elemento.HorarioFin,
           room: elemento.codigoCurso,
+          minutosCurso: elemento.minutosCurso,
         })),
       }));
       setDataTac(tacConvertido);
@@ -383,7 +384,9 @@ const Page = () => {
                             >
                               {`N°${item.idVersion} - Modificado el  ${convertirFormatoFecha(
                                 item.fecha
-                              )} a las ${item.fechaHora} por el usario: ${item.nombreCreador}`}
+                              )} a las ${item.fechaHora} por el usuario: ${
+                                item.nombreCreador
+                              }`}
                             </span>
                           </div>
                         );
@@ -442,8 +445,11 @@ const Page = () => {
                             {time}
                           </th>
                         ))}
-                        <th className="py-2.5 uppercase font-inter border bg-[#19B0F0] sticky top-0 text-white min-w-24">
-                          Todas
+                        <th className="py-2.5 text-[10px] uppercase font-inter border bg-[#1b526a] sticky top-0 text-white min-w-24">
+                          N° de clases asignadas
+                        </th>
+                        <th className="py-2.5 text-[10px] uppercase font-inter border bg-[#1b526a]  sticky top-0 text-white min-w-24">
+                          N° de clases completas
                         </th>
                       </tr>
                     </thead>

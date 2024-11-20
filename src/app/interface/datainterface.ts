@@ -108,12 +108,14 @@ export interface docentesTac {
   NombreFrecuencia: string;
   NombreAgrupFrecuencia: string;
   codigoCurso: string;
+  minutosCurso: number;
 }
 
 export interface classSchedule {
   frecuency: string;
   schedule: string;
   room: string;
+  minutosCurso: number;
 }
 
 export interface tacData {

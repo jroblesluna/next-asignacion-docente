@@ -15,7 +15,10 @@ const NavBar = () => {
         name: accounts[0].name || '',
         username: accounts[0].username || '',
       });
+      // console.log(accounts[0]?.idTokenClaims?.roles);
       localStorage.setItem('user', accounts[0].username || '');
+
+      document.cookie = `rol=${accounts[0]?.idTokenClaims?.roles} ; path=/; secure`;
     }
   }, [accounts]);
 
@@ -60,7 +63,9 @@ const NavBar = () => {
               {userAccount.name}
             </p>
             <p className="w-10"></p>
-            <strong>Rol:</strong> Admin
+            <strong>Rol:</strong>{' '}
+            {(accounts[0]?.idTokenClaims?.roles && accounts[0]?.idTokenClaims?.roles[0]) ||
+              'No Info'}
           </div>
           <div className="flex flex-row gap-2">
             <strong>Correo:</strong>

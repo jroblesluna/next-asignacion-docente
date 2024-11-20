@@ -217,7 +217,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     FORMAT(CONVERT(DATETIME, p.inicioClase), 'dd-MM-yyyy') AS InicioClase,
                             FORMAT(CONVERT(DATETIME, p.finalClase), 'dd-MM-yyyy') AS FinClase,
                         H.HorarioInicio, H.HorarioFin, H.MinutosReal, aux.NumDias,
-                        (H.MinutosReal * aux.NumDias) AS minutosTotales, F.NombreFrecuencia , F.NombreAgrupFrecuencia
+                        (H.MinutosReal * aux.NumDias) AS minutosTotales, F.NombreFrecuencia , F.NombreAgrupFrecuencia,
+                         (F.CantidadDiasSemanales * H.MinutosReal ) AS  minutosTotalesSemanales
                     FROM [dbo].[ad_programacionAcademica] P
                     INNER JOIN [dbo].[ad_horario] AS H
                         ON P.idHorario = H.idHorario and H.periodo=@id
@@ -371,6 +372,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND t2.idPeriodo = @id  
 				          	AND t2.idVersion=@version
                 ), 0) AS MinutosAcumulados, 
+                    ISNULL((SELECT SUM(H.MinutosReal * F.CantidadDiasSemanales) 
+                    FROM [dbo].[ad_programacionAcademica] t2
+                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
+                    INNER JOIN [dbo].[ad_frecuencia] F ON t2.idFrecuencia = F.idFrecuencia AND F.periodo=@id
+                    INNER JOIN [dbo].[aux_intensidad_fase] aux 
+                    ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
+                    WHERE aux.PeriodoAcademico = @id  
+                    AND t2.idDocente = D.idDocente
+                    AND t2.idPeriodo = @id  
+				          	AND t2.idVersion=@version
+                ), 0) AS totalTiempoSemanal, 
                    D.idTipoContrato, 
                    TC.TipoJornada, 
                    TC.HoraSemana,
@@ -444,6 +456,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND t2.idPeriodo = @id  
 				          	AND t2.idVersion=@version
                 ), 0) AS MinutosAcumulados, 
+                     ISNULL((SELECT SUM(H.MinutosReal * F.CantidadDiasSemanales) 
+                    FROM [dbo].[ad_programacionAcademica] t2
+                    INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
+                    INNER JOIN [dbo].[ad_frecuencia] F ON t2.idFrecuencia = F.idFrecuencia AND F.periodo=@id 
+                    INNER JOIN [dbo].[aux_intensidad_fase] aux 
+                    ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
+                    WHERE aux.PeriodoAcademico = @id  
+                    AND t2.idDocente = D.idDocente
+                    AND t2.idPeriodo = @id  
+				          	AND t2.idVersion=@version
+                ), 0) AS totalTiempoSemanal,
                    D.idTipoContrato, 
                    TC.TipoJornada, 
                    TC.HoraSemana,
@@ -506,6 +529,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       for (const docente of ListaDocentes) {
         // validacion de horas maximas
+        console.log('Minutos Semanales Acumulado: ' + docente.totalTiempoSemanal);
+        console.log(
+          'Minutos Semanales Curso: ' + resultCurso.recordset[0]?.minutosTotalesSemanales
+        );
+
+        if (
+          Number(docente.totalTiempoSemanal) +
+            Number(resultCurso.recordset[0]?.minutosTotalesSemanales) >
+          (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 60
+        ) {
+          console.log('continue - P7.1 - SEMANAL');
+          continue;
+        }
+
         if (
           Number(docente.MinutosAcumulados) +
             Number(resultCurso.recordset[0]?.minutosTotales) >

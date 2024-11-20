@@ -248,10 +248,10 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
             <form method="dialog" className="flex w-full flex-col">
               <div className=" text-center font-bold">LISTA DE DOCENTES DISPONIBLES</div>
               <div className="w-full mt-5 flex flex-row">
-                <p className="px-4 py-2 border w-[58%] font-bold">Docente</p>
+                <p className="px-4 py-2 border w-[48%] font-bold">Docente</p>
                 <p className="px-4 py-2 border w-[10%] font-bold">TC</p>
                 <p className="px-4 py-2 border w-[14%] font-bold">HA</p>
-                <p className="px-4 py-2 border w-[18%] font-bold">SEDE</p>
+                <p className="px-4 py-2 border w-[28%] font-bold">SEDE</p>
               </div>
 
               <div className="w-full overflow-auto min-h-[350px] max-h-[350px] ">
@@ -447,10 +447,10 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
                 LISTA DE DOCENTES COMPATIBLES Y RECOMENDADOS
               </div>
               <div className="w-full mt-5 flex flex-row">
-                <p className="px-4 py-2 border w-[58%] font-bold">Docente</p>
+                <p className="px-4 py-2 border w-[48%] font-bold">Docente</p>
                 <p className="px-4 py-2 border w-[10%] font-bold">TC</p>
                 <p className="px-4 py-2 border w-[14%] font-bold">HA</p>
-                <p className="px-4 py-2 border w-[18%] font-bold">SEDE</p>
+                <p className="px-4 py-2 border w-[28%] font-bold">SEDE</p>
               </div>
 
               <div className="w-full overflow-auto min-h-[350px] max-h-[350px] ">

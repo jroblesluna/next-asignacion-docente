@@ -934,16 +934,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('id', periodo)
           .input('idSede', sede.idSede)
           .input('idVersion', version).query(`
-                      SELECT DISTINCT P.*,
+                    SELECT DISTINCT P.*,
                        FORMAT(CONVERT(DATETIME, p.inicioClase), 'dd-MM-yyyy') AS InicioClase,
                        FORMAT(CONVERT(DATETIME, p.finalClase), 'dd-MM-yyyy') AS FinClase,
                         H.HorarioInicio, H.HorarioFin, H.MinutosReal, aux.NumDias,
                         (H.MinutosReal * aux.NumDias) AS minutosTotales,   F.NombreFrecuencia, F.NombreAgrupFrecuencia,
-                        (SELECT COUNT(*)
+                         (F.CantidadDiasSemanales * H.MinutosReal ) AS  minutosTotalesSemanales,
+                         (SELECT COUNT(*)
                          FROM [dbo].[ad_programacionAcademica] AS PC
                          WHERE PC.idHorario = P.idHorario
                            AND PC.idPeriodo = @id
-      										 AND PC.idVersion=@idVersion
+                           AND PC.idVersion=@idVersion
                            AND PC.idSede= @idSede ) AS numeroCursos,
                         (SELECT COUNT(*)
                          FROM [dbo].[LibroPorDocente]
@@ -957,15 +958,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     SELECT TOP 1 aux.NumDias
                     FROM [dbo].[aux_intensidad_fase] AS aux
                     WHERE P.uidIdIntensidadFase = aux.uididintensidadfase  and
-                		P.idPeriodo = aux.PeriodoAcademico
-                		) AS aux
+                    P.idPeriodo = aux.PeriodoAcademico
+                    ) AS aux
                     WHERE
-            				P.cancelado=0
-            				AND P.vigente = 1
-            				AND P.idPeriodo = @id
-      							AND P.idVersion=@idVersion
+                    P.cancelado=0
+                    AND P.vigente = 1
+                    AND P.idPeriodo = @id
+                    AND P.idVersion=@idVersion
                     AND P.idSede = @idSede
-      							AND P.idDocente IS NULL
+                    AND P.idDocente IS NULL
                     
                     ORDER BY
                         numeroCursos DESC,
@@ -1232,11 +1233,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             for (const docente of ListaDocentes) {
               //P7.1: Validar Cumplimiento de Horas a Asignar
 
+              //P.7.1.1 VALIDAR NO CUMPLIENTO DE HORAS SEMANALES A ASIGNAR
+
+              // RECUENTO MINUTOS SEMANALES
+              // N° DIAS MAX CLASE SEMANA * minutos REALES  , AGRUPADO POR DOCENTE, > MAX HORAS
+
+              console.log('Minutos Semanales Acumulado: ' + docente.totalTiempoSemanal);
+              console.log('Minutos Semanales Curso: ' + cursosXsede.minutosTotalesSemanales);
+
+              if (
+                Number(docente.totalTiempoSemanal) +
+                  Number(cursosXsede.minutosTotalesSemanales) >
+                (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 60
+              ) {
+                console.log('continue - P7.1 - SEMANAL');
+                continue;
+              }
+
               if (
                 Number(docente.totalTiempo) + Number(cursosXsede.minutosTotales) >
                 (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 4 * 60
               ) {
-                console.log('continue - P7.1 ');
+                console.log('continue - P7.1 -MENSUAL');
                 continue;
               }
 

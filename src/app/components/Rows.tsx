@@ -324,6 +324,7 @@ interface ClassSchedule {
   frecuency: string;
   schedule: string;
   room: string;
+  minutosCurso: number;
 }
 
 interface TeacherAssignment {
@@ -412,6 +413,12 @@ export const TableTacReport: React.FC<TeacherAssignment> = ({
       ))}
       <td className="py-2 uppercase font-inter border text-center min-w-24">
         {classSchedule.length}
+      </td>
+      <td className="py-2 uppercase font-inter border text-center min-w-24">
+        {(
+          classSchedule.reduce((total, num) => total + num.minutosCurso, 0) /
+          (36 * 60)
+        ).toFixed(2)}
       </td>
     </tr>
   );
