@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             			WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase
             				AND PA.idPeriodo = aux.PeriodoAcademico) AS aux
             -- cambiar PeriodoAcademico por periodo
-            WHERE D.periodo=@id AND D.FechaInicioContrato IS NOT NULL  AND D.dictaClase=1  and (D.vigente =1  or  PA.idDocente is not null)
+            WHERE D.periodo=@id  AND D.dictaClase=1  and (D.vigente =1  or  PA.idDocente is not null)
             ORDER BY D.AntiguedadMeses DESC
         END
         ELSE
@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase
 				AND PA.idPeriodo = aux.PeriodoAcademico
                               				) AS aux
-                    WHERE D.periodo=1  AND FechaInicioContrato IS NOT NULL AND D.dictaClase=1 
+                    WHERE D.periodo=1   AND D.dictaClase=1 
                       and (D.vigente =1  or  PA.idDocente is not null)
                     ORDER BY D.AntiguedadMeses DESC
         END

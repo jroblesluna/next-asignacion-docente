@@ -50,7 +50,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 [dbo].[disponibilidad_docente] AS DD ON DD.DocenteID = D.DocenteID AND DD.PeriodoAcademico = @id
                             WHERE 
                                 D.FlagVigente = 1
-                        		AND D.FechaInicioContrato is not null
                         )
                         SELECT * 
                         FROM CTE_Docente

@@ -44,9 +44,12 @@ const solapaHorarioBloqueado = (
   const diasHabiles = ['L', 'M', 'J', 'V'];
   const diasFinDeSemana = ['S', 'D'];
 
+  //SABATINOS = S
+  //DIARIOS  =D
+
   if (
-    (tipoSemana[0] === 'S' && diasFinDeSemana.some((dia) => frecuencia.includes(dia))) ||
-    (tipoSemana[0] === 'D' && diasHabiles.some((dia) => frecuencia.includes(dia)))
+    (tipoSemana[0] === 'S' && diasHabiles.some((dia) => frecuencia.includes(dia))) ||
+    (tipoSemana[0] === 'D' && diasFinDeSemana.some((dia) => frecuencia.includes(dia)))
   ) {
     return false;
   }
@@ -418,7 +421,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             FROM [dbo].[LibroPorDocente] AS LD
             INNER JOIN [dbo].[ad_docente] AS D ON D.idDocente = LD.docenteID 
                 AND D.periodo = @id 
-                AND D.FechaInicioContrato IS NOT NULL
                 AND D.vigente=1
                 AND D.dictaClase=1
                 AND D.idSede <> @idVirtual
@@ -515,7 +517,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             FROM [dbo].[LibroPorDocente] AS LD
             INNER JOIN [dbo].[ad_docente] AS D ON D.idDocente = LD.docenteID 
                 AND D.periodo = @id 
-                AND D.FechaInicioContrato IS NOT NULL
                 AND D.idSede=@idSede
                 AND D.vigente=1
                 AND D.dictaClase=1

@@ -130,8 +130,9 @@ const solapaHorarioBloqueado = (
   }
   const diasHabiles = ['L', 'M', 'J', 'V'];
   const diasFinDeSemana = ['S', 'D'];
+
   //SABATINOS = S
-  // DIARIOS  =D
+  //DIARIOS  =D
 
   if (
     (tipoSemana[0] === 'S' && diasHabiles.some((dia) => frecuencia.includes(dia))) ||
@@ -855,14 +856,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       															FROM [dbo].[ad_docente] AS D2
       															INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
       															WHERE TC2.TipoJornada = 'PT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
-      															D2.vigente = 1 AND D2.FechaInicioContrato IS NOT NULL  and D2.periodo=@id
+      															D2.vigente = 1 AND  D2.periodo=@id 
       														AND  D2.idSede <> @virtualID  AND D2.dictaClase=1    ) / 3.0
       													) +
       													(SELECT COUNT(TC2.TipoJornada)
       														FROM [dbo].[ad_docente] AS D2
       														INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
       														WHERE  TC2.TipoJornada = 'FT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
-      															D2.vigente = 1 AND D2.FechaInicioContrato IS NOT NULL
+      															D2.vigente = 1 
       														AND  D2.idSede <>@virtualID and  D2.periodo=@id AND D2.dictaClase=1  )
       												)
       											)*100 ,3)
@@ -876,7 +877,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       											[dbo].[ad_sede] AS S ON D.idSede = S.idSede and S.periodo=@id
       									WHERE
       											D.idSede IS NOT NULL AND  D.vigente IS NOT NULL AND  D.vigente = 1
-      											AND D.FechaInicioContrato IS NOT NULL
       											AND  D.idSede <> @virtualID
       											and  D.periodo=@id
                             AND D.dictaClase=1
@@ -1174,7 +1174,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                       ) AS aux
                                   WHERE
                                       D.vigente = 1	
-                                      AND D.FechaInicioContrato IS NOT NULL
                                       AND D.idSede <> @virtualID
                                       AND D.periodo = @id
                                       AND D.dictaClase=1
@@ -1554,7 +1553,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                               WHERE
                                   D.idSede = @idSede
                                   AND D.vigente = 1
-                                  AND D.FechaInicioContrato IS NOT NULL
                                   AND D.dictaClase=1
                           		AND D.periodo=@id
                           )

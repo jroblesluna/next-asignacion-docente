@@ -39,7 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                           [dbo].[dim_tipo_contrato] AS TC ON D.TipoContratoID = TC.TipoContratoID
                       WHERE 
                           D.FlagVigente = 1
-                          AND D.FechaInicioContrato IS NOT NULL
                   )
                   
                   SELECT DISTINCT NombreSede

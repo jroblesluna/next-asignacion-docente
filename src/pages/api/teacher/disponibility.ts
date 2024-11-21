@@ -43,10 +43,12 @@ const solapaHorarioBloqueado = (
   }
   const diasHabiles = ['L', 'M', 'J', 'V'];
   const diasFinDeSemana = ['S', 'D'];
+  //SABATINOS = S
+  //DIARIOS  =D
 
   if (
-    (tipoSemana[0] === 'S' && diasFinDeSemana.some((dia) => frecuencia.includes(dia))) ||
-    (tipoSemana[0] === 'D' && diasHabiles.some((dia) => frecuencia.includes(dia)))
+    (tipoSemana[0] === 'S' && diasHabiles.some((dia) => frecuencia.includes(dia))) ||
+    (tipoSemana[0] === 'D' && diasFinDeSemana.some((dia) => frecuencia.includes(dia)))
   ) {
     return false;
   }
@@ -424,7 +426,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              AND D.vigente=1
              AND D.dictaClase=1
              AND D.idSede <> @idVirtual
-			AND D.FechaInicioContrato IS NOT NULL
        AND NOT EXISTS (
                 SELECT 1
                 FROM (
@@ -519,7 +520,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              D.periodo = @id  
             AND D.vigente=1
             AND D.dictaClase=1
-			AND D.FechaInicioContrato IS NOT NULL
 			AND D.idSede=@idSede
   AND NOT EXISTS (
                 SELECT 1
