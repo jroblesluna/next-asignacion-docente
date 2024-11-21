@@ -274,8 +274,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await pool.request().input('periodoID', sql.Int, periodo)
         .query(` IF NOT EXISTS (SELECT 1 FROM ad_avanceAlgoritmo WHERE idPeriodo = @periodoID)
                       BEGIN
-                        INSERT INTO ad_avanceAlgoritmo  (idSede, escenario, idSlot, idPeriodo, idVersion,correo)
-                        VALUES (null, null, null, @periodoID,null,null);
+                        INSERT INTO ad_avanceAlgoritmo  (idSede, escenario, idSlot, idPeriodo, idVersion,correo,slotsRecorridos, totalSlots)
+                        VALUES (null, null, null, @periodoID,null,null,0,null);
                       END
                       `);
 
@@ -909,7 +909,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // P4: Iteración por sede
-
+      let aux_slotsRecorridos = dataAvance[0].slotsRecorridos;
       const resultadoEscenariosActivos = await pool
         .request()
         .query(`SELECT  * FROM [dbo].[ad_escenario] where activo=1`);
@@ -920,6 +920,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (Number(dataAvance[0].idSede) != Number(sede.idSede) && flagAvance === true) {
           continue;
         }
+
+        const resultCantidadSlots = await pool
+          .request()
+          .input('id', periodo)
+          .input('idVersion', version).query(`
+                    SELECT  count(*) as cantidad FROM [dbo].[ad_programacionAcademica]
+                        		WHERE
+                        		cancelado=0
+                        		AND vigente = 1
+                        		AND idPeriodo = @id
+                        		AND idVersion=@idVersion
+                        		AND idDocente IS NULL
+                 `);
+
+        const cantidadSlots = resultCantidadSlots.recordset[0];
+
+        await sql.query`UPDATE ad_avanceAlgoritmo
+                                          SET totalSlots = ${cantidadSlots.cantidad}
+                                          WHERE idPeriodo = ${periodo};`;
 
         console.log(
           '#################| SEDE: ' +
@@ -958,7 +977,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     SELECT TOP 1 aux.NumDias
                     FROM [dbo].[aux_intensidad_fase] AS aux
                     WHERE P.uidIdIntensidadFase = aux.uididintensidadfase  and
-                    P.idPeriodo = aux.PeriodoAcademico
+                    P.idPeriodo = aux.Periodo
                     ) AS aux
                     WHERE
                     P.cancelado=0
@@ -976,6 +995,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const cursosXsedeArray = resultCursos.recordset;
 
+        aux_slotsRecorridos += cursosXsedeArray.length;
         // si no hay cursos ir al siguiente
         if (cursosXsedeArray.length === 0) {
           continue;
@@ -1139,12 +1159,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                   LEFT JOIN [dbo].[ad_frecuencia] AS F 
                                       ON P.idFrecuencia = F.idFrecuencia 
                                       AND F.periodo = @id
-                                  OUTER APPLY (
+                                 OUTER APPLY (
                                       SELECT TOP 1 aux.NumDias
                                       FROM [dbo].[aux_intensidad_fase] AS aux
-                                      WHERE P.uidIdIntensidadFase = aux.uididintensidadfase
-                                        AND P.idPeriodo = aux.PeriodoAcademico
-                                  ) AS aux
+                                      WHERE P.uidIdIntensidadFase = aux.uididintensidadfase  and
+                                      P.idPeriodo = aux.Periodo
+                                      ) AS aux
                                   WHERE
                                       D.vigente = 1	
                                       AND D.FechaInicioContrato IS NOT NULL
@@ -1197,6 +1217,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               });
             });
 
+            console.log(calcularCodigoAnterior(periodo?.toString() || '', 2));
             const resultDocentes = await pool
               .request()
               .input('OrderBy', sql.NVarChar, orderByClause)
@@ -1231,6 +1252,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             let docenteAsignado = false;
 
             for (const docente of ListaDocentes) {
+              console.log(docente);
+
               //P7.1: Validar Cumplimiento de Horas a Asignar
 
               //P.7.1.1 VALIDAR NO CUMPLIENTO DE HORAS SEMANALES A ASIGNAR
@@ -1433,9 +1456,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               await sql.query`UPDATE ad_avanceAlgoritmo
                                           SET idSede = ${sede.idSede},
                                               escenario = ${escenario.escenario},
-                                              idSlot = ${cursosXsede.uuuidProgramacionAcademica},
+                                              idSlot = ${
+                                                cursosXsede.uuuidProgramacionAcademica
+                                              },
                                               idVersion = ${version},
-                                              correo=${correo}
+                                              correo=${correo},
+                                              slotsRecorridos = ${aux_slotsRecorridos + i}
+
                                           WHERE idPeriodo = ${periodo};`;
 
               iteradorOrden = 0;
@@ -1475,9 +1502,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               await sql.query`UPDATE ad_avanceAlgoritmo
                                                   SET idSede = ${sede.idSede},
                                                       escenario = ${escenario.escenario},
-                                                      idSlot = ${cursosXsede.uuuidProgramacionAcademica},
+                                                      idSlot = ${
+                                                        cursosXsede.uuuidProgramacionAcademica
+                                                      },
                                                       idVersion = ${version},
-                                                      correo=${correo}
+                                                      slotsRecorridos = ${
+                                                        aux_slotsRecorridos + i
+                                                      },  correo=${correo}
                                                   WHERE idPeriodo = ${periodo};`;
               iteradorOrden = 0;
               continue;
@@ -1530,8 +1561,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                   SELECT SUM(H.MinutosReal * aux.NumDias)
                                   FROM [dbo].[ad_programacionAcademica] t2
                                   INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
-                                  INNER JOIN [dbo].[aux_intensidad_fase] aux ON aux.uididintensidadfase = t2.uidIdIntensidadFase
-                                      AND aux.PeriodoAcademico = @id
+                                  OUTER APPLY (
+                                      SELECT TOP 1 aux.NumDias
+                                      FROM [dbo].[aux_intensidad_fase] AS aux
+                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
+                                      aux.Periodo= @id
+                                      ) AS aux
                                   WHERE
                                       t2.idDocente = d.idDocente
                                       AND t2.idPeriodo = @id
@@ -1602,8 +1637,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                       SELECT SUM(H.MinutosReal * aux.NumDias)
                                       FROM [dbo].[ad_programacionAcademica] t2
                                       INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
-                                      INNER JOIN [dbo].[aux_intensidad_fase] aux ON aux.uididintensidadfase = t2.uidIdIntensidadFase
-                                          AND aux.PeriodoAcademico = @id
+                                      OUTER APPLY (
+                                      SELECT TOP 1 aux.NumDias
+                                      FROM [dbo].[aux_intensidad_fase] AS aux
+                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
+                                      aux.Periodo= @id
+                                      ) AS aux
                                       WHERE
                                           t2.idDocente = d.idDocente
                                           AND t2.idPeriodo = @id
@@ -1730,7 +1769,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                         escenario = null,
                                         idSlot = null,
                                         idVersion=null,
-                                        correo=null
+                                        correo=null,
+                                        slotsRecorridos =0,
+                                        totalSlots =null
                                     WHERE idPeriodo = ${periodo};`;
 
       await pool

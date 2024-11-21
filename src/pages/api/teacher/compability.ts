@@ -227,7 +227,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     SELECT TOP 1 aux.NumDias 
                     FROM [dbo].[aux_intensidad_fase] AS aux
                     WHERE P.uidIdIntensidadFase = aux.uididintensidadfase  and 
-                        P.idPeriodo = aux.PeriodoAcademico   
+                        P.idPeriodo = aux.Periodo   
                         ) AS aux
                     WHERE 
     				 P.idPeriodo = @id
@@ -364,10 +364,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    ISNULL((SELECT SUM(H.MinutosReal * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
-                    INNER JOIN [dbo].[aux_intensidad_fase] aux 
-                    ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id
-                    AND t2.idDocente = LD.DocenteID
+                    OUTER APPLY (
+                                      SELECT TOP 1 aux.NumDias
+                                      FROM [dbo].[aux_intensidad_fase] AS aux
+                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
+                                      aux.Periodo= @id
+                                      ) AS aux
+                    WHERE t2.idDocente = LD.DocenteID
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) AS MinutosAcumulados, 
@@ -375,10 +378,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
                     INNER JOIN [dbo].[ad_frecuencia] F ON t2.idFrecuencia = F.idFrecuencia AND F.periodo=@id
-                    INNER JOIN [dbo].[aux_intensidad_fase] aux 
-                    ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id  
-                    AND t2.idDocente = D.idDocente
+                     OUTER APPLY (
+                                      SELECT TOP 1 aux.NumDias
+                                      FROM [dbo].[aux_intensidad_fase] AS aux
+                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
+                                      aux.Periodo= @id
+                                      ) AS aux
+                    where
+                    t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id  
 				          	AND t2.idVersion=@version
                 ), 0) AS totalTiempoSemanal, 
@@ -389,10 +396,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                        ((ISNULL((SELECT SUM(H.MinutosReal * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
-                    INNER JOIN [dbo].[aux_intensidad_fase] aux 
-                    ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id
-                    AND t2.idDocente = LD.DocenteID
+                    OUTER APPLY (
+                                      SELECT TOP 1 aux.NumDias
+                                      FROM [dbo].[aux_intensidad_fase] AS aux
+                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
+                                      aux.Periodo= @id
+                                      ) AS aux
+                      WHERE  
+                     t2.idDocente = LD.DocenteID
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) + @tiempoCurso) / CAST((TC.HoraSemana * 60 * 4) AS DECIMAL(10, 2))), 0
@@ -449,10 +460,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    ISNULL((SELECT SUM(H.MinutosReal * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
-                    INNER JOIN [dbo].[aux_intensidad_fase] aux 
-                    ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id
-                    AND t2.idDocente = D.idDocente
+                     OUTER APPLY (
+                                      SELECT TOP 1 aux.NumDias
+                                      FROM [dbo].[aux_intensidad_fase] AS aux
+                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
+                                      aux.Periodo= @id
+                                      ) AS aux
+                      WHERE
+                     t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) AS MinutosAcumulados, 
@@ -460,10 +475,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
                     INNER JOIN [dbo].[ad_frecuencia] F ON t2.idFrecuencia = F.idFrecuencia AND F.periodo=@id
-                    INNER JOIN [dbo].[aux_intensidad_fase] aux 
-                    ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id  
-                    AND t2.idDocente = D.idDocente
+                    OUTER APPLY (
+                                      SELECT TOP 1 aux.NumDias
+                                      FROM [dbo].[aux_intensidad_fase] AS aux
+                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
+                                      aux.Periodo= @id
+                                      ) AS aux
+                    WHERE
+                     t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id  
 				          	AND t2.idVersion=@version
                 ), 0) AS totalTiempoSemanal, 
@@ -474,10 +493,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                        ((ISNULL((SELECT SUM(H.MinutosReal * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
-                    INNER JOIN [dbo].[aux_intensidad_fase] aux 
-                    ON aux.uidIdIntensidadFase = t2.uidIdIntensidadFase
-                    WHERE aux.PeriodoAcademico = @id
-                    AND t2.idDocente = D.idDocente
+                     OUTER APPLY (
+                                      SELECT TOP 1 aux.NumDias
+                                      FROM [dbo].[aux_intensidad_fase] AS aux
+                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
+                                      aux.Periodo= @id
+                                      ) AS aux
+                    WHERE                   
+                     t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) + @tiempoCurso) / CAST((TC.HoraSemana * 60 * 4) AS DECIMAL(10, 2))), 0
