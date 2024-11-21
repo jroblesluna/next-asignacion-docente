@@ -266,7 +266,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                                 [dbo].[BloqueHorario] bh
                                                 ON hbd.CodigoBloque = bh.bloque
                                             WHERE 
-                                            AND hbd.FlagConsiderado = 1;
+                                             hbd.FlagConsiderado = 1;
                               `);
 
       const resultH = await pool.request().input('id', idPeriod).input('version', version)

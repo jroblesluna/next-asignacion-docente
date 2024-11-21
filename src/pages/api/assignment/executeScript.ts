@@ -314,7 +314,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                                 [dbo].[BloqueHorario] bh
                                                 ON hbd.CodigoBloque = bh.bloque
                                             WHERE 
-                                            AND hbd.FlagConsiderado = 1;
+                                            hbd.FlagConsiderado = 1;
                                     `);
       const BloquesBloqueadosCompletos = resultHorariosBloquedos.recordset;
 
