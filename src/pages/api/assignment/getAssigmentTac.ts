@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         BEGIN
               SELECT  D.uuidDocente,D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
              H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
-              (H.MinutosReal * aux.NumDias) as minutosCurso 
+              (H.MinutosReal * aux.NumDias) as minutosCurso ,D.AntiguedadMeses
             FROM [dbo].[ad_docente] AS D 
             LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
             ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
@@ -58,13 +58,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             				AND PA.idPeriodo = aux.PeriodoAcademico) AS aux
             -- cambiar PeriodoAcademico por periodo
             WHERE D.periodo=@id AND D.FechaInicioContrato IS NOT NULL  AND D.dictaClase=1  and (D.vigente =1  or  PA.idDocente is not null)
-            ORDER BY FechaInicioContrato 
+            ORDER BY D.AntiguedadMeses DESC
         END
         ELSE
         BEGIN
                     SELECT D.uuidDocente, D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
                      H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
-                    (H.MinutosReal * aux.NumDias) as minutosCurso 
+                    (H.MinutosReal * aux.NumDias) as minutosCurso ,D.AntiguedadMeses
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
                     ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                               				) AS aux
                     WHERE D.periodo=1  AND FechaInicioContrato IS NOT NULL AND D.dictaClase=1 
                       and (D.vigente =1  or  PA.idDocente is not null)
-                    ORDER BY FechaInicioContrato 
+                    ORDER BY D.AntiguedadMeses DESC
         END
       `);
 

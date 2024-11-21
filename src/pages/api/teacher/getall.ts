@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         SELECT * 
                         FROM CTE_Docente
                         WHERE dictaClase = 1
-                        ORDER BY FechaInicioContrato
+                        ORDER BY AntiguedadMeses DESC
                   `);
 
       return res.status(200).json({ data: result.recordset });

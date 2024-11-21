@@ -134,8 +134,8 @@ const solapaHorarioBloqueado = (
   // DOMINICAL =D
 
   if (
-    (tipoSemana[0] === 'S' && diasHabiles.some((dia) => frecuencia.includes(dia))) ||
-    (tipoSemana[0] === 'D' && diasFinDeSemana.some((dia) => frecuencia.includes(dia)))
+    (tipoSemana[0] === 'S' && diasFinDeSemana.some((dia) => frecuencia.includes(dia))) ||
+    (tipoSemana[0] === 'D' && diasHabiles.some((dia) => frecuencia.includes(dia)))
   ) {
     return false;
   }
@@ -304,10 +304,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Bloques Horarios bloqueados de docente
       const resultHorariosBloquedos = await pool.request().query(`
-                                  SELECT distinct hbd.CodigoBloque, hbd.DocenteID, bh.BloqueHorario
-                                  FROM [dbo].[horario_bloqueado_docente] hbd
-                                  INNER JOIN [dbo].[BloqueHorario] bh
-                                      ON hbd.CodigoBloque = bh.bloque
+                                  SELECT DISTINCT 
+                                                hbd.CodigoBloque, 
+                                                hbd.DocenteID, 
+                                                bh.BloqueHorario
+                                            FROM 
+                                                [dbo].[horario_bloqueado_docente] hbd
+                                            INNER JOIN 
+                                                [dbo].[BloqueHorario] bh
+                                                ON hbd.CodigoBloque = bh.bloque
+                                            WHERE 
+                                            AND hbd.FlagConsiderado = 1;
                                     `);
       const BloquesBloqueadosCompletos = resultHorariosBloquedos.recordset;
 
@@ -771,17 +778,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
        END)         WHERE periodo=@id`);
       }
       // ##########################pruebas #######################################################
-      if (addEvents == 'true') {
-        await pool
-          .request()
-          .input('id', periodo)
-          .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
+      // if (addEvents == 'true') {
+      //   await pool
+      //     .request()
+      //     .input('id', periodo)
+      //     .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
 
-        return res.status(200).json({
-          message: 'Algoritmo de asignación docente terminado exitosamente',
-          data: true,
-        });
-      }
+      //   return res.status(200).json({
+      //     message: 'Algoritmo de asignación docente terminado exitosamente',
+      //     data: true,
+      //   });
+      // }
       // ##########################pruebas #######################################################
 
       if (tipo == 'total') {
@@ -1217,7 +1224,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               });
             });
 
-            console.log(calcularCodigoAnterior(periodo?.toString() || '', 2));
             const resultDocentes = await pool
               .request()
               .input('OrderBy', sql.NVarChar, orderByClause)

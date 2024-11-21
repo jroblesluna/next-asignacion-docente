@@ -45,8 +45,8 @@ const solapaHorarioBloqueado = (
   const diasFinDeSemana = ['S', 'D'];
 
   if (
-    (tipoSemana[0] === 'S' && diasHabiles.some((dia) => frecuencia.includes(dia))) ||
-    (tipoSemana[0] === 'D' && diasFinDeSemana.some((dia) => frecuencia.includes(dia)))
+    (tipoSemana[0] === 'S' && diasFinDeSemana.some((dia) => frecuencia.includes(dia))) ||
+    (tipoSemana[0] === 'D' && diasHabiles.some((dia) => frecuencia.includes(dia)))
   ) {
     return false;
   }
@@ -257,10 +257,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Bloques Horarios bloqueados de docente
       const resultHorariosBloquedos = await pool.request().query(`
-                            SELECT hbd.CodigoBloque, hbd.DocenteID, bh.BloqueHorario
-                            FROM [dbo].[horario_bloqueado_docente] hbd
-                            INNER JOIN [dbo].[BloqueHorario] bh
-                                ON hbd.CodigoBloque = bh.bloque 
+                            SELECT DISTINCT 
+                                                hbd.CodigoBloque, 
+                                                hbd.DocenteID, 
+                                                bh.BloqueHorario
+                                            FROM 
+                                                [dbo].[horario_bloqueado_docente] hbd
+                                            INNER JOIN 
+                                                [dbo].[BloqueHorario] bh
+                                                ON hbd.CodigoBloque = bh.bloque
+                                            WHERE 
+                                            AND hbd.FlagConsiderado = 1;
                               `);
 
       const resultH = await pool.request().input('id', idPeriod).input('version', version)
