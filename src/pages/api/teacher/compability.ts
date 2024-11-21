@@ -579,6 +579,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             Number(resultCurso.recordset[0]?.minutosTotales) >
           (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 4 * 60
         ) {
+          console.log('continue - P7.1 - MENSUAL');
+
           continue;
         }
 
