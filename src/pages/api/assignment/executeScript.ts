@@ -160,6 +160,8 @@ const disponibleEnFecha = (
   fechaInicio2: string,
   fechaFinal2: string
 ) => {
+  console.log('Analisando solapamiento con fechas ');
+
   function convertirFecha(cadenaFecha: string): Date {
     const [dia, mes, anio] = cadenaFecha.split('-').map(Number);
     return new Date(anio, mes - 1, dia);
@@ -588,7 +590,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                   const docenteDisponibleData = disponibilidadDocente.filter(
                     (item: disponibilidadDocenteInterface) =>
-                      item.DocenteID === Number(docenteAnalisis.idDocente)
+                      item.DocenteID == Number(docenteAnalisis.idDocente)
                   );
 
                   if (docenteDisponibleData.length > 0) {
@@ -655,7 +657,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                   const BloquesBloqueados = BloquesBloqueadosCompletos.filter(
                     (horario: { DocenteID: number }) =>
-                      horario.DocenteID === Number(docenteAnalisis.idDocente)
+                      horario.DocenteID == Number(docenteAnalisis.idDocente)
                   );
 
                   if (BloquesBloqueados.length > 0) {
@@ -902,7 +904,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const sedesArray = resultadoSedes.recordset;
 
-      console.log(sedesArray);
+      // console.log(sedesArray);
 
       if (tipo == 'total') {
         await pool.request().input('id', periodo).input('idVersion', version).query(`
@@ -1128,7 +1130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 '] ###################################################'
             );
 
-            console.log(cursosXsede);
+            // console.log(cursosXsede);
 
             if (Number(sede.idSede) === virtualID) {
               const resultadoDisponibilidadVirtuales = await pool
@@ -1298,7 +1300,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
               const docenteDisponibleData = disponibilidadDocente.filter(
                 (item: disponibilidadDocenteInterface) =>
-                  item.DocenteID === Number(docente.DocenteID)
+                  item.DocenteID == Number(docente.idDocente)
               );
 
               if (docenteDisponibleData.length > 0) {
@@ -1325,7 +1327,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               console.log('Paso 7.2 susccess');
 
               const BloquesBloqueados = BloquesBloqueadosCompletos.filter(
-                (horario: { DocenteID: number }) => horario.DocenteID === docente.DocenteID
+                (horario: { DocenteID: number }) => horario.DocenteID == docente.idDocente
               );
 
               if (BloquesBloqueados.length > 0) {
