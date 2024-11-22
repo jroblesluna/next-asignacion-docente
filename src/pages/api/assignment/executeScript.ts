@@ -147,6 +147,10 @@ const solapaHorarioBloqueado = (
   const inicioHorario = convertirHora(horarioInicio);
   const finHorario = convertirHora(horarioFin);
 
+  if (tipoSemana == 'S9') {
+    return finRango > inicioHorario && finHorario > inicioRango && frecuencia.includes('D');
+  }
+
   return finRango > inicioHorario && finHorario > inicioRango;
 };
 
