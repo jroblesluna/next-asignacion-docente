@@ -904,7 +904,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const sedesArray = resultadoSedes.recordset;
 
-      // console.log(sedesArray);
+      console.log(sedesArray);
 
       if (tipo == 'total') {
         await pool.request().input('id', periodo).input('idVersion', version).query(`
@@ -929,15 +929,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const ListaEscenario = resultadoEscenariosActivos.recordset;
 
-      for (const sede of sedesArray) {
-        if (Number(dataAvance[0].idSede) != Number(sede.idSede) && flagAvance === true) {
-          continue;
-        }
-
-        const resultCantidadSlots = await pool
-          .request()
-          .input('id', periodo)
-          .input('idVersion', version).query(`
+      const resultCantidadSlots = await pool
+        .request()
+        .input('id', periodo)
+        .input('idVersion', version).query(`
                     SELECT  count(*) as cantidad FROM [dbo].[ad_programacionAcademica]
                         		WHERE
                         		cancelado=0
@@ -947,11 +942,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         		AND idDocente IS NULL
                  `);
 
-        const cantidadSlots = resultCantidadSlots.recordset[0];
+      const cantidadSlots = resultCantidadSlots.recordset[0];
 
-        await sql.query`UPDATE ad_avanceAlgoritmo
+      await sql.query`UPDATE ad_avanceAlgoritmo
                                           SET totalSlots = ${cantidadSlots.cantidad}
                                           WHERE idPeriodo = ${periodo};`;
+
+      for (const sede of sedesArray) {
+        if (Number(dataAvance[0].idSede) != Number(sede.idSede) && flagAvance === true) {
+          continue;
+        }
 
         console.log(
           '#################| SEDE: ' +
@@ -975,17 +975,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                          (SELECT COUNT(*)
                          FROM [dbo].[ad_programacionAcademica] AS PC
                          WHERE PC.idHorario = P.idHorario
-                           AND PC.idPeriodo = 202409
-                           AND PC.idVersion=6
-                           AND PC.idSede= 9242 ) AS numeroCursos,
+                           AND PC.idPeriodo =@id
+                           AND PC.idVersion=@idVersion
+                           AND PC.idSede= @idSede ) AS numeroCursos,
                         (SELECT COUNT(*)
                          FROM [dbo].[LibroPorDocente]
                          WHERE CursoID = P.idCurso) AS intencidadDocente
                     FROM [dbo].[ad_programacionAcademica] P
                     INNER JOIN [dbo].[ad_horario] AS H
-                      ON P.idHorario = H.idHorario AND H.periodo=202409
+                      ON P.idHorario = H.idHorario AND H.periodo=@id
                     INNER JOIN [dbo].[ad_frecuencia] AS F
-                      ON P.idFrecuencia = F.idFrecuencia AND F.periodo=202409
+                      ON P.idFrecuencia = F.idFrecuencia AND F.periodo=@id
                     OUTER APPLY (
                     SELECT TOP 1 aux.NumDias
                     FROM [dbo].[aux_intensidad_fase] AS aux
@@ -995,9 +995,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     WHERE
                     P.cancelado=0
                     AND P.vigente = 1
-                    AND P.idPeriodo = 202409
-                    AND P.idVersion=6
-                    AND P.idSede = 9242
+                    AND P.idPeriodo = @id
+                    AND P.idVersion=@idVersion
+                    AND P.idSede =  @idSede
            
                     ORDER BY
                         H.HorarioInicio,
@@ -1108,7 +1108,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               continue;
             }
 
-            if (i == cursosXsedeArray.length) {
+            if (
+              i == cursosXsedeArray.length &&
+              aux_slotsRecorridos + cursosXsedeArray.length < aux_slotsRecorridos
+            ) {
               aux_slotsRecorridos += cursosXsedeArray.length;
             }
 
@@ -1129,7 +1132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 '] ###################################################'
             );
 
-            // console.log(cursosXsede);
+            console.log(cursosXsede);
 
             if (Number(sede.idSede) === virtualID) {
               const resultadoDisponibilidadVirtuales = await pool
@@ -1265,7 +1268,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             let docenteAsignado = false;
 
             for (const docente of ListaDocentes) {
-              console.log(docente);
+              // console.log(docente);
 
               //P7.1: Validar Cumplimiento de Horas a Asignar
 
@@ -1407,11 +1410,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                         FROM
                                             [dbo].[ad_programacionAcademica] AS PA
                                         INNER JOIN
-                                            [dbo].[ad_horario] AS H ON PA.idHorario = H.idHorario AND H.periodo=202409
+                                            [dbo].[ad_horario] AS H ON PA.idHorario = H.idHorario AND H.periodo=@id
                                         INNER JOIN
-                                            [dbo].[ad_frecuencia] AS F ON PA.idFrecuencia = F.idFrecuencia AND F.periodo=202409
+                                            [dbo].[ad_frecuencia] AS F ON PA.idFrecuencia = F.idFrecuencia AND F.periodo=@id
                                         INNER JOIN
-                                            [dbo].[ad_sede] AS S ON PA.idSede = S.idSede AND S.periodo=202409
+                                            [dbo].[ad_sede] AS S ON PA.idSede = S.idSede AND S.periodo=@id
                                         WHERE
                                             PA.idDocente = @idDocente
                                             AND PA.idPeriodo =@id
