@@ -966,7 +966,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('id', periodo)
           .input('idSede', sede.idSede)
           .input('idVersion', version).query(`
-                    SELECT DISTINCT P.*,
+                      SELECT DISTINCT P.*,
                        FORMAT(CONVERT(DATETIME, p.inicioClase), 'dd-MM-yyyy') AS InicioClase,
                        FORMAT(CONVERT(DATETIME, p.finalClase), 'dd-MM-yyyy') AS FinClase,
                         H.HorarioInicio, H.HorarioFin, H.MinutosReal, aux.NumDias,
@@ -975,17 +975,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                          (SELECT COUNT(*)
                          FROM [dbo].[ad_programacionAcademica] AS PC
                          WHERE PC.idHorario = P.idHorario
-                           AND PC.idPeriodo = @id
-                           AND PC.idVersion=@idVersion
-                           AND PC.idSede= @idSede ) AS numeroCursos,
+                           AND PC.idPeriodo = 202409
+                           AND PC.idVersion=6
+                           AND PC.idSede= 9242 ) AS numeroCursos,
                         (SELECT COUNT(*)
                          FROM [dbo].[LibroPorDocente]
                          WHERE CursoID = P.idCurso) AS intencidadDocente
                     FROM [dbo].[ad_programacionAcademica] P
                     INNER JOIN [dbo].[ad_horario] AS H
-                      ON P.idHorario = H.idHorario AND H.periodo=@id
+                      ON P.idHorario = H.idHorario AND H.periodo=202409
                     INNER JOIN [dbo].[ad_frecuencia] AS F
-                      ON P.idFrecuencia = F.idFrecuencia AND F.periodo=@id
+                      ON P.idFrecuencia = F.idFrecuencia AND F.periodo=202409
                     OUTER APPLY (
                     SELECT TOP 1 aux.NumDias
                     FROM [dbo].[aux_intensidad_fase] AS aux
@@ -995,13 +995,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     WHERE
                     P.cancelado=0
                     AND P.vigente = 1
-                    AND P.idPeriodo = @id
-                    AND P.idVersion=@idVersion
-                    AND P.idSede = @idSede
-                    AND P.idDocente IS NULL
-                    
+                    AND P.idPeriodo = 202409
+                    AND P.idVersion=6
+                    AND P.idSede = 9242
+           
                     ORDER BY
-                        numeroCursos DESC,
+                        H.HorarioInicio,
                         P.idHorario,
                         intencidadDocente DESC,
                         minutosTotales DESC;`);
