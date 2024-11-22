@@ -1002,7 +1002,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const cursosXsedeArray = resultCursos.recordset;
 
-        aux_slotsRecorridos += cursosXsedeArray.length;
         // si no hay cursos ir al siguiente
         if (cursosXsedeArray.length === 0) {
           continue;
@@ -1102,6 +1101,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             i = i + 1;
             if (dataAvance[0].idSlot != cursosXsede.uuuidProgramacionAcademica && flagAvance) {
               continue;
+            }
+
+            if (i == cursosXsedeArray.length) {
+              aux_slotsRecorridos += cursosXsedeArray.length;
             }
 
             if (flagAvance === true) {
@@ -1466,7 +1469,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                               },
                                               idVersion = ${version},
                                               correo=${correo},
-                                              slotsRecorridos = ${aux_slotsRecorridos + i}
+                                              slotsRecorridos = ${
+                                                i == cursosXsedeArray.length
+                                                  ? aux_slotsRecorridos
+                                                  : aux_slotsRecorridos + i
+                                              }
 
                                           WHERE idPeriodo = ${periodo};`;
 
@@ -1512,7 +1519,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                                       },
                                                       idVersion = ${version},
                                                       slotsRecorridos = ${
-                                                        aux_slotsRecorridos + i
+                                                        i == cursosXsedeArray.length
+                                                          ? aux_slotsRecorridos
+                                                          : aux_slotsRecorridos + i
                                                       },  correo=${correo}
                                                   WHERE idPeriodo = ${periodo};`;
               iteradorOrden = 0;
