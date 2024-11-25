@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         BEGIN
           SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,  F.NombreAgrupFrecuencia,
            D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-           S.nombreSede , (H.MinutosReal * aux.NumDias) as minutosCurso  , (H.MinutosReal * aux.NumDias)/(36*60.0) as carga
+           S.nombreSede , (( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )* aux.NumDias) as minutosCurso  , (( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) * aux.NumDias)/(36*60.0) as carga
           FROM [dbo].[ad_programacionAcademica] AS PA  
           LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = @id
           INNER JOIN ad_horario AS H ON H.idHorario = PA.idHorario AND H.periodo = @id
@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         BEGIN
          SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,   F.NombreAgrupFrecuencia,
            D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-           S.nombreSede , (H.MinutosReal * aux.NumDias) as minutosCurso  , (H.MinutosReal * aux.NumDias)/(36*60.0) as carga
+           S.nombreSede , (( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) * aux.NumDias) as minutosCurso  , (( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) * aux.NumDias)/(36*60.0) as carga
           FROM [dbo].[ad_programacionAcademica] AS PA  
           LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = 1
           INNER JOIN ad_horario AS H ON H.idHorario = PA.idHorario AND H.periodo = 1

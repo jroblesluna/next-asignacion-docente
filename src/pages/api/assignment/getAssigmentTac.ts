@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         BEGIN
               SELECT  D.uuidDocente,D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
              H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
-              (H.MinutosReal * aux.NumDias) as minutosCurso ,D.AntiguedadMeses
+              (( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) * aux.NumDias) as minutosCurso ,D.AntiguedadMeses
             FROM [dbo].[ad_docente] AS D 
             LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
             ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         BEGIN
                     SELECT D.uuidDocente, D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
                      H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
-                    (H.MinutosReal * aux.NumDias) as minutosCurso ,D.AntiguedadMeses
+                    (( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) * aux.NumDias) as minutosCurso ,D.AntiguedadMeses
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
                     ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
