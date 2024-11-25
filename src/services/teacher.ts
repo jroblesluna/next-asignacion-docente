@@ -33,6 +33,20 @@ const teacherService = {
     }
   },
 
+  getSedeTeacher: async (correo: string) => {
+    try {
+      const { data } = await axios.get(BASE_URL + `/getSede`, {
+        params: {
+          correo,
+        },
+      });
+      return data;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  },
+
   getCompatibility: async (idPeriod: string, uuidSlot: string, version: string) => {
     try {
       const { data } = await axios.get(BASE_URL + `/compability`, {

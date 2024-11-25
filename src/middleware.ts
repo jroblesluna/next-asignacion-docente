@@ -17,5 +17,5 @@ export function middleware(req: NextRequest) {
 }
 // , '/assignments-report/:path*'
 export const config = {
-  matcher: ['/new-period/:path*', '/loading'],
+  matcher: ['/new-period/:path*', '/loading', '/events-period/:path*'],
 };

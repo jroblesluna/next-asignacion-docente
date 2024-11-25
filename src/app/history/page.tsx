@@ -13,6 +13,7 @@ import Image from 'next/image';
 import { useEffect } from 'react';
 import periodService from '../../services/period';
 import { convertirFormatoFecha } from '../utils/managmentDate';
+import { getCookie } from '../utils/other';
 function Page() {
   const [inputValue, setInputValue] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
@@ -21,6 +22,7 @@ function Page() {
   const rowsPerPage = 6;
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
+  const [Rol, setRols] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -38,6 +40,7 @@ function Page() {
   const loadDataTest = async () => {
     const res = await periodService.getAll();
     setData(res.data);
+    setRols(getCookie('rol') || '');
   };
 
   useEffect(() => {
@@ -92,7 +95,7 @@ function Page() {
 
   return (
     <LayoutValidation>
-      <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8">
+      <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 items-start">
         <NavBar />
         <ReturnTitle name="Historial de períodos" />
         {historyData.length === 0 ? (
@@ -100,7 +103,7 @@ function Page() {
             <span className="loading loading-bars loading-lg"></span>
           </div>
         ) : (
-          <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col">
+          <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col ">
             <div className="w-full flex flex-row gap-5 items-center">
               <div className="w-1/3 relative text-black border rounded-md">
                 <input
@@ -207,6 +210,7 @@ function Page() {
                         endDate={convertirFormatoFecha(period.fechaFinal)}
                         codePeriod={period.idPeriodo.toString()}
                         isActive={period.estado}
+                        isPermited={Rol.split(',').includes('Administrador')}
                       />
                     ))}
                   </tbody>

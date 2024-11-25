@@ -8,6 +8,7 @@ interface HistoryTableInterface {
   endDate: string;
   codePeriod: string;
   isActive: string;
+  isPermited: boolean;
 }
 
 export const HistoryTable: React.FC<HistoryTableInterface> = ({
@@ -16,6 +17,7 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
   idPeriod,
   startDate,
   isActive,
+  isPermited,
 }) => {
   return (
     <tr className="text-[#050505]   border-b-[0.5px]  border-[#a1c2f1] ">
@@ -61,7 +63,7 @@ export const HistoryTable: React.FC<HistoryTableInterface> = ({
         </Link>
       </td>
       <td>
-        {isActive == 'ACTIVO' && (
+        {isActive == 'ACTIVO' && isPermited && (
           <div className="dropdown dropdown-top dropdown-end   bg-white">
             <Image
               className="cursor-pointer hover:opacity-80 text-gray-500"

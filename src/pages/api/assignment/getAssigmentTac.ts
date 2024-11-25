@@ -51,12 +51,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=@id
             LEFT JOIN [dbo].[ad_curso] as C
              ON C.idCurso= PA.idCurso AND C.periodo=@id
-             OUTER APPLY (
-            			SELECT TOP 1 aux.NumDias
-            			FROM [dbo].[aux_intensidad_fase] AS aux
-            			WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase
-            				AND PA.idPeriodo = aux.PeriodoAcademico) AS aux
-            -- cambiar PeriodoAcademico por periodo
+              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
+              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
+               WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase AND PA.idPeriodo = aux.PeriodoAcademico) 
+               ELSE 
+               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase 
+              	AND PA.idPeriodo = aux.Periodo)  
+                END AS NumDias 
+                ) AS aux    
             WHERE D.periodo=@id  AND D.dictaClase=1  and (D.vigente =1  or  PA.idDocente is not null)
             ORDER BY D.AntiguedadMeses DESC
         END
@@ -76,12 +78,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                      ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=1
                     LEFT JOIN [dbo].[ad_curso] as C
                      ON C.idCurso= PA.idCurso AND C.periodo=1
-                     OUTER APPLY (
-			SELECT TOP 1 aux.NumDias
-			FROM [dbo].[aux_intensidad_fase] AS aux
-			WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase
-				AND PA.idPeriodo = aux.PeriodoAcademico
-                              				) AS aux
+                      OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
+              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
+               WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase AND PA.idPeriodo = aux.PeriodoAcademico) 
+               ELSE 
+               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase 
+              	AND PA.idPeriodo = aux.Periodo)  
+                END AS NumDias 
+                ) AS aux 
                     WHERE D.periodo=1   AND D.dictaClase=1 
                       and (D.vigente =1  or  PA.idDocente is not null)
                     ORDER BY D.AntiguedadMeses DESC

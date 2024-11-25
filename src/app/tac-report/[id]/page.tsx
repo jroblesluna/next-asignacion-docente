@@ -1,5 +1,5 @@
 'use client';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import NavBar from '../../components/NavBar';
 import { ReturnTitle } from '../../components/Titles';
 import { useParams } from 'next/navigation';
@@ -20,6 +20,8 @@ import { downloadExcelTac } from '@/app/utils/downloadExcel';
 import periodService from '@/services/period';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
 import versionService from '@/services/version';
+import { getCookie } from '@/app/utils/other';
+import teacherService from '@/services/teacher';
 
 const Page = () => {
   const [inputValue, setInputValue] = useState('');
@@ -36,6 +38,8 @@ const Page = () => {
   const { id } = useParams() as { id: string };
   const [nombresSedesData, setNombresSedeData] = useState<{ NombreSede: string }[]>([]);
   const [dataVacia, setDataVacia] = useState(false);
+  const [Rol, setRols] = useState('');
+  const [sedeCouch, setSedeCouch] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -61,12 +65,21 @@ const Page = () => {
       alert('No se encontraron datos del periodo. Redirigiendo a la página principal.');
       window.location.href = '/history';
     }
+
+    const correo = localStorage.getItem('user');
+
+    const resSedeTeacher = await teacherService.getSedeTeacher(correo || '');
+
+    setSedeCouch(resSedeTeacher.data);
+
     setDataPeriodo(resPerido.data[0]);
     const resVersion = await versionService.getAll(id);
     setDataVersion(resVersion.data);
     setSelectedVersion(resVersion.data[0].idVersion);
     const resSedesData = await assigmentService.getLocationTac(id);
     setNombresSedeData(resSedesData.data);
+    setRols(getCookie('rol') || '');
+
     const res = await assigmentService.getTacAssigment(id, '-1');
     setData(res.data);
     console.log(resSedesData.data);
@@ -139,23 +152,51 @@ const Page = () => {
     }));
   };
 
-  const filteredDataTac = ProgramacionAcademicaDataTac.filter(
-    (rowTac) =>
-      rowTac.teacher.toLowerCase().includes(inputValue.toLowerCase()) &&
-      (selectedNumberCompare === 'ninguna' ||
-        selectedSings === 'ninguna' ||
-        (selectedSings !== 'ninguna' && selectedNumberCompare !== 'ninguna'
-          ? evaluateExpression(
-              rowTac.classSchedule.length,
-              selectedNumberCompare,
-              selectedSings
-            )
-          : false)) &&
-      (selectedLocation === 'Todas' ||
-        rowTac.location.toLowerCase() === selectedLocation.toLowerCase()) &&
-      (selectedState === 'Todas' ||
-        rowTac.status.toLowerCase() === selectedState.toLowerCase())
-  );
+  const filteredDataTac = useMemo(() => {
+    console.log(Rol);
+    console.log(sedeCouch);
+    console.log(selectedState.toLowerCase());
+    return ProgramacionAcademicaDataTac.filter(
+      (rowTac) =>
+        rowTac.teacher.toLowerCase().includes(inputValue.toLowerCase()) &&
+        (selectedNumberCompare === 'ninguna' ||
+          selectedSings === 'ninguna' ||
+          (selectedSings !== 'ninguna' && selectedNumberCompare !== 'ninguna'
+            ? evaluateExpression(
+                rowTac.classSchedule.length,
+                selectedNumberCompare,
+                selectedSings
+              )
+            : false)) &&
+        (selectedState === 'Todas' ||
+          rowTac.status.toLowerCase() === selectedState.toLowerCase()) &&
+        ((selectedLocation === 'Todas' && Rol.split(',').includes('Administrador')) ||
+          (rowTac.location.toLowerCase() === selectedLocation.toLowerCase() &&
+            Rol.split(',').includes('Administrador')) ||
+          (Rol.split(',').includes('Coach') &&
+            (selectedLocation.toLowerCase() === sedeCouch.toLowerCase().trim() ||
+              selectedState === 'Todas') &&
+            rowTac.location.toLowerCase() === sedeCouch.toLowerCase().trim()))
+    );
+  }, [
+    ProgramacionAcademicaDataTac,
+    inputValue,
+    selectedNumberCompare,
+    selectedSings,
+    selectedState,
+    selectedLocation,
+    Rol,
+    sedeCouch,
+  ]);
+
+  const filterSedes = useMemo(() => {
+    if (!Rol.split(',').includes('Administrador')) {
+      return nombresSedesData.filter(
+        (sede) => sede.NombreSede === sedeCouch || sede.NombreSede === 'Virtual'
+      );
+    }
+    return nombresSedesData;
+  }, [Rol, nombresSedesData, sedeCouch]);
 
   return (
     <LayoutValidation>
@@ -193,7 +234,7 @@ const Page = () => {
                   onChange={handleLocationChange}
                 >
                   <option value="Todas">Todas</option>
-                  {nombresSedesData.map((item, index) => (
+                  {filterSedes.map((item: { NombreSede: string }, index: number) => (
                     <option key={index} value={item.NombreSede}>
                       {item?.NombreSede?.toLowerCase() || ''}
                     </option>
@@ -397,7 +438,11 @@ const Page = () => {
               </div>
             </div>
           </div>
-          {ProgramacionAcademicaDataTac.length === 0 && !dataVacia ? (
+          {(ProgramacionAcademicaDataTac.length === 0 &&
+            filterSedes.length === 0 &&
+            !dataVacia) ||
+          Rol == '' ||
+          sedeCouch == '' ? (
             <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
               <span className="loading loading-bars loading-lg"></span>
             </div>

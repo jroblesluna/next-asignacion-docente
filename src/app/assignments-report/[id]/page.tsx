@@ -22,16 +22,19 @@ import {
 import periodService from '@/services/period';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
 import { getCookie } from '@/app/utils/other';
+import teacherService from '@/services/teacher';
 
 const ReportAssignments = () => {
   const { id } = useParams() as { id: string };
   const [inputValue, setInputValue] = useState('');
   const [selectedSede, setSelectedSede] = useState('Todas');
+  const [Rol, setRols] = useState('');
   const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [onlyLocked, setOnlyLocked] = useState(false);
   const [filterOption, setFilterOption] = useState('Profesor');
   const [dataVacia, setDataVacia] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sedeCouch, setSedeCouch] = useState('');
   const rowsPerPage = 50;
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
@@ -67,6 +70,15 @@ const ReportAssignments = () => {
   }
   const { assignments, setAssignments, setPeriod, setLastVersionID } = context;
 
+  const filterSedes = useMemo(() => {
+    if (!Rol.split(',').includes('Administrador')) {
+      return nombresSedesData.filter(
+        (sede) => sede.NombreSede === sedeCouch || sede.NombreSede === 'Virtual'
+      );
+    }
+    return nombresSedesData;
+  }, [Rol, nombresSedesData]);
+
   const filteredAssignments = useMemo(() => {
     return assignments
       .filter((assignment) => {
@@ -83,12 +95,39 @@ const ReportAssignments = () => {
       })
       .filter(
         (assignment) =>
-          (selectedSede === 'Todas' ||
-            assignment.location.toLowerCase().trim() === selectedSede.toLowerCase().trim()) &&
+          ((selectedSede === 'Todas' && Rol.split(',').includes('Administrador')) ||
+            (assignment.location.toLowerCase().trim() === selectedSede.toLowerCase().trim() &&
+              Rol.split(',').includes('Administrador')) ||
+            (Rol.split(',').includes('Coach') &&
+              assignment.location.toLowerCase().trim() === sedeCouch.toLowerCase().trim() &&
+              assignment.location.toLowerCase().trim() ===
+                selectedSede.toLowerCase().trim()) ||
+            (Rol.split(',').includes('Coach') &&
+              (assignment.teacher.includes(sedeCouch) ||
+                assignment.teacher === '' ||
+                assignment.teacher === '-') &&
+              selectedSede.toLowerCase().trim() === 'Virtual'.toLowerCase().trim() &&
+              assignment.location.toLowerCase().trim() === 'Virtual'.toLowerCase().trim()) ||
+            (Rol.split(',').includes('Coach') &&
+              selectedSede === 'Todas' &&
+              (assignment.location.toLowerCase().trim() === sedeCouch.toLowerCase().trim() ||
+                (assignment.location.toLowerCase().trim() === 'virtual' &&
+                  (assignment.teacher.includes(sedeCouch) ||
+                    assignment.teacher === '' ||
+                    assignment.teacher === '-'))))) &&
           (!onlyUnassigned || assignment.teacher === '' || assignment.teacher === '-') &&
           (!onlyLocked || assignment.isTeacherClosed || assignment.isRoomClosed)
       );
-  }, [assignments, inputValue, selectedSede, onlyUnassigned, onlyLocked, filterOption]);
+  }, [
+    assignments,
+    inputValue,
+    selectedSede,
+    onlyUnassigned,
+    onlyLocked,
+    filterOption,
+    Rol,
+    sedeCouch,
+  ]);
 
   const totalPages = Math.ceil(filteredAssignments.length / rowsPerPage);
   const paginatedAssignments = filteredAssignments.slice(startIndex, endIndex);
@@ -108,6 +147,11 @@ const ReportAssignments = () => {
       window.location.href = '/history';
     }
     setDataPeriodo(resPerido.data[0]);
+    const correo = localStorage.getItem('user');
+
+    const resSedeTeacher = await teacherService.getSedeTeacher(correo || '');
+
+    setSedeCouch(resSedeTeacher.data);
 
     const res = await assigmentService.getAll(id, '-1');
     setData(res.data);
@@ -115,8 +159,7 @@ const ReportAssignments = () => {
     const resSedesData = await assigmentService.getLocation(id);
     setNombresSedeData(resSedesData.data);
 
-    const tiposRol = getCookie('rol');
-    console.log(tiposRol);
+    setRols(getCookie('rol') || '');
 
     if (res.data.length === 0) {
       setDataVacia(true);
@@ -226,7 +269,7 @@ const ReportAssignments = () => {
                 onChange={handleSedeChange}
               >
                 <option value="Todas">Todas</option>
-                {nombresSedesData.map((item, index) => (
+                {filterSedes.map((item: { NombreSede: string }, index) => (
                   <option value={item.NombreSede} key={index}>
                     {item?.NombreSede?.toLowerCase()}
                   </option>
@@ -254,7 +297,7 @@ const ReportAssignments = () => {
               />
               Descargar Reporte
             </button>
-            {dataPerido?.estado == 'ACTIVO' && (
+            {dataPerido?.estado == 'ACTIVO' && Rol.split(',').includes('Administrador') && (
               <button
                 className="bg-primary font-roboto py-3 px-10 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
                 onClick={() => {
@@ -296,6 +339,7 @@ const ReportAssignments = () => {
         </div>
         {ProgramacionAcademicaData.length === 0 &&
         nombresSedesData.length === 0 &&
+        filterSedes.length === 0 &&
         !dataVacia ? (
           <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
             <span className="loading loading-bars loading-lg"></span>

@@ -231,12 +231,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     INNER JOIN [dbo].[ad_frecuencia] AS F
                         ON P.idFrecuencia = F.idFrecuencia
                         AND P.idPeriodo = @id
-                    OUTER APPLY (
-                    SELECT TOP 1 aux.NumDias 
-                    FROM [dbo].[aux_intensidad_fase] AS aux
-                    WHERE P.uidIdIntensidadFase = aux.uididintensidadfase  and 
-                        P.idPeriodo = aux.Periodo   
-                        ) AS aux
+                     LEFT JOIN [dbo].[ad_curso] as C
+             ON C.idCurso= P.idCurso AND C.periodo=@id
+              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
+              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
+               WHERE P.uidIdIntensidadFase = aux.uididintensidadfase AND P.idPeriodo = aux.PeriodoAcademico) 
+               ELSE 
+               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE P.uidIdIntensidadFase = aux.uididintensidadfase 
+              	AND P.idPeriodo = aux.Periodo)  
+                END AS NumDias 
+                ) AS aux    
+
                     WHERE 
     				 P.idPeriodo = @id
     				AND P.uuuidProgramacionAcademica=@uuidSlot AND P.idVersion=@version
@@ -378,12 +383,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
-                     OUTER APPLY (
-                                      SELECT TOP 1 aux.NumDias
-                                      FROM [dbo].[aux_intensidad_fase] AS aux
-                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
-                                      aux.Periodo= @id
-                                      ) AS aux
+                                  
+               LEFT JOIN [dbo].[ad_curso] as C
+               ON C.idCurso= t2.idCurso AND C.periodo=@id
+              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
+              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
+               WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
+               ELSE 
+               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
+              	AND t2.idPeriodo = aux.Periodo)  
+                END AS NumDias 
+                ) AS aux    
                                   WHERE
                     t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id  
@@ -393,12 +403,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
                     INNER JOIN [dbo].[ad_frecuencia] F ON t2.idFrecuencia = F.idFrecuencia AND F.periodo=@id
-                     OUTER APPLY (
-                                      SELECT TOP 1 aux.NumDias
-                                      FROM [dbo].[aux_intensidad_fase] AS aux
-                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
-                                      aux.Periodo= @id
-                                      ) AS aux
+                     
+         LEFT JOIN [dbo].[ad_curso] as C
+               ON C.idCurso= t2.idCurso AND C.periodo=@id
+              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
+              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
+               WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
+               ELSE 
+               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
+              	AND t2.idPeriodo = aux.Periodo)  
+                END AS NumDias 
+                ) AS aux    
                                   WHERE
                      t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id  
@@ -411,12 +426,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                        ((ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id  
-                     OUTER APPLY (
-                                      SELECT TOP 1 aux.NumDias
-                                      FROM [dbo].[aux_intensidad_fase] AS aux
-                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
-                                      aux.Periodo= @id
-                                      ) AS aux
+                    
+             LEFT JOIN [dbo].[ad_curso] as C
+                           ON C.idCurso= t2.idCurso AND C.periodo=@id
+                          OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
+                          (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
+                           WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
+                           ELSE 
+                           (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
+                          	AND t2.idPeriodo = aux.Periodo)  
+                            END AS NumDias 
+                            ) AS aux    
                                   WHERE
                     t2.idDocente = D.idDocente
                     AND t2.idPeriodo =@id  
@@ -473,12 +493,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
-                     OUTER APPLY (
-                                      SELECT TOP 1 aux.NumDias
-                                      FROM [dbo].[aux_intensidad_fase] AS aux
-                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
-                                      aux.Periodo= @id
-                                      ) AS aux
+                     
+ LEFT JOIN [dbo].[ad_curso] as C
+               ON C.idCurso= t2.idCurso AND C.periodo=@id
+              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
+              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
+               WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
+               ELSE 
+               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
+              	AND t2.idPeriodo = aux.Periodo)  
+                END AS NumDias 
+                ) AS aux    
                                   WHERE
                     t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id  
@@ -488,12 +513,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
                     INNER JOIN [dbo].[ad_frecuencia] F ON t2.idFrecuencia = F.idFrecuencia AND F.periodo=@id 
-                     OUTER APPLY (
-                                      SELECT TOP 1 aux.NumDias
-                                      FROM [dbo].[aux_intensidad_fase] AS aux
-                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
-                                      aux.Periodo= @id
-                                      ) AS aux
+                  
+               LEFT JOIN [dbo].[ad_curso] as C
+               ON C.idCurso= t2.idCurso AND C.periodo=@id
+              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
+              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
+               WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
+               ELSE 
+               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
+              	AND t2.idPeriodo = aux.Periodo)  
+                END AS NumDias 
+                ) AS aux    
                                   WHERE
                     t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id  
@@ -506,13 +536,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                        ((ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id  
-                     OUTER APPLY (
-                                      SELECT TOP 1 aux.NumDias
-                                      FROM [dbo].[aux_intensidad_fase] AS aux
-                                      WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase  and
-                                      aux.Periodo= @id
-                                      ) AS aux
-                                  WHERE
+                    
+                LEFT JOIN [dbo].[ad_curso] as C
+               ON C.idCurso= t2.idCurso AND C.periodo=@id
+              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
+              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
+               WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
+               ELSE 
+               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
+              	AND t2.idPeriodo = aux.Periodo)  
+                END AS NumDias 
+                ) AS aux    
+                    WHERE
                     t2.idDocente = D.idDocente
                     AND t2.idPeriodo =@id  
 				          	AND t2.idVersion=@version

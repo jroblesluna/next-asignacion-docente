@@ -159,10 +159,11 @@ export const downloadExcelTac = (data: tacData[], ID: string) => {
     });
 
     const totalClasses = classSchedule.length;
-    const totalClasesCompletas = (
-      classSchedule.reduce((total, num) => total + num.minutosCurso, 0) /
-      (36 * 60)
-    ).toFixed(2);
+    const totalClasesCompletas = Number(
+      (classSchedule.reduce((total, num) => total + num.minutosCurso, 0) / (36 * 60)).toFixed(
+        2
+      )
+    );
 
     // Agregar la fila con los datos
 
