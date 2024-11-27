@@ -15,17 +15,23 @@ const disponibleEnFecha = (
   fechaInicio2: string,
   fechaFinal2: string
 ) => {
+  console.log('Analisando solapamiento con fechas ');
+
   function convertirFecha(cadenaFecha: string): Date {
-    const [dia, mes, año] = cadenaFecha.split('-').map(Number);
-    return new Date(año, mes - 1, dia);
+    const [dia, mes, anio] = cadenaFecha.split('-').map(Number);
+    return new Date(anio, mes - 1, dia);
   }
 
-  const inicio1 = convertirFecha(fechaInicio1);
-  const final1 = convertirFecha(fechaFinal1);
-  const inicio2 = convertirFecha(fechaInicio2);
-  const final2 = convertirFecha(fechaFinal2);
-
-  return final1 < inicio2 || final2 < inicio1;
+  try {
+    const inicio1 = convertirFecha(fechaInicio1);
+    const final1 = convertirFecha(fechaFinal1);
+    const inicio2 = convertirFecha(fechaInicio2);
+    const final2 = convertirFecha(fechaFinal2);
+    return final1 < inicio2 || final2 < inicio1;
+  } catch (error) {
+    console.log('No hay fecha disponible');
+    return false;
+  }
 };
 
 const solapaHorarioBloqueado = (
