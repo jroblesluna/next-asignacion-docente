@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             error: error,
           });
         }
-      }, 120000);
+      }, 180000);
     } catch (error) {
       console.error('Error en la API:', error);
       return res.status(500).json({ message: 'Error en la consulta', error });

@@ -167,12 +167,16 @@ const disponibleEnFecha = (
     return new Date(anio, mes - 1, dia);
   }
 
-  const inicio1 = convertirFecha(fechaInicio1);
-  const final1 = convertirFecha(fechaFinal1);
-  const inicio2 = convertirFecha(fechaInicio2);
-  const final2 = convertirFecha(fechaFinal2);
-
-  return final1 < inicio2 || final2 < inicio1;
+  try {
+    const inicio1 = convertirFecha(fechaInicio1);
+    const final1 = convertirFecha(fechaFinal1);
+    const inicio2 = convertirFecha(fechaInicio2);
+    const final2 = convertirFecha(fechaFinal2);
+    return final1 < inicio2 || final2 < inicio1;
+  } catch (error) {
+    console.log('No hay fecha disponible');
+    return false;
+  }
 };
 
 const solapamientoHorario = (rango: string, horarioInicio: string, horarioFin: string) => {
@@ -910,7 +914,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await pool.request().input('id', periodo).input('idVersion', version).query(`
                   UPDATE ad_programacionAcademica 
                   SET idDocente = NULL
-                  WHERE  docenteModificado is null and idVersion=@idVersion and idPeriodo=@id`);
+                  WHERE  docenteModificado is null and idVersion=@idVersion and idPeriodo=@id `);
         await pool
           .request()
           .input('id', periodo)
@@ -918,7 +922,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('idVirtual', virtualID).query(`
                   UPDATE ad_programacionAcademica 
                   SET idAula = idAulaInicial,  aulaModificada=null
-                  WHERE  idSede=@idVirtual and  aulaModificada is not null  and idVersion=@idVersion and idPeriodo=@id`);
+                  WHERE  idSede=@idVirtual and  aulaModificada is not null  and docenteModificado is null  and idVersion=@idVersion and idPeriodo=@id`);
       }
 
       // P4: Iteración por sede
