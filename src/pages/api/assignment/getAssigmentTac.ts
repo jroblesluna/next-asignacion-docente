@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               	AND PA.idPeriodo = aux.Periodo)  
                 END AS NumDias 
                 ) AS aux    
-            WHERE D.periodo=@id  AND D.dictaClase=1  and (D.vigente =1  or  PA.idDocente is not null)
+            WHERE D.periodo=@id  AND D.dictaClase=1  and (D.vigente =1  or  PA.idDocente is not null) and PA.vigente=1   AND PA.cancelado = 0
             ORDER BY D.AntiguedadMeses DESC
         END
         ELSE
@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 END AS NumDias 
                 ) AS aux 
                     WHERE D.periodo=1   AND D.dictaClase=1 
-                      and (D.vigente =1  or  PA.idDocente is not null)
+                      and (D.vigente =1  or  PA.idDocente is not null) and PA.vigente=1   AND PA.cancelado = 0
                     ORDER BY D.AntiguedadMeses DESC
         END
       `);
