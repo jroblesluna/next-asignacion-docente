@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             	INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
             WHERE  TC2.TipoJornada = 'FT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
             	D2.vigente = 1 
-            	AND  D2.idSede <>@idVirtual and  D2.periodo=@id  AND D2.dictaClase=1  )))*100 ,3)
+            	AND  D2.idSede <> @idVirtual and  D2.periodo=@id  AND D2.dictaClase=1  )))*100 ,3)
             AS Ratio
             FROM
             	[dbo].[ad_docente] AS D 
@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             	AND  D.idSede <> @idVirtual
             	and  D.periodo=1
               AND D.dictaClase=1 
-              				AND S.vigente=1
+              AND S.vigente=1
             GROUP BY
             	S.idSede,
             	S.NombreSede

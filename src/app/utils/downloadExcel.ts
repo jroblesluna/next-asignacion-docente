@@ -160,7 +160,7 @@ export const downloadExcelTac = (data: tacData[], ID: string) => {
 
     const totalClasses = classSchedule.length;
     const totalClasesCompletas = Number(
-      (classSchedule.reduce((total, num) => total + num.minutosCurso, 0) / (36 * 60)).toFixed(
+      (classSchedule.reduce((total, num) => total + num.minutosCurso, 0) / (27 * 60)).toFixed(
         2
       )
     );

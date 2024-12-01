@@ -33,6 +33,21 @@ const teacherService = {
     }
   },
 
+  //
+  getEventDisponibility: async (periodo: string) => {
+    try {
+      const { data } = await axios.get(BASE_URL + `/getEventDisponibility`, {
+        params: {
+          periodo,
+        },
+      });
+      return data;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  },
+
   getSedeTeacher: async (correo: string) => {
     try {
       const { data } = await axios.get(BASE_URL + `/getSede`, {

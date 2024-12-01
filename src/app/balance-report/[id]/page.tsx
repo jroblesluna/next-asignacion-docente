@@ -15,16 +15,33 @@ import {
 } from '@/app/interface/datainterface';
 import assigmentService from '@/services/assigment';
 import { exportBalance } from '@/app/utils/downloadExcel';
+import { ordenarSedes } from '@/app/utils/managmentWords';
 const Page = () => {
   const { id } = useParams() as { id: string };
   const [timeStart, setTimeStart] = useState<string>('06:00');
   const [timeEnd, setTimeEnd] = useState<string>('23:59');
-  const [selectedDays, setSelectedDays] = useState('Estado');
+  const [selectedDays, setSelectedDays] = useState('Todas');
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [ratiosData, setRatiosData] = useState<ratioData[]>([]);
   const [balancaDatarray, setBalancaDatarray] = useState<balanceDataInterface[]>([]);
   const [balanceSchedule, setBalanceSchedule] = useState<esquemaFrecuenciaHorario[]>([]);
   const [locationData, setLocationData] = useState<string[]>([]);
+
+  const ordenDeseado: string[] = [
+    'Lima Centro',
+    'Miraflores',
+    'San Miguel',
+    'La Molina',
+    'Lima Norte Satélite',
+    'Surco',
+    'Provincias - Iquitos',
+    'Provincias - Chimbote',
+    'Provincias - Chincha',
+    'Provincias - Huaraz',
+    'Provincias - Ica',
+    'Provincias - Iquitos',
+    'Provincias - Pucallpa',
+  ];
 
   const handleTimeStartChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTimeStart(event.target.value);
@@ -59,7 +76,7 @@ const Page = () => {
     return balanceSchedule.filter(
       ({ horario, frecuencia }) =>
         rangesOverlap(horario, timeStart, timeEnd) &&
-        (selectedDays === 'Estado' ||
+        (selectedDays === 'Todas' ||
           (selectedDays === 'Diarios'
             ? weekday.some((item) => frecuencia.includes(item))
             : selectedDays === 'Sabatinos'
@@ -78,7 +95,10 @@ const Page = () => {
     }
     setDataPeriodo(resPerido.data[0]);
     const resRatioData = await assigmentService.getRatiosBalance(id);
-    setRatiosData(resRatioData.data);
+
+    const sedesOrdenadas = ordenarSedes(resRatioData.data, ordenDeseado);
+
+    setRatiosData(sedesOrdenadas);
 
     const resBalanceData = await assigmentService.getDataBalance(id);
     setBalancaDatarray(resBalanceData.data);
@@ -131,19 +151,21 @@ const Page = () => {
 
   return (
     <LayoutValidation>
-      <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8">
+      <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8  ">
         <NavBar />
         <ReturnTitle name="Balance de Asignaciones" />
-        <div className="w-[95%] flex gap-10 flex-row  mx-auto justify-between  text-[15px]">
+        <div className="w-[95%] flex gap-10 flex-row  mx-auto justify-between  text-[15px] ">
           <div className="flex flex-row gap-5 items-center ">
             <div className="flex flex-row gap-10 items-center">
-              <div className="flex flex-row gap-2">
+              <div className="flex flex-row gap-2 items-center">
                 <strong>Periodo: </strong>
-                <p>{convertirFecha(id)}</p>
+                <p className=" truncate">{convertirFecha(id)}</p>
               </div>
               <div className="flex flex-row gap-2">
                 <strong>Fecha:</strong>
-                <p className={dataPerido?.fechaInicio ? '' : 'skeleton h-4 w-[200px] '}>
+                <p
+                  className={dataPerido?.fechaInicio ? 'truncate' : 'skeleton h-4 w-[200px]  '}
+                >
                   {dataPerido?.fechaInicio !== undefined &&
                     ` ${convertirFormatoFecha(
                       dataPerido?.fechaInicio
@@ -152,7 +174,7 @@ const Page = () => {
               </div>
             </div>
             <div className="flex flex-row items-center ">
-              <label className="font-inter font-semibold text-xs">Hora de inicio:</label>
+              <label className="font-inter font-semibold text-xs pr-3">Hora de inicio:</label>
               <input
                 id="time-input"
                 type="time"
@@ -162,7 +184,7 @@ const Page = () => {
               />
             </div>
             <div className="flex flex-row items-center ">
-              <label className="font-inter font-semibold text-xs">Hora de Fin:</label>
+              <label className="font-inter font-semibold text-xs pr-3">Hora de Fin:</label>
               <input
                 id="time-input"
                 type="time"
@@ -174,14 +196,14 @@ const Page = () => {
 
             <label className="form-control w-full max-w-32 -mt-8">
               <div className="label">
-                <span className="label-text text-xs">Sede</span>
+                <span className="label-text text-xs">Filtro por Semana</span>
               </div>
               <select
                 className="select select-bordered text-xs"
                 value={selectedDays}
                 onChange={handleSelectedDays}
               >
-                <option>Estado</option>
+                <option>Todas</option>
                 <option>Diarios</option>
                 <option>Sabatinos</option>
               </select>
@@ -211,11 +233,11 @@ const Page = () => {
             <span className="loading loading-bars loading-lg"></span>
           </div>
         ) : (
-          <div className="w-full max-w-[100vw] overflow-auto py-3">
-            <table className="w-full">
-              <thead>
+          <div className="w-full py-3  ">
+            <table className="w-full max-w-full">
+              <thead className="sticky top-0 w-full">
                 <tr className="text-black truncate text-[11px]">
-                  <th className="py-1 uppercase max-w-16 overflow-hidden font-inter bg-[#062060] text-white min-w-32">
+                  <th className="py-1 uppercase max-w-16  font-inter bg-[#062060] text-white min-w-32">
                     FRECUENCIA
                   </th>
                   <th className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-32">
@@ -244,10 +266,10 @@ const Page = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr className="text-xs border">
+                <tr className="text-xs border sticky top-[20px] bg-gray-100  ">
                   <td></td>
-                  <td className="text-center border">FULL TIME</td>
-                  <td className="text-center border">
+                  <td className="text-center border font-bold">FULL TIME</td>
+                  <td className="text-center border bfont-bold">
                     {ratiosData.reduce((acc: number, item: ratioData) => acc + item.FT, 0)}
                   </td>
                   {ratiosData.map((item, index) => (
@@ -262,9 +284,9 @@ const Page = () => {
                     </td>
                   ))}
                 </tr>
-                <tr className="text-xs border">
+                <tr className="text-xs border sticky top-[36px] bg-gray-100">
                   <td></td>
-                  <td className="text-center border">PART TIME</td>
+                  <td className="text-center border font-bold">PART TIME</td>
                   <td className="text-center border">
                     {ratiosData.reduce((acc: number, item: ratioData) => acc + item.PT, 0)}
                   </td>
@@ -279,12 +301,14 @@ const Page = () => {
                         .length
                     }
                   </td>
-                  <td></td>
+                  {ratiosData.map((item, index) => (
+                    <td className="text-center border font-bold " key={index}></td>
+                  ))}
                 </tr>
 
-                <tr className="text-xs border">
+                <tr className="text-xs border sticky top-[52px] bg-gray-100">
                   <td></td>
-                  <td className="text-center border">RATIO</td>
+                  <td className="text-center border font-bold">RATIO</td>
                   <td className="text-center border">
                     {(
                       ratiosData.reduce((acc: number, item: ratioData) => acc + item.FT, 0) +

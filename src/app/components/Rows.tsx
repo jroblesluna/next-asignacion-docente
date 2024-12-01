@@ -350,7 +350,7 @@ export const TableTacReport: React.FC<TeacherAssignment> = ({
     <tr className={'text-[#050505]  text-[14px]  border-b-[0.5px] border-[#a1c2f1] '}>
       <td className="font-inter text-start py-2.5">{teacher}</td>
       <td className="font-inter py-2.5 text-[11px] pl-2  ">{location}</td>
-      <td className="font-inter text-center  py-2.5">{status}</td>
+      <td className="font-inter text-center  py-2.5 truncate max-w-3">{status}</td>
       {timeDaily.map((time, index) => (
         <td
           key={`daily-${index}`}
@@ -419,7 +419,7 @@ export const TableTacReport: React.FC<TeacherAssignment> = ({
       <td className="py-2 uppercase font-inter border text-center min-w-24">
         {(
           classSchedule.reduce((total, num) => total + num.minutosCurso, 0) /
-          (36 * 60)
+          (27 * 60)
         ).toFixed(2)}
       </td>
     </tr>

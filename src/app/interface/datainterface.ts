@@ -77,6 +77,7 @@ export interface DocentesActivos {
   Seguimiento: number;
   TipoJornada: string;
   EstadoDisponible: number;
+  eventoIndisponible: string;
 }
 
 export interface docentesTac {
@@ -109,6 +110,8 @@ export interface docentesTac {
   NombreAgrupFrecuencia: string;
   codigoCurso: string;
   minutosCurso: number;
+  EstadoDisponible: string;
+  eventoIndisponible: string;
 }
 
 export interface classSchedule {
@@ -123,6 +126,8 @@ export interface tacData {
   location: string;
   status: string;
   classSchedule: classSchedule[];
+  EstadoDisponible: string;
+  eventoIndisponible: string;
 }
 
 export interface versionData {

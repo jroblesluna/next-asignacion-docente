@@ -35,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 D.*, 
                                 TC.TipoJornada, 
                                 ISNULL(DD.EstadoDisponible, 1) AS EstadoDisponible,
+                                	ISNULL(DD.NombreEvento, '-') AS eventoIndisponible ,
                                 (CASE 
                                     WHEN EXISTS (SELECT 1 
                                                  FROM [dbo].[LibroPorDocente] 

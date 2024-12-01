@@ -227,9 +227,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 SELECT DISTINCT P.*,
                     FORMAT(CONVERT(DATETIME, p.inicioClase), 'dd-MM-yyyy') AS InicioClase,
                             FORMAT(CONVERT(DATETIME, p.finalClase), 'dd-MM-yyyy') AS FinClase,
-                        H.HorarioInicio, H.HorarioFin, ( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) AS MinutosReal, aux.NumDias,
-                        (( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * aux.NumDias) AS minutosTotales, F.NombreFrecuencia, F.NombreAgrupFrecuencia,
-                         (F.CantidadDiasSemanales * ( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  ) AS  minutosTotalesSemanales
+                        H.HorarioInicio, H.HorarioFin, H.MinutosReal , aux.NumDias,
+                        (H.MinutosReal  * aux.NumDias) AS minutosTotales, F.NombreFrecuencia, F.NombreAgrupFrecuencia,
+                         (F.CantidadDiasSemanales * H.MinutosReal   ) AS  minutosTotalesSemanales
                     FROM [dbo].[ad_programacionAcademica] P
                     INNER JOIN [dbo].[ad_horario] AS H
                         ON P.idHorario = H.idHorario and H.periodo=@id
@@ -274,15 +274,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Bloques Horarios bloqueados de docente
       const resultHorariosBloquedos = await pool.request().query(`
-                            SELECT DISTINCT 
+                             SELECT DISTINCT 
                                                 hbd.CodigoBloque, 
                                                 hbd.DocenteID, 
-                                                bh.BloqueHorario
+                                                bh.bloque
                                             FROM 
                                                 [dbo].[horario_bloqueado_docente] hbd
                                             INNER JOIN 
                                                 [dbo].[BloqueHorario] bh
-                                                ON hbd.CodigoBloque = bh.bloque
+                                                ON hbd.CodigoBloque = bh.BloqueHorario
                                             WHERE 
                                             hbd.FlagConsiderado = 1;
                               `);
@@ -385,7 +385,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    D.NombreCompletoProfesor, 
                    D.FechaInicioContrato,
                     D.nombreSede,
-                   ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * aux.NumDias) 
+                   ISNULL((SELECT SUM(H.MinutosReal   * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                      LEFT JOIN [dbo].[ad_curso] as C
@@ -402,7 +402,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) AS MinutosAcumulados, 
-                   ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * F.CantidadDiasSemanales) 
+                   ISNULL((SELECT SUM(H.MinutosReal   * F.CantidadDiasSemanales) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
                     INNER JOIN [dbo].[ad_frecuencia] F ON t2.idFrecuencia = F.idFrecuencia AND F.periodo=@id
@@ -425,7 +425,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    TC.TipoJornada, 
                    TC.HoraSemana,
                    ISNULL(
-                       ((ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * aux.NumDias) 
+                       ((ISNULL((SELECT SUM(H.MinutosReal  * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                     LEFT JOIN [dbo].[ad_curso] as C
@@ -492,7 +492,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    D.NombreCompletoProfesor, 
                      D.nombreSede,
                    D.FechaInicioContrato,
-                   ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * aux.NumDias) 
+                   ISNULL((SELECT SUM(H.MinutosReal  * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                       LEFT JOIN [dbo].[ad_curso] as C
@@ -510,7 +510,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
                 ), 0) AS MinutosAcumulados, 
-                   ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) * F.CantidadDiasSemanales) 
+                   ISNULL((SELECT SUM(H.MinutosReal * F.CantidadDiasSemanales) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id 
                     INNER JOIN [dbo].[ad_frecuencia] F ON t2.idFrecuencia = F.idFrecuencia AND F.periodo=@id
@@ -533,7 +533,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                    TC.TipoJornada, 
                    TC.HoraSemana,
                    ISNULL(
-                       ((ISNULL((SELECT SUM(( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) )  * aux.NumDias) 
+                       ((ISNULL((SELECT SUM(H.MinutosReal   * aux.NumDias) 
                     FROM [dbo].[ad_programacionAcademica] t2
                     INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                       LEFT JOIN [dbo].[ad_curso] as C
@@ -660,7 +660,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return !solapaHorarioBloqueado(
               item.CodigoBloque,
               resultCurso.recordset[0]?.NombreAgrupFrecuencia,
-              item.BloqueHorario,
+              item.bloque,
               resultCurso.recordset[0]?.HorarioInicio,
               resultCurso.recordset[0]?.HorarioFin
             );

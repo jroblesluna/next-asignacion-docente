@@ -159,7 +159,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 SELECT DISTINCT P.*,
                     FORMAT(CONVERT(DATETIME, p.inicioClase), 'dd-MM-yyyy') AS InicioClase,
                             FORMAT(CONVERT(DATETIME, p.finalClase), 'dd-MM-yyyy') AS FinClase,
-                        H.HorarioInicio, H.HorarioFin, ( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) AS MinutosReal,  F.NombreFrecuencia , F.NombreAgrupFrecuencia,
+                        H.HorarioInicio, H.HorarioFin, H.MinutosReal ,  F.NombreFrecuencia , F.NombreAgrupFrecuencia,
                          A.identificadorFisico, A.capacidad, A.idSede AS idSedeAula, D.idSede AS idSedeDocente
                     FROM [dbo].[ad_programacionAcademica] P
                     INNER JOIN [dbo].[ad_horario] AS H

@@ -35,11 +35,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .request()
       .input('id', idPeriod)
       .input('idVersion', selectedVersion).query(`
-        IF EXISTS (SELECT  top 1 * FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
+       IF EXISTS (SELECT  top 1 * FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
               SELECT  D.uuidDocente,D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
              H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
-              (( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) * aux.NumDias) as minutosCurso ,D.AntiguedadMeses
+              (H.MinutosReal * aux.NumDias) as minutosCurso ,D.AntiguedadMeses , ISNULL(DD.EstadoDisponible, 1) AS EstadoDisponible ,  
+							ISNULL(DD.NombreEvento, '-') AS eventoIndisponible 
             FROM [dbo].[ad_docente] AS D 
             LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
             ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
@@ -49,6 +50,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              ON H.idHorario= PA.idHorario AND H.periodo=@id
             LEFT JOIN [dbo].[ad_frecuencia] as F
              ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=@id
+						  LEFT JOIN 
+								[dbo].[disponibilidad_docente] AS DD ON DD.DocenteID = D.iddocente AND DD.PeriodoAcademico = @id
             LEFT JOIN [dbo].[ad_curso] as C
              ON C.idCurso= PA.idCurso AND C.periodo=@id
               OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
@@ -59,14 +62,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               	AND PA.idPeriodo = aux.Periodo)  
                 END AS NumDias 
                 ) AS aux    
-            WHERE D.periodo=@id  AND D.dictaClase=1  and (D.vigente =1  or  PA.idDocente is not null) and PA.vigente=1   AND PA.cancelado = 0
-            ORDER BY D.AntiguedadMeses DESC
+            WHERE D.periodo=@id  AND D.dictaClase=1  and (D.vigente =1  or  (PA.idDocente is not null AND PA.vigente=1 and PA.cancelado=0))   
+					  ORDER BY D.AntiguedadMeses DESC
         END
         ELSE
         BEGIN
                     SELECT D.uuidDocente, D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
                      H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
-                    (( DATEDIFF(MINUTE, CONVERT(TIME, H.HorarioInicio), CONVERT(TIME, H.HorarioFin)) ) * aux.NumDias) as minutosCurso ,D.AntiguedadMeses
+                    (H.MinutosReal  * aux.NumDias) as minutosCurso , D.AntiguedadMeses
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
                     ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
@@ -87,8 +90,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 END AS NumDias 
                 ) AS aux 
                     WHERE D.periodo=1   AND D.dictaClase=1 
-                      and (D.vigente =1  or  PA.idDocente is not null) and PA.vigente=1   AND PA.cancelado = 0
-                    ORDER BY D.AntiguedadMeses DESC
+                    and (D.vigente =1  or  PA.idDocente is not null) and PA.vigente=1   AND PA.cancelado = 0
+             ORDER BY D.AntiguedadMeses DESC
         END
       `);
 

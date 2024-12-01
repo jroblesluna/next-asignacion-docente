@@ -6,16 +6,18 @@ import { ModalWarning } from '../components/Modals';
 import { useEffect, useState } from 'react';
 import { TableActiveTeacher } from '../components/Rows';
 import Image from 'next/image';
-import { stateData } from '../constants/data';
 import LayoutValidation from '../LayoutValidation';
 import { DocentesActivos, PeriodoAcademico } from '../interface/datainterface';
 import periodService from '@/services/period';
 import teacherService from '@/services/teacher';
 import assigmentService from '@/services/assigment';
+import { convertToCustomAcronym } from '../utils/managmentWords';
 const Page = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('Todas');
   const [selectedState, setSelectedState] = useState('Todas');
+  const [newStatus, setDataNewStatus] = useState<string[]>([]);
+
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [dataDocentesActivos, setDataDocentesActivos] = useState<DocentesActivos[]>([]);
   const [nombresSedesData, setNombresSedeData] = useState<{ NombreSede: string }[]>([]);
@@ -47,7 +49,10 @@ const Page = () => {
       teacher.NombreSede.toLowerCase() === selectedLocation.toLowerCase();
     const matchesState =
       selectedState === 'Todas' ||
-      teacher.TipoJornada.toLowerCase() === selectedState.toLowerCase();
+      (teacher.TipoJornada.toLowerCase() === selectedState.toLowerCase() &&
+        teacher.eventoIndisponible == '-') ||
+      selectedState.toLowerCase() ==
+        convertToCustomAcronym(teacher.eventoIndisponible).toLowerCase();
 
     return matchesName && matchesLocation && matchesState;
   });
@@ -82,10 +87,13 @@ const Page = () => {
 
   const loadDataDocentes = async (id: string) => {
     const resSedesData = await assigmentService.getLocationTac('-1');
-    console.log(resSedesData.data);
     setNombresSedeData(resSedesData.data);
     const resDocentes = await teacherService.getAll(id);
+    const resNewStatus = await teacherService.getEventDisponibility(id);
+    setDataNewStatus(resNewStatus.data);
+
     setDataDocentesActivos(resDocentes.data);
+    console.log(resDocentes.data);
     if (resDocentes.data.length === 0) {
       setDataVacia(true);
     }
@@ -205,7 +213,7 @@ const Page = () => {
                     </label>
                     <label className="form-control w-full max-w-28 -mt-9">
                       <div className="label">
-                        <span className="label-text text-xs">Tipo de Contrato</span>
+                        <span className="label-text text-xs">Estado</span>
                       </div>
                       <select
                         className="select select-bordered text-xs"
@@ -213,13 +221,12 @@ const Page = () => {
                         onChange={handleStateChange}
                       >
                         <option value="Todas">Todas</option>
-                        {stateData.map((item, index) => {
-                          return (
-                            <option value={item} key={index}>
-                              {item}
-                            </option>
-                          );
-                        })}
+                        <option value="FT">FT</option>
+                        <option value="PT">PT</option>
+                        {Array.isArray(newStatus) &&
+                          newStatus.map((item) => {
+                            return <option key={item}>{item}</option>;
+                          })}
                       </select>
                     </label>
                   </div>
@@ -234,7 +241,7 @@ const Page = () => {
                             SEDE
                           </th>
                           <th className="py-2 uppercase font-inter font-semibold sticky top-0 text-start bg-white">
-                            TIPO DE CONTRATO
+                            ESTADO
                           </th>
                         </tr>
                       </thead>
@@ -244,13 +251,17 @@ const Page = () => {
                             key={index}
                             location={teacher.NombreSede}
                             teacher={teacher.NombreCompletoProfesor}
-                            status={teacher.TipoJornada}
+                            status={
+                              teacher.eventoIndisponible == '-'
+                                ? teacher.TipoJornada
+                                : convertToCustomAcronym(teacher.eventoIndisponible)
+                            }
                           />
                         ))}
                       </tbody>
                     </table>
                   </div>
-                  {currentProfessors.length === 0 ? (
+                  {dataDocentesActivos.length !== 0 ? (
                     <div className="flex justify-end flex-row items-center gap-5 ">
                       <p className="text-xs">Filas por página: {pageSize}</p>
                       <span className="text-xs">
@@ -281,7 +292,9 @@ const Page = () => {
                       </div>
                     </div>
                   ) : (
-                    <></>
+                    <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+                      <span className="loading loading-bars loading-lg"></span>
+                    </div>
                   )}
                 </div>
               </div>

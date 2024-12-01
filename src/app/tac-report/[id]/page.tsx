@@ -22,6 +22,7 @@ import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate
 import versionService from '@/services/version';
 import { getCookie } from '@/app/utils/other';
 import teacherService from '@/services/teacher';
+import { convertToCustomAcronym } from '@/app/utils/managmentWords';
 
 const Page = () => {
   const [inputValue, setInputValue] = useState('');
@@ -31,6 +32,7 @@ const Page = () => {
   const [selectedNumberCompare, setSelectedNumberCompare] = useState('ninguna');
   const [ProgramacionAcademicaData, setData] = useState<docentesTac[]>([]);
   const [ProgramacionAcademicaDataTac, setDataTac] = useState<tacData[]>([]);
+  const [newStatus, setDataNewStatus] = useState<string[]>([]);
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [DataVersion, setDataVersion] = useState<versionData[]>([]);
   const [selectVersion, setSelectedVersion] = useState('');
@@ -79,6 +81,8 @@ const Page = () => {
     const resSedesData = await assigmentService.getLocationTac(id);
     setNombresSedeData(resSedesData.data);
     setRols(getCookie('rol') || '');
+    const resNewStatus = await teacherService.getEventDisponibility(id);
+    setDataNewStatus(resNewStatus.data);
 
     const res = await assigmentService.getTacAssigment(id, '-1');
     setData(res.data);
@@ -97,6 +101,7 @@ const Page = () => {
     setSelectedVersion(idVersion);
     setData([]);
     setDataTac([]);
+    setDataNewStatus([]);
     setDataVacia(false);
     const res = await assigmentService.getTacAssigment(id, idVersion);
     setData(res.data);
@@ -113,7 +118,12 @@ const Page = () => {
       ).map((item) => ({
         teacher: item.NombreCompletoProfesor,
         location: item.NombreSede,
-        status: item.TipoJornada,
+        EstadoDisponible: item.EstadoDisponible,
+        eventoIndisponible: item.eventoIndisponible,
+        status:
+          item.EstadoDisponible == '0'
+            ? convertToCustomAcronym(item.eventoIndisponible)
+            : item.TipoJornada,
         classSchedule: ProgramacionAcademicaData.filter(
           (item2) => item2.uuidDocente === item.uuidDocente && item2.idFrecuencia !== null
         ).map((elemento) => ({
@@ -153,9 +163,6 @@ const Page = () => {
   };
 
   const filteredDataTac = useMemo(() => {
-    console.log(Rol);
-    console.log(sedeCouch);
-    console.log(selectedState.toLowerCase());
     return ProgramacionAcademicaDataTac.filter(
       (rowTac) =>
         rowTac.teacher.toLowerCase().includes(inputValue.toLowerCase()) &&
@@ -163,7 +170,12 @@ const Page = () => {
           selectedSings === 'ninguna' ||
           (selectedSings !== 'ninguna' && selectedNumberCompare !== 'ninguna'
             ? evaluateExpression(
-                rowTac.classSchedule.length,
+                Number(
+                  (
+                    rowTac.classSchedule.reduce((total, num) => total + num.minutosCurso, 0) /
+                    (27 * 60)
+                  ).toFixed(2)
+                ),
                 selectedNumberCompare,
                 selectedSings
               )
@@ -253,11 +265,17 @@ const Page = () => {
                   <option value="Todas">Todas</option>
                   <option value="FT">FT</option>
                   <option value="PT">PT</option>
+                  {Array.isArray(newStatus) &&
+                    newStatus.map((item) => {
+                      return <option key={item}>{item}</option>;
+                    })}
                 </select>
               </label>
               <div className="form-control w-full max-w-28 -mt-9 ">
                 <div className="label">
-                  <span className="label-text text-[9px] -mb-2">N° de clases Asignadas</span>
+                  <span className="label-text text-[9.5px] -mb-2 ">
+                    N° de clases Completas
+                  </span>
                 </div>
                 <div className="flex flex-row gap-4 border  rounded-md w-36 px-2 py-1 items-center ">
                   <label className="form-control w-full max-w-28 ">
@@ -464,7 +482,7 @@ const Page = () => {
                           SEDE
                         </th>
                         <th className="py-2.5 uppercase font-inter border bg-[#19B050] sticky top-0 text-white min-w-24 text-xs">
-                          TIPO DE CONTRATO
+                          ESTADO
                         </th>
                         {timeDaily.map((time, index) => (
                           <th

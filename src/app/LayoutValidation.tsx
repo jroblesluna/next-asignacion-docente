@@ -66,7 +66,7 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 max-w-[100vw]">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
           <div className="text-center flex flex-col gap-2 items-center">
             <h2 className="text-2xl font-semibold text-gray-800 mb-2">
