@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 							ISNULL(DD.NombreEvento, '-') AS eventoIndisponible 
             FROM [dbo].[ad_docente] AS D 
             LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
-            ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
+            ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion and PA.vigente=1 and PA.cancelado=0
             INNER JOIN [dbo].[dim_tipo_contrato] AS TC     
             ON  D.idTipoContrato =TC.TipoContratoID
             LEFT JOIN [dbo].[ad_horario]as H
@@ -62,8 +62,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               	AND PA.idPeriodo = aux.Periodo)  
                 END AS NumDias 
                 ) AS aux    
-            WHERE D.periodo=@id  AND D.dictaClase=1  and (D.vigente =1  or  (PA.idDocente is not null AND PA.vigente=1 and PA.cancelado=0))   
-					  ORDER BY D.AntiguedadMeses DESC
+            WHERE D.periodo=@id  AND D.dictaClase=1  and (D.vigente =1   or  (PA.idDocente is not null AND PA.vigente=1 and PA.cancelado=0) )   
+					  
+            ORDER BY D.AntiguedadMeses DESC
         END
         ELSE
         BEGIN
@@ -72,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     (H.MinutosReal  * aux.NumDias) as minutosCurso , D.AntiguedadMeses
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
-                    ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion
+                    ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion  and PA.vigente=1 and PA.cancelado=0
                     INNER JOIN [dbo].[dim_tipo_contrato] AS TC     
                     ON  D.idTipoContrato =TC.TipoContratoID
                     LEFT JOIN [dbo].[ad_horario]as H

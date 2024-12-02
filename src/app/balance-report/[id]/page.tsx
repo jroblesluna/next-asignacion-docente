@@ -327,7 +327,7 @@ const Page = () => {
                       {(
                         balancaDatarray.reduce(
                           (acc: number, itemBalance: balanceDataInterface) =>
-                            itemBalance.nombreSede === item.NombreSede
+                            itemBalance.nombreSedeAlojada === item.NombreSede
                               ? acc + itemBalance.carga
                               : acc,
                           0
