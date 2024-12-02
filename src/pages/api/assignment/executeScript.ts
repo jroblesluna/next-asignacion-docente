@@ -1011,7 +1011,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     ORDER BY
                         H.HorarioInicio,
                         P.idHorario,
-                        intencidadDocente DESC,
+                        intencidadDocente ASC,
                         minutosTotales DESC;`);
 
         const cursosXsedeArray = resultCursos.recordset;
