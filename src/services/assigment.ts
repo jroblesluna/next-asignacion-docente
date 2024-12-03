@@ -113,8 +113,6 @@ const assigmentService = {
     userName: string
   ) => {
     try {
-      console.log(userName);
-
       const { data } = await axios.patch(`${BASE_URL}/update-rows`, {
         idPeriodo,
         idVersion,
@@ -142,8 +140,6 @@ const assigmentService = {
     userName: string
   ) => {
     try {
-      console.log(userName);
-
       const { data } = await axios.patch(`${BASE_URL}/updateRoom-rows`, {
         idPeriodo,
         idVersion,
@@ -174,7 +170,6 @@ const assigmentService = {
       });
       return data;
     } catch (error) {
-      console.log(error);
       return null;
     }
   },

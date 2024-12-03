@@ -36,7 +36,6 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
 
   useEffect(() => {
     if (shouldLogout) {
-      console.log('hola');
       instance.clearCache();
       sessionStorage.clear();
       localStorage.clear();

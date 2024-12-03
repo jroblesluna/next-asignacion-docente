@@ -86,7 +86,6 @@ const Page = () => {
 
     const res = await assigmentService.getTacAssigment(id, '-1');
     setData(res.data);
-    console.log(resSedesData.data);
     if (res.data.length === 0) {
       setDataVacia(true);
     }

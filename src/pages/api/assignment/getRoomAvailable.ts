@@ -127,8 +127,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const { idPeriod, uuidSlot, version } = req.query;
       // saca el aula
-      console.log(uuidSlot);
-      console.log(version);
 
       const result = await pool
         .request()

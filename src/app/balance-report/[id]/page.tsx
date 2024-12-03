@@ -25,7 +25,6 @@ const Page = () => {
   const [ratiosData, setRatiosData] = useState<ratioData[]>([]);
   const [balancaDatarray, setBalancaDatarray] = useState<balanceDataInterface[]>([]);
   const [balanceSchedule, setBalanceSchedule] = useState<esquemaFrecuenciaHorario[]>([]);
-  const [locationData, setLocationData] = useState<string[]>([]);
 
   const ordenDeseado: string[] = [
     'Lima Centro',
@@ -34,7 +33,6 @@ const Page = () => {
     'La Molina',
     'Lima Norte Satélite',
     'Surco',
-    'Provincias - Iquitos',
     'Provincias - Chimbote',
     'Provincias - Chincha',
     'Provincias - Huaraz',
@@ -117,6 +115,7 @@ const Page = () => {
 
   useEffect(() => {
     if (balancaDatarray.length !== 0) {
+      console.log(balancaDatarray);
       const uniqueCombinations = new Set<string>();
       const result: esquemaFrecuenciaHorario[] = [];
 
@@ -139,13 +138,6 @@ const Page = () => {
       );
 
       setBalanceSchedule(result);
-
-      const uniqueSedesAlojadas = Array.from(
-        new Set(
-          balancaDatarray.map((item: { nombreSedeAlojada: string }) => item.nombreSedeAlojada)
-        )
-      );
-      setLocationData(uniqueSedesAlojadas);
     }
   }, [balancaDatarray]);
 
@@ -226,9 +218,7 @@ const Page = () => {
           </button>
         </div>
 
-        {ratiosData.length === 0 ||
-        balanceSchedule.length === 0 ||
-        locationData.length === 0 ? (
+        {ratiosData.length === 0 || balanceSchedule.length === 0 ? (
           <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
             <span className="loading loading-bars loading-lg"></span>
           </div>
@@ -332,8 +322,7 @@ const Page = () => {
                               : acc,
                           0
                         ) /
-                        ((item.NombreSede === item.NombreSede ? item.FT : 0) +
-                          (item.NombreSede === item.NombreSede ? item.PT : 0) / 3)
+                        (item.FT + item.PT / 3)
                       ).toFixed(2)}
                     </td>
                   ))}
@@ -363,7 +352,7 @@ const Page = () => {
                                 rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
                                 `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                   item.horario &&
-                                rowBalance.nombreSede === itemLocation.NombreSede &&
+                                rowBalance.nombreSedeAlojada === itemLocation.NombreSede &&
                                 rowBalance.idDocente !== null
                             ).length
                           }
@@ -395,7 +384,7 @@ const Page = () => {
                                     rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
                                     `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                       item.horario &&
-                                    rowBalance.nombreSede === itemLocation.NombreSede
+                                    rowBalance.nombreSedeAlojada === itemLocation.NombreSede
                                 ).length /
                                   balancaDatarray.filter(
                                     (rowBalance) =>

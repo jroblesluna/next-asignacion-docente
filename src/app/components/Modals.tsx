@@ -178,7 +178,6 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
   const correo = localStorage.getItem('user');
   const loadData = async () => {
     const res = await teacherService.getDisponibility(period, idRow, LastVersionID);
-    console.log(res.data);
     setData(res.data);
   };
 
@@ -374,7 +373,6 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
 
   const loadData = async () => {
     const res = await teacherService.getCompatibility(period, idRow, LastVersionID);
-    console.log(res.data);
     setData(res.data);
   };
 
@@ -432,7 +430,6 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
 
   const onhandleClick = (newTeacher: string, selectIdTeacher: string) => {
     setFunction(newTeacher);
-    console.log(selectIdTeacher);
     uploadRowTeacher(selectIdTeacher);
     UpdateTeacher(idRow, newTeacher);
   };
@@ -579,7 +576,6 @@ export const ModalFormRoomCompatibility: React.FC<ModalFormRoomProps> = ({
 
   const loadData = async () => {
     const res = await assigmentService.getRoomAvailable(period, idRow, LastVersionID);
-    console.log(res.data);
     setData(res.data);
   };
 
@@ -638,7 +634,6 @@ export const ModalFormRoomCompatibility: React.FC<ModalFormRoomProps> = ({
 
   const onhandleClick = (newRoom: string, selectIdRoom: string, idClassRoomNew: string) => {
     setFunction(newRoom, selectIdRoom);
-    console.log(selectIdRoom);
     uploadRowRoom(selectIdRoom);
     UpdateClasRoom(idRow, newRoom, idClassRoomNew);
   };

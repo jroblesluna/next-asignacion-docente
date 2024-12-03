@@ -15,7 +15,6 @@ const NavBar = () => {
         name: accounts[0].name || '',
         username: accounts[0].username || '',
       });
-      // console.log(accounts[0]?.idTokenClaims?.roles);
       localStorage.setItem('user', accounts[0].username || '');
 
       document.cookie = `rol=${accounts[0]?.idTokenClaims?.roles} ; path=/; secure`;

@@ -1009,7 +1009,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND P.idSede =  @idSede
                      AND P.idDocente is null
                     ORDER BY
-                        H.HorarioInicio,
+                        numeroCursos ASC,
                         P.idHorario,
                         intencidadDocente ASC,
                         minutosTotales DESC;`);
@@ -1281,8 +1281,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             let docenteAsignado = false;
 
             for (const docente of ListaDocentes) {
-              // console.log(docente);
-
               //P7.1: Validar Cumplimiento de Horas a Asignar
 
               //P.7.1.1 VALIDAR NO CUMPLIENTO DE HORAS SEMANALES A ASIGNAR

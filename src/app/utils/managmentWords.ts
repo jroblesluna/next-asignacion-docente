@@ -22,14 +22,36 @@ type Sede = {
 };
 
 export const ordenarSedes = (sedes: Sede[], ordenDeseado: string[]): Sede[] => {
-  return sedes.sort((a, b) => {
-    const indexA = ordenDeseado.indexOf(a.NombreSede);
-    const indexB = ordenDeseado.indexOf(b.NombreSede);
+  // Filtramos las sedes que están en ordenDeseado y las que no lo están.
+  const sedesEnOrdenDeseado = sedes.filter((sede) => ordenDeseado.includes(sede.NombreSede));
+  // Filtramo por sede lima y provincias
+  const sedesLima = sedesEnOrdenDeseado.filter(
+    (sede) => !sede.NombreSede.includes('Provincia')
+  );
+  const sedesProvincia = sedesEnOrdenDeseado.filter((sede) =>
+    sede.NombreSede.includes('Provincia')
+  );
 
-    if (indexA === -1 && indexB === -1) return 0;
-    if (indexA === -1) return 1;
-    if (indexB === -1) return -1;
+  const sedesNoEnOrdenDeseado = sedes.filter(
+    (sede) => !ordenDeseado.includes(sede.NombreSede)
+  );
 
-    return indexA - indexB;
-  });
+  // Ordenamos las sedes que están en ordenDeseado según el orden de ordenDeseado.
+  sedesEnOrdenDeseado.sort(
+    (a, b) => ordenDeseado.indexOf(a.NombreSede) - ordenDeseado.indexOf(b.NombreSede)
+  );
+
+  // Ahora dividimos las sedes no en ordenDeseado en dos grupos: con "Provincia" y sin "Provincia"
+  const sedesConProvincia = sedesNoEnOrdenDeseado.filter((sede) =>
+    sede.NombreSede.includes('Provincia')
+  );
+  const sedesSinProvincia = sedesNoEnOrdenDeseado.filter(
+    (sede) => !sede.NombreSede.includes('Provincia')
+  );
+
+  // Ordenamos las sedes sin "Provincia" alfabéticamente.
+  sedesSinProvincia.sort((a, b) => a.NombreSede.localeCompare(b.NombreSede));
+
+  // Finalmente, unimos los tres grupos: sedes en ordenDeseado, sedes sin "Provincia", y sedes con "Provincia".
+  return [...sedesLima, ...sedesSinProvincia, ...sedesProvincia, ...sedesConProvincia];
 };

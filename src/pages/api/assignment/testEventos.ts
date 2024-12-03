@@ -23,7 +23,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('idPeriodo', sql.Int, id)
           .input('nombreCreador', sql.VarChar, 'test')
           .execute('ad_crearVersion');
-        console.log(resultNewVersion.recordset[0].nuevoIdVersion);
         const nuevaIdVersion = resultNewVersion.recordset[0].nuevoIdVersion;
 
         // COPIAR LA PROGRAMACIÓN CURSO Y AGREGARLE UNA NUEVA VERSIÓN

@@ -287,7 +287,7 @@ export const exportBalance = (
     '',
     ...ratiosData.map((item) => {
       const cargaMod = balancaDatarray.reduce(
-        (acc, row) => (row.nombreSede === item.NombreSede ? acc + row.carga : acc),
+        (acc, row) => (row.nombreSedeAlojada === item.NombreSede ? acc + row.carga : acc),
         0
       );
       const denom = item.FT + item.PT / 3;
@@ -311,7 +311,7 @@ export const exportBalance = (
           (row) =>
             row.NombreAgrupFrecuencia === item.frecuencia &&
             `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario &&
-            row.nombreSede === location.NombreSede &&
+            row.nombreSedeAlojada === location.NombreSede &&
             row.idDocente !== null
         ).length;
         return count;
@@ -333,7 +333,7 @@ export const exportBalance = (
           (row) =>
             row.NombreAgrupFrecuencia === item.frecuencia &&
             `${row.HorarioInicio} - ${row.HorarioFin}` === item.horario &&
-            row.nombreSede === location.NombreSede
+            row.nombreSedeAlojada === location.NombreSede
         ).length;
         return `${((matchCount / totalMatches) * 100).toFixed(2)}%`;
       }),

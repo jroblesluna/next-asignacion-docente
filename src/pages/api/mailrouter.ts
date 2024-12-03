@@ -7,12 +7,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     try {
       if (!connectionString) {
-        throw new Error('La variable de entorno COMMUNICATION_SERVICES_CONNECTION_STRING no está definida');
+        throw new Error(
+          'La variable de entorno COMMUNICATION_SERVICES_CONNECTION_STRING no está definida'
+        );
       }
 
       const { to, subject, plainText } = req.body;
-
-      console.log(to, subject, plainText);
 
       if (!to || !subject || !plainText) {
         return res.status(400).json({ message: 'Faltan parámetros obligatorios' });
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const client = new EmailClient(connectionString);
 
       const emailMessage = {
-        senderAddress: "noreply@notificaciones.icpna-virtual.edu.pe",
+        senderAddress: 'noreply@notificaciones.icpna-virtual.edu.pe',
         content: {
           subject,
           plainText,
@@ -39,7 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } else {
         return res.status(500).json({ message: 'Error al enviar el correo', details: result });
       }
-
     } catch (error) {
       console.error('Error al enviar el correo:', error);
       return res.status(500).json({ message: 'Error interno al enviar el correo', error });

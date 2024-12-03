@@ -598,7 +598,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const ListaDocentes = resultDocentes.recordset;
 
       for (const docente of ListaDocentes) {
-        console.log('');
         console.log('Minutos Semanales Acumulado: ' + docente.totalTiempoSemanal);
         console.log(
           'Minutos Semanales Curso: ' + resultCurso.recordset[0]?.minutosTotalesSemanales

@@ -77,7 +77,6 @@ const Page = () => {
       alert('Ya hay un periodo activo o en proceso. Redirigiendo a la página principal.');
       window.location.href = '/home';
     }
-    console.log(resPerido.data[0]);
     setDataPeriodo(resPerido.data[0]);
   };
 
@@ -93,7 +92,6 @@ const Page = () => {
     setDataNewStatus(resNewStatus.data);
 
     setDataDocentesActivos(resDocentes.data);
-    console.log(resDocentes.data);
     if (resDocentes.data.length === 0) {
       setDataVacia(true);
     }
