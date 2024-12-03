@@ -92,6 +92,16 @@ const assigmentService = {
     }
   },
 
+  getData: async () => {
+    try {
+      const { data } = await axios.get(`/api/getData`, {});
+      return data;
+    } catch (error) {
+      console.error('Error al obtener los datos del tenat', error);
+      return null;
+    }
+  },
+
   getLocationTac: async (idPeriod: string) => {
     try {
       const { data } = await axios.get(`${BASE_URL}/getlocationTac`, {

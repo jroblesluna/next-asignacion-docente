@@ -18,4 +18,8 @@ const config = {
   },
 };
 
+console.log('variable: ' + process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT);
+console.log('variable2: ' + process.env.DB_USER);
+console.log('PUBLIC_AZURE_WEBAPP_ID_CLIENT: ' + process.env.PUBLIC_AZURE_WEBAPP_ID_CLIENT);
+
 export const msalInstance = new PublicClientApplication(config);
