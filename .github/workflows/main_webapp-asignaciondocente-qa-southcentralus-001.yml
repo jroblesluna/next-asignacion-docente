@@ -21,11 +21,6 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Set environment variables
-        run: |
-          echo "NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT=${{ secrets.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT=${{ secrets.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT }}" >> $GITHUB_ENV
-
       - name: npm install, build, and test
         run: |
           npm install
