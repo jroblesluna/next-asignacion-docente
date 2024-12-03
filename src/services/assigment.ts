@@ -159,6 +159,26 @@ const assigmentService = {
     }
   },
 
+  sincronizarTablaOutput: async (idPeriodo: string, correo: string) => {
+    try {
+      const { data } = await axios.get(`${BASE_URL}/sincTablaOutput`, {
+        params: {
+          idPeriodo,
+          correo,
+        },
+      });
+
+      if (!data.data) {
+        alert(data.message);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error al actualizar las filas de asignación:', error);
+      return null;
+    }
+  },
+
   getRoomAvailable: async (idPeriod: string, uuidSlot: string, version: string) => {
     try {
       const { data } = await axios.get(BASE_URL + `/getRoomAvailable`, {

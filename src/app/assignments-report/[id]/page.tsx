@@ -23,6 +23,7 @@ import periodService from '@/services/period';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
 import { getCookie } from '@/app/utils/other';
 import teacherService from '@/services/teacher';
+import { ModalWarning } from '@/app/components/Modals';
 
 const ReportAssignments = () => {
   const { id } = useParams() as { id: string };
@@ -138,6 +139,11 @@ const ReportAssignments = () => {
     } else if (direction === 'next' && currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
+  };
+
+  const onhandleClickSinc = async (idPeriodo: string) => {
+    const correo = localStorage.getItem('user');
+    await assigmentService.sincronizarTablaOutput(idPeriodo, correo || '');
   };
 
   const loadDataTest = async () => {
@@ -298,24 +304,35 @@ const ReportAssignments = () => {
               Descargar Reporte
             </button>
             {dataPerido?.estado == 'ACTIVO' && Rol.split(',').includes('Administrador') && (
-              <button
-                className="bg-primary font-roboto py-3 px-10 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
-                onClick={() => {
-                  const modal = document.getElementById('my_modal_25');
-                  if (modal) {
-                    (modal as HTMLDialogElement).showModal();
-                  }
-                }}
-              >
-                <Image
-                  className="size-4 mr-1"
-                  width={20}
-                  alt="img"
-                  height={20}
-                  src={'/sync-inc.svg'}
+              <>
+                <ModalWarning
+                  linkTo={'/home'}
+                  subtitle="Esta acción bloqueará las acciones hasta que se termine el proceso"
+                  title="¿Está seguro de sincronizar los datos del periodo?"
+                  idModal={'sincronizar-' + dataPerido?.idPeriodo.toString()}
+                  setFunction={onhandleClickSinc}
                 />
-                Sincronizar
-              </button>
+                <button
+                  className="bg-primary font-roboto py-3 px-10 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
+                  onClick={() => {
+                    const modal = document.getElementById(
+                      'sincronizar-' + dataPerido?.idPeriodo.toString()
+                    );
+                    if (modal) {
+                      (modal as HTMLDialogElement).showModal();
+                    }
+                  }}
+                >
+                  <Image
+                    className="size-4 mr-1"
+                    width={20}
+                    alt="img"
+                    height={20}
+                    src={'/sync-inc.svg'}
+                  />
+                  Sincronizar
+                </button>
+              </>
             )}
           </div>
           <div className="flex flex-row gap-10 items-center">
