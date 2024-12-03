@@ -100,10 +100,10 @@ const Page = () => {
     setSelectedVersion(idVersion);
     setData([]);
     setDataTac([]);
-    setDataNewStatus([]);
     setDataVacia(false);
     const res = await assigmentService.getTacAssigment(id, idVersion);
     setData(res.data);
+
     if (res.data.length === 0) {
       setDataVacia(true);
     }
