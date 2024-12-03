@@ -24,5 +24,6 @@ console.log('PUBLIC_AZURE_WEBAPP_ID_CLIENT: ' + process.env.PUBLIC_AZURE_WEBAPP_
 console.log(
   'NEXT_PUBLIC_INVOKE_PIPELINE_APP_CS: ' + process.env.NEXT_PUBLIC_INVOKE_PIPELINE_APP_CS
 );
+console.log('-');
 
 export const msalInstance = new PublicClientApplication(config);
