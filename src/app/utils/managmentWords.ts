@@ -55,3 +55,7 @@ export const ordenarSedes = (sedes: Sede[], ordenDeseado: string[]): Sede[] => {
   // Finalmente, unimos los tres grupos: sedes en ordenDeseado, sedes sin "Provincia", y sedes con "Provincia".
   return [...sedesLima, ...sedesSinProvincia, ...sedesProvincia, ...sedesConProvincia];
 };
+
+export function replacePHWithHH(input: string): string {
+  return input.replace(/PH/g, 'HH');
+}

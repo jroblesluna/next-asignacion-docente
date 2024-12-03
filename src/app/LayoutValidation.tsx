@@ -13,6 +13,14 @@ const LayoutValidation: React.FC<LayoutValidationProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [shouldLogout, setShouldLogout] = useState(false);
 
+  // console.log('variable -LV: ' + process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT);
+  // console.log('variable2:-LV: ' + process.env.DB_USER);
+  // console.log(
+  //   'PUBLIC_AZURE_WEBAPP_ID_CLIENT:-LV: ' + process.env.PUBLIC_AZURE_WEBAPP_ID_CLIENT
+  // );
+  // console.log(
+  //   'NEXT_PUBLIC_INVOKE_PIPELINE_APP_CS:-LV: ' + process.env.NEXT_PUBLIC_INVOKE_PIPELINE_APP_CS
+  // );
   const clearCookies = () => {
     document.cookie.split(';').forEach((cookie) => {
       const cookieName = cookie.split('=')[0].trim();

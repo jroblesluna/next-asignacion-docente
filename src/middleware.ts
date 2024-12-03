@@ -13,5 +13,11 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 export const config = {
-  matcher: ['/new-period/:path*', '/loading', '/events-period/:path*'],
+  matcher: [
+    '/new-period/:path*',
+    '/loading',
+    '/config-data',
+    '/events-period/:path*',
+    '/balance-report/:path*',
+  ],
 };

@@ -163,6 +163,11 @@ export interface esquemaFrecuenciaHorario {
   horario: string;
 }
 
+export interface interfaceEscenario {
+  escenario: string;
+  activo: boolean;
+}
+
 export interface EventoData {
   date: string;
   time: string;

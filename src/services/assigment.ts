@@ -115,6 +115,17 @@ const assigmentService = {
       return null;
     }
   },
+
+  getEscenarios: async () => {
+    try {
+      const { data } = await axios.get(`${BASE_URL}/getEscenarios`);
+      return data;
+    } catch (error) {
+      console.error('Error al obtener los escenarios:', error);
+      return null;
+    }
+  },
+
   updateRows: async (
     idPeriodo: string,
     idVersion: string,
@@ -142,6 +153,22 @@ const assigmentService = {
     }
   },
 
+  updateEscenario: async (escenario: string) => {
+    try {
+      const { data } = await axios.patch(`${BASE_URL}/updateEscenario`, {
+        escenario,
+      });
+
+      if (!data.data) {
+        alert(data.message);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error al actualizar las filas de asignación:', error);
+      return null;
+    }
+  },
   updateRoomRows: async (
     idPeriodo: string,
     idVersion: string,

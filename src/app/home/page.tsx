@@ -50,7 +50,12 @@ const Page = () => {
               title="Ver Periodo En curso"
               linkTo={'/assignments-report/' + (dataPerido?.idPeriodo || '')}
             />
-            <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
+            <ButtonOptionMain
+              img={'/config.svg'}
+              isDisabled={false}
+              title="Configurar escenarios"
+              linkTo="/config-data"
+            />
             <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
             <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
             <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
