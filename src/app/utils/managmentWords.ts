@@ -25,6 +25,11 @@ export const ordenarSedes = (sedes: Sede[], ordenDeseado: string[]): Sede[] => {
   // Filtramos las sedes que están en ordenDeseado y las que no lo están.
   const sedesEnOrdenDeseado = sedes.filter((sede) => ordenDeseado.includes(sede.NombreSede));
   // Filtramo por sede lima y provincias
+  // Ordenamos las sedes que están en ordenDeseado según el orden de ordenDeseado.
+  sedesEnOrdenDeseado.sort(
+    (a, b) => ordenDeseado.indexOf(a.NombreSede) - ordenDeseado.indexOf(b.NombreSede)
+  );
+
   const sedesLima = sedesEnOrdenDeseado.filter(
     (sede) => !sede.NombreSede.includes('Provincia')
   );
@@ -34,11 +39,6 @@ export const ordenarSedes = (sedes: Sede[], ordenDeseado: string[]): Sede[] => {
 
   const sedesNoEnOrdenDeseado = sedes.filter(
     (sede) => !ordenDeseado.includes(sede.NombreSede)
-  );
-
-  // Ordenamos las sedes que están en ordenDeseado según el orden de ordenDeseado.
-  sedesEnOrdenDeseado.sort(
-    (a, b) => ordenDeseado.indexOf(a.NombreSede) - ordenDeseado.indexOf(b.NombreSede)
   );
 
   // Ahora dividimos las sedes no en ordenDeseado en dos grupos: con "Provincia" y sin "Provincia"
