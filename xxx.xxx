@@ -1,0 +1,15 @@
+DB_USER=webapp-asignaciondocente-qa-southcentralus-001-server-admin
+# si hay caracteres especiales usar \ adelante de ellos
+DB_PASSWORD=9j0hFU\$sC\$0orFh6
+DB_SERVER=webapp-asignaciondocente-qa-southcentralus-001-server.database.windows.net
+DB_NAME=webapp-asignaciondocente-qa-southcentralus-001-database
+DB_PORT=1433
+NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT=cea39403-2b37-4bde-9cae-c9246ebdd03b
+NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT=c25f5a9d-1acb-41dc-8777-55458159b9d9
+NEXT_PUBLIC_AZURE_SUBSCRIPTION_ID=5f73f838-eae3-4768-bdce-84081a236600
+NEXT_PUBLIC_INVOKE_PIPELINE_APP_ID=5cbae683-a03f-4205-b5c0-6ae62fa894f6
+NEXT_PUBLIC_INVOKE_PIPELINE_APP_CS=SHO8Q~qhLkWA5~HenmTOUrIXGDAn8Bo9_~tx.dfN
+NEXT_PUBLIC_DATA_FACTORY_RESOURCE_GROUP_NAME=rg_azurebi_dev1705
+NEXT_PUBLIC_DATA_FACTORY_NAME=adf-azurebidw-dev1705
+NEXT_PUBLIC_INVOKE_PIPELINE_NAME=Asignacion-Docente
+COMMUNICATION_SERVICES_CONNECTION_STRING="endpoint=https://communicationserviceproveedores.unitedstates.communication.azure.com/;accesskey=EjWRoXaGTBDj89nNCDpejBa6UwU8goEDcwFD10CZ5UpI8BeIi7OpJQQJ99AGACULyCpJR8FoAAAAAZCS8jOV"
