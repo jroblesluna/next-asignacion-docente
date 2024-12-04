@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "cross-env TZ=America/Lima NEXT_PUBLIC_BUILD_DATE=\"$(date '+%Y-%m-%d %H:%M:%S UTC%z')\" next build",
+    "build": "BUILD_DATE=$(TZ=America/Lima date '+%Y-%m-%d %H:%M:%S UTC%z') && export NEXT_PUBLIC_BUILD_DATE=$BUILD_DATE && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -13,7 +13,6 @@
     "@azure/msal-browser": "^3.23.0",
     "@azure/msal-react": "^2.0.22",
     "axios": "^1.7.7",
-    "cross-env": "^7.0.3",
     "daisyui": "^4.12.10",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
