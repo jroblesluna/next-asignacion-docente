@@ -21,6 +21,12 @@ jobs:
         with:
           node-version: '20.x'
 
+
+      - name: Debug environment variables
+        run: |
+          echo "NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT=$NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT"
+          echo "NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT=$NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT"
+
       - name: npm install, build, and test
         run: |
           npm install
@@ -29,6 +35,7 @@ jobs:
           cp -R ./public ./build/standalone
         env:
           NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT: ${{ secrets.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT }}
+          NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT: ${{ secrets.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT }}
           DB_USER: ${{ secrets.DB_USER }}
 
       - name: Zip artifact for deployment
