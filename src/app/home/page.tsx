@@ -30,18 +30,20 @@ const Page = () => {
             <span className="loading loading-bars loading-lg"></span>
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-y-10 justify-items-center w-[90%] mx-auto mt-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 justify-items-center w-[90%] mx-auto mt-10">
             <ButtonOptionMain
               img={'/history-icon.svg'}
               isDisabled={false}
               title="Historial"
               linkTo="/history"
+              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
             <ButtonOptionMain
               img={'/new-period-icon.svg'}
               isDisabled={dataPerido.idPeriodo !== -1}
               title={'Nuevo Período'}
               linkTo="/new-period"
+              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
 
             <ButtonOptionMain
@@ -49,27 +51,31 @@ const Page = () => {
               isDisabled={dataPerido.idPeriodo === -1}
               title="Ver Periodo En curso"
               linkTo={'/assignments-report/' + (dataPerido?.idPeriodo || '')}
+              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
             <ButtonOptionMain
               img={'/config.svg'}
               isDisabled={false}
               title="Configurar escenarios"
               linkTo="/config-data"
+              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
             <ButtonOptionMain
               img={'/reload-icon.svg'}
               isDisabled={true}
               title="Reiniciar y procesar"
               linkTo="/reload-period"
+              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
             <ButtonOptionMain
               img={'/upload-icon.svg'}
               isDisabled={true}
               title="Sincronizar a Inicio"
               linkTo="/"
+              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
-            <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
-            <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
+            <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4" />
+            <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4" />
           </div>
         )}
       </main>
