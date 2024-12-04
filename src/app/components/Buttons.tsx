@@ -29,7 +29,7 @@ export const ButtonOptionMain: React.FC<ButtonOptionMainInterface> = ({
         )}
       </figure>
 
-      <span className="text-white text-[20px] leading-6">{title}</span>
+      <span className="text-white text-[20px] leading-6 flex text-center">{title}</span>
     </Link>
   );
 };

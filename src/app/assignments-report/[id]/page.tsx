@@ -1,54 +1,47 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client";
-import React, { useEffect, useMemo } from "react";
-import { useContext, useState } from "react";
-import NavBar from "../../components/NavBar";
-import { ReturnTitle } from "../../components/Titles";
-import Image from "next/image";
-import { ReportAsigmnentTable } from "../../components/Rows";
+'use client';
+import React, { useEffect, useMemo } from 'react';
+import { useContext, useState } from 'react';
+import NavBar from '../../components/NavBar';
+import { ReturnTitle } from '../../components/Titles';
+import Image from 'next/image';
+import { ReportAsigmnentTable } from '../../components/Rows';
 import {
   ContextAssignmentReport,
   ContextAssignmentReportProvider,
-} from "../../components/MyContexts";
-import LayoutValidation from "@/app/LayoutValidation";
-import { useParams } from "next/navigation";
-import assigmentService from "@/services/assigment";
-import { handleDownload } from "@/app/utils/downloadExcel";
+} from '../../components/MyContexts';
+import LayoutValidation from '@/app/LayoutValidation';
+import { useParams } from 'next/navigation';
+import assigmentService from '@/services/assigment';
+import { handleDownload } from '@/app/utils/downloadExcel';
 import {
   Assignment,
   PeriodoAcademico,
   ProgramacionAcademica,
-} from "@/app/interface/datainterface";
-import periodService from "@/services/period";
-import {
-  convertirFecha,
-  convertirFormatoFecha,
-} from "@/app/utils/managmentDate";
-import { getCookie } from "@/app/utils/other";
-import teacherService from "@/services/teacher";
-import { ModalWarning } from "@/app/components/Modals";
+} from '@/app/interface/datainterface';
+import periodService from '@/services/period';
+import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
+import { getCookie } from '@/app/utils/other';
+import teacherService from '@/services/teacher';
+import { ModalWarning } from '@/app/components/Modals';
 
 const ReportAssignments = () => {
   const { id } = useParams() as { id: string };
-  const [inputValue, setInputValue] = useState("");
-  const [selectedSede, setSelectedSede] = useState("Todas");
-  const [Rol, setRols] = useState("");
+  const [inputValue, setInputValue] = useState('');
+  const [selectedSede, setSelectedSede] = useState('Todas');
+  const [Rol, setRols] = useState('');
   const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [onlyLocked, setOnlyLocked] = useState(false);
-  const [filterOption, setFilterOption] = useState("Profesor");
+  const [filterOption, setFilterOption] = useState('Profesor');
   const [dataVacia, setDataVacia] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sedeCouch, setSedeCouch] = useState("");
+  const [sedeCouch, setSedeCouch] = useState('');
   const rowsPerPage = 50;
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
 
-  const [ProgramacionAcademicaData, setData] = useState<
-    ProgramacionAcademica[]
-  >([]);
-  const [nombresSedesData, setNombresSedeData] = useState<
-    { NombreSede: string }[]
-  >([]);
+  const [ProgramacionAcademicaData, setData] = useState<ProgramacionAcademica[]>([]);
+  const [nombresSedesData, setNombresSedeData] = useState<{ NombreSede: string }[]>([]);
 
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
 
@@ -67,25 +60,21 @@ const ReportAssignments = () => {
     setOnlyLocked(e.target.checked);
   };
 
-  const handleFilterOptionChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleFilterOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterOption(e.target.value);
   };
 
   const context = useContext(ContextAssignmentReport);
 
   if (!context) {
-    throw new Error(
-      "DisplayComponent debe ser usado dentro de MyContextProvider"
-    );
+    throw new Error('DisplayComponent debe ser usado dentro de MyContextProvider');
   }
   const { assignments, setAssignments, setPeriod, setLastVersionID } = context;
 
   const filterSedes = useMemo(() => {
-    if (!Rol.split(",").includes("Administrador")) {
+    if (!Rol.split(',').includes('Administrador')) {
       return nombresSedesData.filter(
-        (sede) => sede.NombreSede === sedeCouch || sede.NombreSede === "Virtual"
+        (sede) => sede.NombreSede === sedeCouch || sede.NombreSede === 'Virtual'
       );
     }
     return nombresSedesData;
@@ -95,56 +84,39 @@ const ReportAssignments = () => {
     return assignments
       .filter((assignment) => {
         const matchesInputValue =
-          filterOption === "Curso"
-            ? assignment.course
-                .toLowerCase()
-                .trim()
-                .includes(inputValue.toLowerCase())
-            : filterOption === "Profesor"
-            ? assignment.teacher
-                .toLowerCase()
-                .trim()
-                .includes(inputValue.toLowerCase())
-            : filterOption === "Aula"
-            ? assignment.classroom
-                .toLowerCase()
-                .trim()
-                .includes(inputValue.toLowerCase())
+          filterOption === 'Curso'
+            ? assignment.course.toLowerCase().trim().includes(inputValue.toLowerCase())
+            : filterOption === 'Profesor'
+            ? assignment.teacher.toLowerCase().trim().includes(inputValue.toLowerCase())
+            : filterOption === 'Aula'
+            ? assignment.classroom.toLowerCase().trim().includes(inputValue.toLowerCase())
             : true;
 
         return matchesInputValue;
       })
       .filter(
         (assignment) =>
-          ((selectedSede === "Todas" &&
-            Rol.split(",").includes("Administrador")) ||
-            (assignment.location.toLowerCase().trim() ===
-              selectedSede.toLowerCase().trim() &&
-              Rol.split(",").includes("Administrador")) ||
-            (Rol.split(",").includes("Coach") &&
-              assignment.location.toLowerCase().trim() ===
-                sedeCouch.toLowerCase().trim() &&
+          ((selectedSede === 'Todas' && Rol.split(',').includes('Administrador')) ||
+            (assignment.location.toLowerCase().trim() === selectedSede.toLowerCase().trim() &&
+              Rol.split(',').includes('Administrador')) ||
+            (Rol.split(',').includes('Coach') &&
+              assignment.location.toLowerCase().trim() === sedeCouch.toLowerCase().trim() &&
               assignment.location.toLowerCase().trim() ===
                 selectedSede.toLowerCase().trim()) ||
-            (Rol.split(",").includes("Coach") &&
+            (Rol.split(',').includes('Coach') &&
               (assignment.teacher.includes(sedeCouch) ||
-                assignment.teacher === "" ||
-                assignment.teacher === "-") &&
-              selectedSede.toLowerCase().trim() ===
-                "Virtual".toLowerCase().trim() &&
-              assignment.location.toLowerCase().trim() ===
-                "Virtual".toLowerCase().trim()) ||
-            (Rol.split(",").includes("Coach") &&
-              selectedSede === "Todas" &&
-              (assignment.location.toLowerCase().trim() ===
-                sedeCouch.toLowerCase().trim() ||
-                (assignment.location.toLowerCase().trim() === "virtual" &&
+                assignment.teacher === '' ||
+                assignment.teacher === '-') &&
+              selectedSede.toLowerCase().trim() === 'Virtual'.toLowerCase().trim() &&
+              assignment.location.toLowerCase().trim() === 'Virtual'.toLowerCase().trim()) ||
+            (Rol.split(',').includes('Coach') &&
+              selectedSede === 'Todas' &&
+              (assignment.location.toLowerCase().trim() === sedeCouch.toLowerCase().trim() ||
+                (assignment.location.toLowerCase().trim() === 'virtual' &&
                   (assignment.teacher.includes(sedeCouch) ||
-                    assignment.teacher === "" ||
-                    assignment.teacher === "-"))))) &&
-          (!onlyUnassigned ||
-            assignment.teacher === "" ||
-            assignment.teacher === "-") &&
+                    assignment.teacher === '' ||
+                    assignment.teacher === '-'))))) &&
+          (!onlyUnassigned || assignment.teacher === '' || assignment.teacher === '-') &&
           (!onlyLocked || assignment.isTeacherClosed || assignment.isRoomClosed)
       );
   }, [
@@ -161,41 +133,39 @@ const ReportAssignments = () => {
   const totalPages = Math.ceil(filteredAssignments.length / rowsPerPage);
   const paginatedAssignments = filteredAssignments.slice(startIndex, endIndex);
 
-  const handlePageChange = (direction: "prev" | "next") => {
-    if (direction === "prev" && currentPage > 1) {
+  const handlePageChange = (direction: 'prev' | 'next') => {
+    if (direction === 'prev' && currentPage > 1) {
       setCurrentPage(currentPage - 1);
-    } else if (direction === "next" && currentPage < totalPages) {
+    } else if (direction === 'next' && currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
 
   const onhandleClickSinc = async (idPeriodo: string) => {
-    const correo = localStorage.getItem("user");
-    await assigmentService.sincronizarTablaOutput(idPeriodo, correo || "");
+    const correo = localStorage.getItem('user');
+    await assigmentService.sincronizarTablaOutput(idPeriodo, correo || '');
   };
 
   const loadDataTest = async () => {
     const resPerido = await periodService.getById(id);
     if (!resPerido.data) {
-      alert(
-        "No se encontraron datos del periodo. Redirigiendo a la página principal."
-      );
-      window.location.href = "/history";
+      alert('No se encontraron datos del periodo. Redirigiendo a la página principal.');
+      window.location.href = '/history';
     }
     setDataPeriodo(resPerido.data[0]);
-    const correo = localStorage.getItem("user");
+    const correo = localStorage.getItem('user');
 
-    const resSedeTeacher = await teacherService.getSedeTeacher(correo || "");
+    const resSedeTeacher = await teacherService.getSedeTeacher(correo || '');
 
     setSedeCouch(resSedeTeacher.data);
 
-    const res = await assigmentService.getAll(id, "-1");
+    const res = await assigmentService.getAll(id, '-1');
     setData(res.data);
 
     const resSedesData = await assigmentService.getLocation(id);
     setNombresSedeData(resSedesData.data);
 
-    setRols(getCookie("rol") || "");
+    setRols(getCookie('rol') || '');
 
     if (res.data.length === 0) {
       setDataVacia(true);
@@ -210,31 +180,28 @@ const ReportAssignments = () => {
     if (ProgramacionAcademicaData[0]) {
       setPeriod(id);
       setLastVersionID(ProgramacionAcademicaData[0].idVersion.toString());
-      const assignmentsConvertido: Assignment[] = ProgramacionAcademicaData.map(
-        (item) => ({
-          assignmentId: item.uuuidProgramacionAcademica,
-          isRoomClosed: item.aulaModificada,
-          isTeacherClosed: item.docenteModificado,
-          classroomId: item.idAula !== null ? item.idAula.toString() : "",
-          classroomIdInitial:
-            item.idAulaInicial !== null ? item.idAulaInicial.toString() : "",
-          location: item.nombreSede,
-          course: item.codigoCurso || "No Encontrado",
-          schedule: `${item.HorarioInicio} - ${item.HorarioFin}`,
-          frequency: item.NombreAgrupFrecuencia,
-          classroom: item.identificadorFisico || "-",
-          teacher:
-            item.nombreSede === item.nombreSedeAlojada
-              ? item.NombreCompletoProfesor
-              : item.nombreSedeAlojada !== null
-              ? item.NombreCompletoProfesor + ` (${item.nombreSedeAlojada})`
-              : "-",
-          teacherId: item.idDocente !== null ? item.idDocente.toString() : "",
-          numberOfStudents: item.matriculados,
-          isEditable: dataPerido?.estado == "ACTIVO",
-          identificadorFisicoinicial: item.identificadorFisicoinicial,
-        })
-      );
+      const assignmentsConvertido: Assignment[] = ProgramacionAcademicaData.map((item) => ({
+        assignmentId: item.uuuidProgramacionAcademica,
+        isRoomClosed: item.aulaModificada,
+        isTeacherClosed: item.docenteModificado,
+        classroomId: item.idAula !== null ? item.idAula.toString() : '',
+        classroomIdInitial: item.idAulaInicial !== null ? item.idAulaInicial.toString() : '',
+        location: item.nombreSede,
+        course: item.codigoCurso || 'No Encontrado',
+        schedule: `${item.HorarioInicio} - ${item.HorarioFin}`,
+        frequency: item.NombreAgrupFrecuencia,
+        classroom: item.identificadorFisico || '-',
+        teacher:
+          item.nombreSede === item.nombreSedeAlojada
+            ? item.NombreCompletoProfesor
+            : item.nombreSedeAlojada !== null
+            ? item.NombreCompletoProfesor + ` (${item.nombreSedeAlojada})`
+            : '-',
+        teacherId: item.idDocente !== null ? item.idDocente.toString() : '',
+        numberOfStudents: item.matriculados,
+        isEditable: dataPerido?.estado == 'ACTIVO',
+        identificadorFisicoinicial: item.identificadorFisicoinicial,
+      }));
       setAssignments(assignmentsConvertido);
     }
   }, [ProgramacionAcademicaData]);
@@ -252,10 +219,8 @@ const ReportAssignments = () => {
           <div className="w-full flex flex-row gap-5 items-end -mt-10">
             <div className="w-1/4 relative text-black border rounded-md">
               <input
-                placeholder={"Seleccione el tipo y busque "}
-                className={
-                  "w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs"
-                }
+                placeholder={'Seleccione el tipo y busque '}
+                className={'w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs'}
                 onChange={handleInputChange}
               />
               <Image
@@ -263,7 +228,7 @@ const ReportAssignments = () => {
                 width={20}
                 alt="img"
                 height={20}
-                src={"/search-icon.svg"}
+                src={'/search-icon.svg'}
               />
             </div>
 
@@ -285,9 +250,7 @@ const ReportAssignments = () => {
                   checked={onlyUnassigned}
                   onChange={handleUnassignedChange}
                 />
-                <span className="label-text text-xs">
-                  Solo cursos sin asignar
-                </span>
+                <span className="label-text text-xs">Solo cursos sin asignar</span>
               </label>
             </div>
             <div className="form-control max-w-28 border rounded-lg px-1 ">
@@ -324,11 +287,24 @@ const ReportAssignments = () => {
               className="bg-[#50B403] font-roboto py-2 px-6 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
               onClick={() => {
                 if (ProgramacionAcademicaData[0]) {
-                  handleDownload(
-                    ProgramacionAcademicaData,
-                    "reporteAsignaciones" + id,
-                    "asignaciones" + id
-                  );
+                  Rol.split(',').includes('Administrador')
+                    ? handleDownload(
+                        ProgramacionAcademicaData,
+                        'reporteAsignaciones' + id,
+                        'asignaciones' + id
+                      )
+                    : handleDownload(
+                        ProgramacionAcademicaData.filter(
+                          (PA) =>
+                            (PA.nombreSede.toLowerCase().trim() === 'virtual' &&
+                              PA.NombreCompletoProfesor == null) ||
+                            (PA.nombreSedeAlojada &&
+                              PA.nombreSedeAlojada.toLowerCase().trim() ==
+                                sedeCouch.toLowerCase().trim())
+                        ),
+                        'reporteAsignaciones' + id,
+                        'asignaciones' + id
+                      );
                 }
               }}
             >
@@ -337,42 +313,41 @@ const ReportAssignments = () => {
                 width={20}
                 alt="img"
                 height={20}
-                src={"/download-icon.svg"}
+                src={'/download-icon.svg'}
               />
               Descargar Reporte
             </button>
-            {dataPerido?.estado == "ACTIVO" &&
-              Rol.split(",").includes("Administrador") && (
-                <>
-                  <ModalWarning
-                    linkTo={"/home"}
-                    subtitle="Esta acción bloqueará las acciones hasta que se termine el proceso"
-                    title="¿Está seguro de sincronizar los datos del periodo?"
-                    idModal={"sincronizar-" + dataPerido?.idPeriodo.toString()}
-                    setFunction={onhandleClickSinc}
+            {dataPerido?.estado == 'ACTIVO' && Rol.split(',').includes('Administrador') && (
+              <>
+                <ModalWarning
+                  linkTo={'/home'}
+                  subtitle="Esta acción bloqueará las acciones hasta que se termine el proceso"
+                  title="¿Está seguro de sincronizar los datos del periodo?"
+                  idModal={'sincronizar-' + dataPerido?.idPeriodo.toString()}
+                  setFunction={onhandleClickSinc}
+                />
+                <button
+                  className="bg-primary font-roboto py-3 px-10 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
+                  onClick={() => {
+                    const modal = document.getElementById(
+                      'sincronizar-' + dataPerido?.idPeriodo.toString()
+                    );
+                    if (modal) {
+                      (modal as HTMLDialogElement).showModal();
+                    }
+                  }}
+                >
+                  <Image
+                    className="size-4 mr-1"
+                    width={20}
+                    alt="img"
+                    height={20}
+                    src={'/sync-inc.svg'}
                   />
-                  <button
-                    className="bg-primary font-roboto py-3 px-10 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
-                    onClick={() => {
-                      const modal = document.getElementById(
-                        "sincronizar-" + dataPerido?.idPeriodo.toString()
-                      );
-                      if (modal) {
-                        (modal as HTMLDialogElement).showModal();
-                      }
-                    }}
-                  >
-                    <Image
-                      className="size-4 mr-1"
-                      width={20}
-                      alt="img"
-                      height={20}
-                      src={"/sync-inc.svg"}
-                    />
-                    Sincronizar
-                  </button>
-                </>
-              )}
+                  Sincronizar
+                </button>
+              </>
+            )}
           </div>
           <div className="flex flex-row gap-10 items-center">
             <div className="flex flex-row gap-2">
@@ -384,11 +359,7 @@ const ReportAssignments = () => {
             </div>
             <div className="flex flex-row gap-2">
               <strong>Fecha:</strong>
-              <p
-                className={
-                  dataPerido?.fechaInicio ? "" : "skeleton h-4 w-[200px] "
-                }
-              >
+              <p className={dataPerido?.fechaInicio ? '' : 'skeleton h-4 w-[200px] '}>
                 {dataPerido?.fechaInicio !== undefined &&
                   ` ${convertirFormatoFecha(
                     dataPerido?.fechaInicio
@@ -458,9 +429,7 @@ const ReportAssignments = () => {
                         isEditable={assignment.isEditable}
                         teacherId={assignment.teacherId}
                         classroomId={assignment.classroomId}
-                        identificadorFisicoinicial={
-                          assignment.identificadorFisicoinicial
-                        }
+                        identificadorFisicoinicial={assignment.identificadorFisicoinicial}
                         classroomIdInitial={assignment.classroomIdInitial}
                       />
                     ))}
@@ -474,35 +443,30 @@ const ReportAssignments = () => {
           <div className="flex justify-end flex-row items-center gap-5 ">
             <p className="text-xs">Filas por página: {rowsPerPage}</p>
             <p className="text-xs">
-              {`${startIndex + 1}-${Math.min(
-                endIndex,
-                filteredAssignments.length
-              )} de 
+              {`${startIndex + 1}-${Math.min(endIndex, filteredAssignments.length)} de 
                   ${filteredAssignments.length}`}
             </p>
             <div className="flex items-center justify-center flex-row">
               <Image
                 className={`size-8 cursor-pointer hover:opacity-80 ${
-                  currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                  currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
-                onClick={() => handlePageChange("prev")}
+                onClick={() => handlePageChange('prev')}
                 width={20}
                 alt="img"
                 height={20}
-                src={"/arrow-left-icon.svg"}
+                src={'/arrow-left-icon.svg'}
               />
 
               <Image
                 className={`size-8 cursor-pointer hover:opacity-80 ${
-                  currentPage === totalPages
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
+                  currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
-                onClick={() => handlePageChange("next")}
+                onClick={() => handlePageChange('next')}
                 width={20}
                 alt="img"
                 height={20}
-                src={"/arrow-rigth-icon.svg"}
+                src={'/arrow-rigth-icon.svg'}
               />
             </div>
           </div>

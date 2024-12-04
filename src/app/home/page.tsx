@@ -56,8 +56,18 @@ const Page = () => {
               title="Configurar escenarios"
               linkTo="/config-data"
             />
-            <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
-            <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
+            <ButtonOptionMain
+              img={'/reload-icon.svg'}
+              isDisabled={true}
+              title="Reiniciar y procesar"
+              linkTo="/reload-period"
+            />
+            <ButtonOptionMain
+              img={'/upload-icon.svg'}
+              isDisabled={true}
+              title="Sincronizar a Inicio"
+              linkTo="/"
+            />
             <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
             <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" />
           </div>
