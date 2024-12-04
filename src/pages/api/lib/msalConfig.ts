@@ -18,7 +18,7 @@ export async function getMsalConfig() {
       },
     cache: {
       cacheLocation: 'localStorage',
-      storeAuthStateInCookie: true,
+      storeAuthStateInCookie: false,
     },
   };
 
