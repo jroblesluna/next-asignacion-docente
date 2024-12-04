@@ -29,7 +29,7 @@ const disponibleEnFecha = (
     const final2 = convertirFecha(fechaFinal2);
     return final1 < inicio2 || final2 < inicio1;
   } catch (error) {
-    console.log('No hay fecha disponible');
+    console.log('No hay fecha disponible', error);
     return false;
   }
 };
@@ -470,8 +470,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 						AND (
         (PC.idFrecuencia = @idFrecuencia AND PC.idHorario = @idHorario)  
 		 ` +
-              cadenaPC +
-              `    )
+            cadenaPC +
+            `    )
                 )  AS ClasesAsignadasDocente 
             )
             ORDER BY Equidad
@@ -578,8 +578,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 						AND (
         (PC.idFrecuencia = @idFrecuencia AND PC.idHorario = @idHorario)  
 		 ` +
-              cadenaPC +
-              `    )
+            cadenaPC +
+            `    )
                 )  AS ClasesAsignadasDocente 
             )
 
@@ -605,7 +605,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (
           Number(docente.totalTiempoSemanal) +
-            Number(resultCurso.recordset[0]?.minutosTotalesSemanales) >
+          Number(resultCurso.recordset[0]?.minutosTotalesSemanales) >
           (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 60
         ) {
           console.log('continue - P7.1 - SEMANAL');
@@ -615,7 +615,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // validacion de horas maximas
         if (
           Number(docente.MinutosAcumulados) +
-            Number(resultCurso.recordset[0]?.minutosTotales) >
+          Number(resultCurso.recordset[0]?.minutosTotales) >
           (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 4 * 60
         ) {
           console.log('continue - P7.1 - MENSUAL');

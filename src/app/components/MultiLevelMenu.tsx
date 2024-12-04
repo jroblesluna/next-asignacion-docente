@@ -125,7 +125,9 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
   };
 
   const onhandleRemove = () => {
-    location == 'Virtual' && setFuntion();
+    if (location == 'Virtual') {
+      setFuntion();
+    }
     setSelectedItem('-');
     uploadRowTeacher('-1');
     UpdateTeacher(idRow, '-');

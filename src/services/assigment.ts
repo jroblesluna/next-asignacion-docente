@@ -227,6 +227,7 @@ const assigmentService = {
       });
       return data;
     } catch (error) {
+      console.log("Error", error)
       return null;
     }
   },

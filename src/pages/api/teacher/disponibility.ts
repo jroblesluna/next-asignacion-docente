@@ -29,7 +29,7 @@ const disponibleEnFecha = (
     const final2 = convertirFecha(fechaFinal2);
     return final1 < inicio2 || final2 < inicio1;
   } catch (error) {
-    console.log('No hay fecha disponible');
+    console.log('No hay fecha disponible', error);
     return false;
   }
 };
