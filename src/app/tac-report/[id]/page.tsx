@@ -1,57 +1,47 @@
-"use client";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import NavBar from "../../components/NavBar";
-import { ReturnTitle } from "../../components/Titles";
-import { useParams } from "next/navigation";
-import {
-  singsCompare,
-  timeDaily,
-  timeSunday,
-  timeWeekend,
-} from "../../constants/data";
-import { numberCompare, frecuencyData } from "../../constants/data";
-import { TableTacReport } from "../../components/Rows";
-import { evaluateExpression } from "../../utils/managmentTime";
-import LayoutValidation from "@/app/LayoutValidation";
-import Image from "next/image";
+'use client';
+import { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import NavBar from '../../components/NavBar';
+import { ReturnTitle } from '../../components/Titles';
+import { useParams } from 'next/navigation';
+import { singsCompare, timeDaily, timeSunday, timeWeekend } from '../../constants/data';
+import { numberCompare, frecuencyData } from '../../constants/data';
+import { TableTacReport } from '../../components/Rows';
+import { evaluateExpression } from '../../utils/managmentTime';
+import LayoutValidation from '@/app/LayoutValidation';
+import Image from 'next/image';
 import {
   docentesTac,
   PeriodoAcademico,
   tacData,
   versionData,
-} from "@/app/interface/datainterface";
-import assigmentService from "@/services/assigment";
-import { downloadExcelTac } from "@/app/utils/downloadExcel";
-import periodService from "@/services/period";
-import {
-  convertirFecha,
-  convertirFormatoFecha,
-} from "@/app/utils/managmentDate";
-import versionService from "@/services/version";
-import { getCookie } from "@/app/utils/other";
-import teacherService from "@/services/teacher";
-import { convertToCustomAcronym } from "@/app/utils/managmentWords";
+} from '@/app/interface/datainterface';
+import assigmentService from '@/services/assigment';
+import { downloadExcelTac } from '@/app/utils/downloadExcel';
+import periodService from '@/services/period';
+import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
+import versionService from '@/services/version';
+import { getCookie } from '@/app/utils/other';
+import teacherService from '@/services/teacher';
+import { convertToCustomAcronym } from '@/app/utils/managmentWords';
 
 const Page = () => {
-  const [inputValue, setInputValue] = useState("");
-  const [selectedState, setSelectedState] = useState("Todas");
-  const [selectedLocation, setSelectedLocation] = useState("Todas");
-  const [selectedSings, setSelectedSings] = useState("ninguna");
-  const [selectedNumberCompare, setSelectedNumberCompare] = useState("ninguna");
+  const [inputValue, setInputValue] = useState('');
+  const [selectedState, setSelectedState] = useState('Todas');
+  const [selectedLocation, setSelectedLocation] = useState('Todas');
+  const [selectedSings, setSelectedSings] = useState('ninguna');
+  const [selectedNumberCompare, setSelectedNumberCompare] = useState('ninguna');
   const [ProgramacionAcademicaData, setData] = useState<docentesTac[]>([]);
   const [ProgramacionAcademicaDataTac, setDataTac] = useState<tacData[]>([]);
   const [newStatus, setDataNewStatus] = useState<string[]>([]);
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [DataVersion, setDataVersion] = useState<versionData[]>([]);
-  const [selectVersion, setSelectedVersion] = useState("");
+  const [selectVersion, setSelectedVersion] = useState('');
   const [showHistoryVersion, setShowHistoryVersion] = useState(false);
   const { id } = useParams() as { id: string };
-  const [nombresSedesData, setNombresSedeData] = useState<
-    { NombreSede: string }[]
-  >([]);
+  const [nombresSedesData, setNombresSedeData] = useState<{ NombreSede: string }[]>([]);
   const [dataVacia, setDataVacia] = useState(false);
-  const [Rol, setRols] = useState("");
-  const [sedeCouch, setSedeCouch] = useState("");
+  const [Rol, setRols] = useState('');
+  const [sedeCouch, setSedeCouch] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -64,9 +54,7 @@ const Page = () => {
     setSelectedState(e.target.value);
   };
 
-  const handleNumberCompareChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleNumberCompareChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedNumberCompare(e.target.value);
   };
   const handleSingsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -76,15 +64,13 @@ const Page = () => {
   const loadData = async () => {
     const resPerido = await periodService.getById(id);
     if (!resPerido.data) {
-      alert(
-        "No se encontraron datos del periodo. Redirigiendo a la página principal."
-      );
-      window.location.href = "/history";
+      alert('No se encontraron datos del periodo. Redirigiendo a la página principal.');
+      window.location.href = '/history';
     }
 
-    const correo = localStorage.getItem("user");
+    const correo = localStorage.getItem('user');
 
-    const resSedeTeacher = await teacherService.getSedeTeacher(correo || "");
+    const resSedeTeacher = await teacherService.getSedeTeacher(correo || '');
 
     setSedeCouch(resSedeTeacher.data);
 
@@ -94,11 +80,11 @@ const Page = () => {
     setSelectedVersion(resVersion.data[0].idVersion);
     const resSedesData = await assigmentService.getLocationTac(id);
     setNombresSedeData(resSedesData.data);
-    setRols(getCookie("rol") || "");
+    setRols(getCookie('rol') || '');
     const resNewStatus = await teacherService.getEventDisponibility(id);
     setDataNewStatus(resNewStatus.data);
 
-    const res = await assigmentService.getTacAssigment(id, "-1");
+    const res = await assigmentService.getTacAssigment(id, '-1');
     setData(res.data);
     if (res.data.length === 0) {
       setDataVacia(true);
@@ -134,16 +120,14 @@ const Page = () => {
         EstadoDisponible: item.EstadoDisponible,
         eventoIndisponible: item.eventoIndisponible,
         status:
-          item.EstadoDisponible == "0"
+          item.EstadoDisponible == '0'
             ? convertToCustomAcronym(item.eventoIndisponible)
             : item.TipoJornada,
         classSchedule: ProgramacionAcademicaData.filter(
-          (item2) =>
-            item2.uuidDocente === item.uuidDocente &&
-            item2.idFrecuencia !== null
+          (item2) => item2.uuidDocente === item.uuidDocente && item2.idFrecuencia !== null
         ).map((elemento) => ({
           frecuency: elemento.NombreAgrupFrecuencia,
-          schedule: elemento.HorarioInicio + " - " + elemento.HorarioFin,
+          schedule: elemento.HorarioInicio + ' - ' + elemento.HorarioFin,
           room: elemento.codigoCurso,
           minutosCurso: elemento.minutosCurso,
         })),
@@ -158,7 +142,16 @@ const Page = () => {
 
   const downloadExcel = () => {
     if (ProgramacionAcademicaDataTac[0]) {
-      downloadExcelTac(ProgramacionAcademicaDataTac, id);
+      if (Rol.split(',').includes('Administrador')) {
+        downloadExcelTac(ProgramacionAcademicaDataTac, id);
+      } else {
+        downloadExcelTac(
+          ProgramacionAcademicaDataTac.filter(
+            (rowTac) => rowTac.location.toLowerCase() === sedeCouch.toLowerCase().trim()
+          ),
+          id
+        );
+      }
     }
   };
 
@@ -181,16 +174,13 @@ const Page = () => {
     return ProgramacionAcademicaDataTac.filter(
       (rowTac) =>
         rowTac.teacher.toLowerCase().includes(inputValue.toLowerCase()) &&
-        (selectedNumberCompare === "ninguna" ||
-          selectedSings === "ninguna" ||
-          (selectedSings !== "ninguna" && selectedNumberCompare !== "ninguna"
+        (selectedNumberCompare === 'ninguna' ||
+          selectedSings === 'ninguna' ||
+          (selectedSings !== 'ninguna' && selectedNumberCompare !== 'ninguna'
             ? evaluateExpression(
                 Number(
                   (
-                    rowTac.classSchedule.reduce(
-                      (total, num) => total + num.minutosCurso,
-                      0
-                    ) /
+                    rowTac.classSchedule.reduce((total, num) => total + num.minutosCurso, 0) /
                     (27 * 60)
                   ).toFixed(2)
                 ),
@@ -198,16 +188,14 @@ const Page = () => {
                 selectedSings
               )
             : false)) &&
-        (selectedState === "Todas" ||
+        (selectedState === 'Todas' ||
           rowTac.status.toLowerCase() === selectedState.toLowerCase()) &&
-        ((selectedLocation === "Todas" &&
-          Rol.split(",").includes("Administrador")) ||
+        ((selectedLocation === 'Todas' && Rol.split(',').includes('Administrador')) ||
           (rowTac.location.toLowerCase() === selectedLocation.toLowerCase() &&
-            Rol.split(",").includes("Administrador")) ||
-          (Rol.split(",").includes("Coach") &&
-            (selectedLocation.toLowerCase() ===
-              sedeCouch.toLowerCase().trim() ||
-              selectedState === "Todas") &&
+            Rol.split(',').includes('Administrador')) ||
+          (Rol.split(',').includes('Coach') &&
+            (selectedLocation.toLowerCase() === sedeCouch.toLowerCase().trim() ||
+              selectedState === 'Todas') &&
             rowTac.location.toLowerCase() === sedeCouch.toLowerCase().trim()))
     );
   }, [
@@ -222,9 +210,9 @@ const Page = () => {
   ]);
 
   const filterSedes = useMemo(() => {
-    if (!Rol.split(",").includes("Administrador")) {
+    if (!Rol.split(',').includes('Administrador')) {
       return nombresSedesData.filter(
-        (sede) => sede.NombreSede === sedeCouch || sede.NombreSede === "Virtual"
+        (sede) => sede.NombreSede === sedeCouch || sede.NombreSede === 'Virtual'
       );
     }
     return nombresSedesData;
@@ -240,9 +228,9 @@ const Page = () => {
             <div className="flex flex-row gap-5 items-end w-full">
               <div className="w-1/3 relative text-black border rounded-md">
                 <input
-                  placeholder={"Busque por el nombre del docente "}
+                  placeholder={'Busque por el nombre del docente '}
                   className={
-                    "w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs"
+                    'w-full rounded-md py-3 px-3 font-openSans text-opacity-50 text-xs'
                   }
                   onChange={handleInputChange}
                 />
@@ -252,7 +240,7 @@ const Page = () => {
                   width={20}
                   alt="img"
                   height={20}
-                  src={"/search-icon.svg"}
+                  src={'/search-icon.svg'}
                 />
               </div>
 
@@ -266,13 +254,11 @@ const Page = () => {
                   onChange={handleLocationChange}
                 >
                   <option value="Todas">Todas</option>
-                  {filterSedes.map(
-                    (item: { NombreSede: string }, index: number) => (
-                      <option key={index} value={item.NombreSede}>
-                        {item?.NombreSede?.toLowerCase() || ""}
-                      </option>
-                    )
-                  )}
+                  {filterSedes.map((item: { NombreSede: string }, index: number) => (
+                    <option key={index} value={item.NombreSede}>
+                      {item?.NombreSede?.toLowerCase() || ''}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label className="form-control w-full max-w-28 -mt-9">
@@ -353,7 +339,7 @@ const Page = () => {
                     width={20}
                     alt="img"
                     height={20}
-                    src={"/arrow-down-icon.svg"}
+                    src={'/arrow-down-icon.svg'}
                   />
                 </div>
                 <ul
@@ -374,9 +360,7 @@ const Page = () => {
                             onChange={handleChange}
                             className="checkbox cursor-pointer"
                           />
-                          <span className="label-text cursor-default">
-                            {item}
-                          </span>
+                          <span className="label-text cursor-default">{item}</span>
                         </label>
                       </div>
                     </li>
@@ -397,7 +381,7 @@ const Page = () => {
                 width={20}
                 alt="img"
                 height={20}
-                src={"/download-icon.svg"}
+                src={'/download-icon.svg'}
               />
               Descargar Reporte
             </button>
@@ -413,11 +397,7 @@ const Page = () => {
               </div>
               <div className="flex flex-row gap-2">
                 <strong>Fecha:</strong>
-                <p
-                  className={
-                    dataPerido?.fechaInicio ? "" : "skeleton h-4 w-[200px] "
-                  }
-                >
+                <p className={dataPerido?.fechaInicio ? '' : 'skeleton h-4 w-[200px] '}>
                   {dataPerido?.fechaInicio !== undefined &&
                     ` ${convertirFormatoFecha(
                       dataPerido?.fechaInicio
@@ -437,18 +417,16 @@ const Page = () => {
                   width={20}
                   alt="img"
                   height={20}
-                  src={"/clock-history-icon.svg"}
+                  src={'/clock-history-icon.svg'}
                 />
 
                 <div
                   className={
-                    "absolute w-64 min-h-60 h-60 max-h-60 overflow-y-auto bg-[#ffffff] px-5 border flex flex-col gap-2 items-center p-3 right-[90%] top-8 rounded-md z-20  " +
-                    (showHistoryVersion ? "block" : "hidden")
+                    'absolute w-64 min-h-60 h-60 max-h-60 overflow-y-auto bg-[#ffffff] px-5 border flex flex-col gap-2 items-center p-3 right-[90%] top-8 rounded-md z-20  ' +
+                    (showHistoryVersion ? 'block' : 'hidden')
                   }
                 >
-                  <p className="font-inter font-bold mb-2 ">
-                    Historial de Versiones
-                  </p>
+                  <p className="font-inter font-bold mb-2 ">Historial de Versiones</p>
 
                   {DataVersion.length === 0 ? (
                     <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
@@ -465,20 +443,16 @@ const Page = () => {
                             <span className="text-green-500 text-xl">*</span>
                             <span
                               className={
-                                "hover:underline cursor-pointer text-[10px] " +
-                                (item.idVersion == selectVersion
-                                  ? "text-primary_ligth "
-                                  : "")
+                                'hover:underline cursor-pointer text-[10px] ' +
+                                (item.idVersion == selectVersion ? 'text-primary_ligth ' : '')
                               }
                               onClick={() => {
-                                if (dataPerido?.estado === "ACTIVO") {
+                                if (dataPerido?.estado === 'ACTIVO') {
                                   changeDataVersion(item.idVersion);
                                 }
                               }}
                             >
-                              {`N°${
-                                item.idVersion
-                              } - Modificado el  ${convertirFormatoFecha(
+                              {`N°${item.idVersion} - Modificado el  ${convertirFormatoFecha(
                                 item.fecha
                               )} a las ${item.fechaHora} por el usuario: ${
                                 item.nombreCreador
@@ -496,8 +470,8 @@ const Page = () => {
           {(ProgramacionAcademicaDataTac.length === 0 &&
             filterSedes.length === 0 &&
             !dataVacia) ||
-          Rol == "" ||
-          sedeCouch == "" ? (
+          Rol == '' ||
+          sedeCouch == '' ? (
             <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
               <span className="loading loading-bars loading-lg"></span>
             </div>

@@ -73,7 +73,7 @@ const Page = () => {
               </div>
               <div className="flex flex-row gap-2 w-full">
                 <p className="font-bold text-[14px] w-[10%]">
-                  Habitualidad en el Curso/ (HC):
+                  Habitualidad en el Curso / (HC):
                 </p>
                 <p className="w-[90%] text-[12px]">
                   Se evalúa la experiencia o habitualidad del docente en un curso específico,
@@ -84,13 +84,9 @@ const Page = () => {
               </div>
               <div className="flex flex-row gap-2 w-full items-center">
                 <p className="w-[95%] text-[12px] font-semibold">
-                  NOTA 1: Seleccionar mas de un escenario incrementa el tiempo de procesamiento
-                  y se escoge entre los que generen un menor desviación estandar durante la
+                  NOTA: Seleccionar más de un escenario incrementa el tiempo de procesamiento y
+                  se selecciona entre los que generen una menor desviación estandar durante la
                   asignación para cada sede.
-                </p>
-                <p className="w-[95%] text-[12px] font-semibold">
-                  NOTA 2: Se debe seleccionar minimo un escenario antes de reprocesar, sino el
-                  sistema podria fallar.
                 </p>
               </div>
             </div>

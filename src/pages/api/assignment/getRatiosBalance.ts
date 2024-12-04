@@ -49,14 +49,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             (((SELECT COUNT(TC2.TipoJornada)
             	FROM [dbo].[ad_docente] AS D2
             	INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
+                LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D2.idDocente AND DD.PeriodoAcademico = @id
             WHERE TC2.TipoJornada = 'PT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
-            	D2.vigente = 1 AND  D2.periodo=@id
+            	D2.vigente = 1 AND  D2.periodo=@id AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
             	AND  D2.idSede <> @idVirtual AND D2.dictaClase=1  ) / 3.0) +
             (SELECT COUNT(TC2.TipoJornada)
             	FROM [dbo].[ad_docente] AS D2
             	INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
+                LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D2.idDocente AND DD.PeriodoAcademico = @id
             WHERE  TC2.TipoJornada = 'FT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
-            	D2.vigente = 1 
+            	D2.vigente = 1 AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
             	AND  D2.idSede <> @idVirtual and  D2.periodo=@id  AND D2.dictaClase=1  )))*100 ,3)
             AS Ratio
             FROM
@@ -65,12 +69,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             	[dbo].[dim_tipo_contrato] AS TC ON D.idTipoContrato = TC.TipoContratoID
             	INNER JOIN
             	[dbo].[ad_sede] AS S ON D.idSede = S.idSede and S.periodo=@id
+                 LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D.idDocente AND DD.PeriodoAcademico = @id 
             WHERE
             	D.idSede IS NOT NULL AND  D.vigente IS NOT NULL AND  D.vigente = 1
             	AND  D.idSede <> @idVirtual
             	and  D.periodo=@id
               AND D.dictaClase=1 
               AND S.vigente=1
+               AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
             GROUP BY
             	S.idSede,
             	S.NombreSede
@@ -87,15 +94,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             (((SELECT COUNT(TC2.TipoJornada)
             	FROM [dbo].[ad_docente] AS D2
             	INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
+                LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D2.idDocente AND DD.PeriodoAcademico = 1
             WHERE TC2.TipoJornada = 'PT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
-            	D2.vigente = 1 AND D2.periodo=1
-            	AND  D2.idSede <> @idVirtual  AND D2.dictaClase=1 ) / 3.0) +
+            	D2.vigente = 1 AND  D2.periodo=1 AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
+            	AND  D2.idSede <> @idVirtual AND D2.dictaClase=1  ) / 3.0) +
             (SELECT COUNT(TC2.TipoJornada)
             	FROM [dbo].[ad_docente] AS D2
             	INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
+                LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D2.idDocente AND DD.PeriodoAcademico = 1
             WHERE  TC2.TipoJornada = 'FT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
-            	D2.vigente = 1 
-            	AND  D2.idSede <>@idVirtual and  D2.periodo=1 AND D2.dictaClase=1  )))*100 ,3)
+            	D2.vigente = 1 AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
+            	AND  D2.idSede <> @idVirtual and  D2.periodo=1 AND D2.dictaClase=1  )))*100 ,3)
             AS Ratio
             FROM
             	[dbo].[ad_docente] AS D 
@@ -103,12 +114,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             	[dbo].[dim_tipo_contrato] AS TC ON D.idTipoContrato = TC.TipoContratoID
             	INNER JOIN
             	[dbo].[ad_sede] AS S ON D.idSede = S.idSede and S.periodo=1
+                 LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D.idDocente AND DD.PeriodoAcademico = 1
             WHERE
             	D.idSede IS NOT NULL AND  D.vigente IS NOT NULL AND  D.vigente = 1
             	AND  D.idSede <> @idVirtual
             	and  D.periodo=1
               AND D.dictaClase=1 
               AND S.vigente=1
+               AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
             GROUP BY
             	S.idSede,
             	S.NombreSede

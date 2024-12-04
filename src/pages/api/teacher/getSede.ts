@@ -11,18 +11,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const { correo } = req.query;
 
-      //   const resultExist = await pool
-      //     .request()
-      //     .input('id', idPeriod)
-      //     .query(`SELECT distinct  idPeriodo FROM [dbo].[ad_periodo] where idPeriodo=@id`);
-
       const result = await pool
         .request()
         .input('correo', correo)
         .query(
           `SELECT NombreSede  FROM [dbo].[dim_docente] where EmailCoorporativo = 'rocio.huaman@icpna.edu.pe'`
         );
-      console.log('cambiar por el correo: ' + correo);
+
+      //  const result = await pool
+      //    .request()
+      //    .input('correo', correo)
+      //    .query(
+      //      `SELECT NombreSede  FROM [dbo].[dim_docente] where EmailCoorporativo = @correo`
+      //    );
 
       return res.status(200).json({
         data: result.recordset[0]?.NombreSede,

@@ -240,8 +240,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const MAX_HORAS_FT = parseInt(process.env.MAX_HORAS_FT || '48', 10);
       const MAX_HORAS_PT = parseInt(process.env.MAX_HORAS_PT || '24', 10);
 
-      console.log(MAX_HORAS_PT);
-      console.log(MAX_HORAS_FT);
+      console.log('Horas maximas por docentes PT: ' + MAX_HORAS_PT);
+      console.log('Horas maximas por docentes FT: ' + MAX_HORAS_FT);
 
       if (!periodo && !correo && !addEvents && !tipo) {
         return res
@@ -328,6 +328,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                             hbd.FlagConsiderado = 1;
                                     `);
       const BloquesBloqueadosCompletos = resultHorariosBloquedos.recordset;
+
+      // Reinicio del periodo
+
+      if (tipo == 'reinicio') {
+        await pool
+          .request()
+          .input('periodo', sql.Int, Number(periodo))
+          .input('nombreCreador', sql.VarChar, correo)
+          .execute('ad_reiniciarDataPeriodo');
+      }
 
       if (!flagAvance) {
         // SNAPTSHOT solo la primera vez
@@ -849,60 +859,73 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('id', periodo)
         .input('virtualID', virtualID)
         .query(
-          `  SELECT
-      											S.idSede,
-      											S.NombreSede,
-      											SUM(CASE WHEN TC.TipoJornada = 'FT' THEN 1 ELSE 0 END) AS FT,
-      										SUM(CASE WHEN TC.TipoJornada = 'PT' THEN 1 ELSE 0 END)  AS PT,
-      											ROUND(
-      											(
-      												(
-      													(SUM(CASE WHEN TC.TipoJornada = 'PT' THEN 1 ELSE 0 END) / 3.0) +
-      													SUM(CASE WHEN TC.TipoJornada = 'FT' THEN 1 ELSE 0 END)
-      												) /
-      												(
-      													(
-      														(SELECT COUNT(TC2.TipoJornada)
-      															FROM [dbo].[ad_docente] AS D2
-      															INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
-      															WHERE TC2.TipoJornada = 'PT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
-      															D2.vigente = 1 AND  D2.periodo=@id 
-      														AND  D2.idSede <> @virtualID  AND D2.dictaClase=1    ) / 3.0
-      													) +
-      													(SELECT COUNT(TC2.TipoJornada)
-      														FROM [dbo].[ad_docente] AS D2
-      														INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
-      														WHERE  TC2.TipoJornada = 'FT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
-      															D2.vigente = 1 
-      														AND  D2.idSede <>@virtualID and  D2.periodo=@id AND D2.dictaClase=1  )
-      												)
-      											)*100 ,3)
-
-      										AS Ratio
-      									FROM
-      											[dbo].[ad_docente] AS D
-      									INNER JOIN
-      											[dbo].[dim_tipo_contrato] AS TC ON D.idTipoContrato = TC.TipoContratoID
-      									INNER JOIN
-      											[dbo].[ad_sede] AS S ON D.idSede = S.idSede and S.periodo=@id
-      									WHERE
-      											D.idSede IS NOT NULL AND  D.vigente IS NOT NULL AND  D.vigente = 1
-      											AND  D.idSede <> @virtualID
-      											and  D.periodo=@id
-                            AND D.dictaClase=1
-                            AND S.vigente=1
-      									GROUP BY
-      											S.idSede,
-      											S.NombreSede
-      									UNION ALL
-      									SELECT
-      												@virtualID AS idSede,
-      												'Virtual' AS NombreSede,
-      												0 AS FT,
-      												0 AS PT,
-      												0.000 AS Ratio
-      										ORDER BY
-      												Ratio DESC;
+          ` SELECT
+                    S.idSede,
+                    S.NombreSede,
+                    SUM(CASE WHEN TC.TipoJornada = 'FT' THEN 1 ELSE 0 END) AS FT,
+                    SUM(CASE WHEN TC.TipoJornada = 'PT' THEN 1 ELSE 0 END)  AS PT,
+                    ROUND(
+                    (
+                    (
+                    (SUM(CASE WHEN TC.TipoJornada = 'PT' THEN 1 ELSE 0 END) / 3.0) +
+                    SUM(CASE WHEN TC.TipoJornada = 'FT' THEN 1 ELSE 0 END)
+                    ) /
+                    (
+                    (
+                    (SELECT COUNT(TC2.TipoJornada)
+                    FROM [dbo].[ad_docente] AS D2
+                    INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
+                    LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D2.idDocente AND DD.PeriodoAcademico = @id
+                    WHERE TC2.TipoJornada = 'PT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
+                    D2.vigente = 1 AND  D2.periodo=@id 
+                    AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
+                    
+                    AND  D2.idSede <> @virtualID  AND D2.dictaClase=1 
+                    
+                        ) / 3.0
+                    ) +
+                    (SELECT COUNT(TC2.TipoJornada)
+                    FROM [dbo].[ad_docente] AS D2
+                    INNER JOIN [dbo].[dim_tipo_contrato] AS TC2 ON D2.idTipoContrato = TC2.TipoContratoID
+                    LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D2.idDocente AND DD.PeriodoAcademico = @id
+                    WHERE  TC2.TipoJornada = 'FT' AND  D2.idSede IS NOT NULL AND  D2.vigente IS NOT NULL AND
+                    D2.vigente = 1 
+                    AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
+                    
+                    AND  D2.idSede <>@virtualID and  D2.periodo=@id AND D2.dictaClase=1  )
+                    )
+                    )*100 ,3)
+                    
+                    AS Ratio
+                    FROM
+                    [dbo].[ad_docente] AS D
+                    INNER JOIN
+                    [dbo].[dim_tipo_contrato] AS TC ON D.idTipoContrato = TC.TipoContratoID
+                    INNER JOIN
+                    [dbo].[ad_sede] AS S ON D.idSede = S.idSede and S.periodo=@id
+                    LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D.idDocente AND DD.PeriodoAcademico = @id
+                    WHERE
+                    D.idSede IS NOT NULL AND  D.vigente IS NOT NULL AND  D.vigente = 1
+                    AND  D.idSede <> @virtualID
+                    and  D.periodo=@id
+                    AND D.dictaClase=1
+                    AND S.vigente=1
+                    AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
+                    GROUP BY
+                    S.idSede,
+                    S.NombreSede
+                    UNION ALL
+                    SELECT
+                    @virtualID AS idSede,
+                    'Virtual' AS NombreSede,
+                    0 AS FT,
+                    0 AS PT,
+                    0.000 AS Ratio
+                    ORDER BY
+                    Ratio DESC;
       `
         );
 
@@ -1178,9 +1201,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                       AND P.idVersion = @idVersion
                                       AND P.cancelado = 0
                                       AND P.vigente = 1
+                                      
                                   LEFT JOIN [dbo].[ad_horario] AS H 
                                       ON P.idHorario = H.idHorario 
                                       AND H.periodo = @id
+                                  LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                                  ON DD.DocenteID = D.idDocente AND DD.PeriodoAcademico = @id
                                   LEFT JOIN [dbo].[dim_tipo_contrato] AS TC 
                                       ON TC.TipoContratoID = D.idTipoContrato
                                   LEFT JOIN [dbo].[ad_frecuencia] AS F 
@@ -1201,6 +1227,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                       AND D.idSede <> @virtualID
                                       AND D.periodo = @id
                                       AND D.dictaClase=1
+                                       AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
                                   GROUP BY
                                       D.idDocente,
                                       TC.TipoJornada,
@@ -1578,11 +1605,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                   [dbo].[ad_docente] AS D
                               INNER JOIN
                                   [dbo].[dim_tipo_contrato] AS TC ON D.idTipoContrato = TC.TipoContratoID
+                              LEFT JOIN [dbo].[disponibilidad_docente] AS DD 
+                    ON DD.DocenteID = D.idDocente AND DD.PeriodoAcademico = @id
                               WHERE
                                   D.idSede = @idSede
                                   AND D.vigente = 1
                                   AND D.dictaClase=1
                           		AND D.periodo=@id
+                                  AND ( DD.EstadoDisponible=1 OR DD.EstadoDisponible IS NULL) 
+
                           )
                           SELECT
                               d.idDocente,
@@ -1821,9 +1852,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('id', periodo)
         .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
 
-      const subject = 'Asignación Docente';
+      const subject = 'Sistema de Asignación Docente';
       const plainText =
-        'Algoritmo de asignación docente terminado exitosamente para el periodo ' + periodo;
+        'Algoritmo de asignación docente terminado exitosamente para el periodo ' +
+        periodo +
+        'y la versión ' +
+        version;
 
       if (correo) {
         await sendEmail(correo as string, subject, plainText);
