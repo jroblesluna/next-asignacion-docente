@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { ButtonOptionMain } from '../components/Buttons';
-import NavBar from '../components/NavBar';
-import { BasicTitle } from '../components/Titles';
-import LayoutValidation from '../LayoutValidation';
-import periodService from '@/services/period';
-import { PeriodoAcademico } from '../interface/datainterface';
+import React, { useEffect, useState } from "react";
+import { ButtonOptionMain } from "../components/Buttons";
+import NavBar from "../components/NavBar";
+import { BasicTitle } from "../components/Titles";
+import LayoutValidation from "../LayoutValidation";
+import periodService from "@/services/period";
+import { PeriodoAcademico } from "../interface/datainterface";
 
 const Page = () => {
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
@@ -32,50 +32,46 @@ const Page = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 justify-items-center w-[90%] mx-auto mt-10">
             <ButtonOptionMain
-              img={'/history-icon.svg'}
+              img={"/history-icon.svg"}
               isDisabled={false}
               title="Historial"
               linkTo="/history"
-              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
+              //className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
             <ButtonOptionMain
-              img={'/new-period-icon.svg'}
+              img={"/new-period-icon.svg"}
               isDisabled={dataPerido.idPeriodo !== -1}
-              title={'Nuevo Período'}
+              title={"Nuevo Período"}
               linkTo="/new-period"
-              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
+              //className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
 
             <ButtonOptionMain
-              img={'/current-period.svg'}
+              img={"/current-period.svg"}
               isDisabled={dataPerido.idPeriodo === -1}
               title="Ver Periodo En curso"
-              linkTo={'/assignments-report/' + (dataPerido?.idPeriodo || '')}
-              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
+              linkTo={"/assignments-report/" + (dataPerido?.idPeriodo || "")}
             />
             <ButtonOptionMain
-              img={'/config.svg'}
+              img={"/config.svg"}
               isDisabled={false}
               title="Configurar escenarios"
               linkTo="/config-data"
-              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
             <ButtonOptionMain
-              img={'/reload-icon.svg'}
+              img={"/reload-icon.svg"}
               isDisabled={true}
               title="Reiniciar y procesar"
               linkTo="/reload-period"
-              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
             <ButtonOptionMain
-              img={'/upload-icon.svg'}
+              img={"/upload-icon.svg"}
               isDisabled={true}
               title="Sincronizar a Inicio"
               linkTo="/"
-              className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
-            <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4" />
-            <ButtonOptionMain img={''} isDisabled={false} title="" linkTo="/" className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4" />
+            <ButtonOptionMain img={""} isDisabled={false} title="" linkTo="/" />
+            <ButtonOptionMain img={""} isDisabled={false} title="" linkTo="/" />
           </div>
         )}
       </main>
