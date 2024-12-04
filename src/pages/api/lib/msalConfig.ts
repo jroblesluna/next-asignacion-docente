@@ -1,29 +1,26 @@
-import { PublicClientApplication } from '@azure/msal-browser';
+import { Configuration } from "@azure/msal-browser";
 
-const config = {
-  auth: {
-    clientId:
-      process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT || 'cea39403-2b37-4bde-9cae-c9246ebdd03b',
-    authority:
-      'https://login.microsoftonline.com/' +
-      (process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT ||
-        'c25f5a9d-1acb-41dc-8777-55458159b9d9'),
-    redirectUri: '/home',
-    navigateToLoginRequestUrl: false,
-    postLogoutRedirectUri: '/welcome',
-  },
-  cache: {
-    cacheLocation: 'localStorage',
-    storeAuthStateInCookie: false,
-  },
-};
+export async function getMsalConfig() {
+  const res = await fetch('/api/lib/msalEnv');
+  const data = await res.json();
 
-// console.log('variable: ' + process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT);
-// console.log('variable2: ' + process.env.DB_USER);
-// console.log('PUBLIC_AZURE_WEBAPP_ID_CLIENT: ' + process.env.PUBLIC_AZURE_WEBAPP_ID_CLIENT);
-// console.log(
-//   'NEXT_PUBLIC_INVOKE_PIPELINE_APP_CS: ' + process.env.NEXT_PUBLIC_INVOKE_PIPELINE_APP_CS
-// );
-// console.log('-');
+  if (!data.clientId || !data.tenantId) {
+    throw new Error('No se pudo cargar la configuración de MSAL');
+  }
 
-export const msalInstance = new PublicClientApplication(config);
+  const msalConfig: Configuration = {
+    auth: {
+      clientId: data.clientId,
+      authority: `https://login.microsoftonline.com/${data.tenantId}`,
+      redirectUri: '/home',
+      navigateToLoginRequestUrl: false,
+      postLogoutRedirectUri: '/welcome',
+      },
+    cache: {
+      cacheLocation: 'localStorage',
+      storeAuthStateInCookie: true,
+    },
+  };
+
+  return msalConfig;
+}

@@ -1,8 +1,8 @@
-'use client';
-import Image from 'next/image';
-import React from 'react';
-import { useMsal } from '@azure/msal-react';
-import { BrowserAuthError } from '@azure/msal-browser';
+"use client";
+import Image from "next/image";
+import React from "react";
+import { useMsal } from "@azure/msal-react";
+import { BrowserAuthError } from "@azure/msal-browser";
 
 function Page() {
   const { instance } = useMsal();
@@ -10,19 +10,21 @@ function Page() {
   const handleLogin = () => {
     try {
       instance.loginRedirect({
-        scopes: ['user.read'],
+        scopes: ["user.read"],
       });
     } catch (error) {
-      if (error instanceof BrowserAuthError && error.errorCode === 'interaction_in_progress') {
-        console.log('Interacción de autenticación ya en progreso.');
+      if (
+        error instanceof BrowserAuthError &&
+        error.errorCode === "interaction_in_progress"
+      ) {
+        console.log("Interacción de autenticación ya en progreso.");
       } else {
-        console.log('Otro error ocurrió:', error);
+        console.error("Otro error ocurrió:", error);
       }
     }
   };
 
-  // Obtener la fecha de compilación desde las variables de entorno
-  const buildDate = process.env.NEXT_PUBLIC_BUILD_DATE || 'Desarrollo';
+  const buildDate = process.env.NEXT_PUBLIC_BUILD_DATE || "Desarrollo";
 
   return (
     <main className="flex flex-row min-h-[100vh] max-lg:flex-col">
@@ -36,12 +38,15 @@ function Page() {
         />
 
         <div className="flex flex-col gap-8">
-          <h1 className="text-5xl font-bold">Sistema de Asignación docente ICPNA</h1>
+          <h1 className="text-5xl font-bold">
+            Sistema de Asignación docente ICPNA
+          </h1>
           <h6 className="text-sm font-light">Compilación: {buildDate}</h6>
           <p className="text-primary_ligth text-[18px]">
-            El Sistema de Asignación Docente ICPNA automatiza la asignación de profesores a
-            cursos, optimizando horarios según disponibilidad y requisitos. Facilita la gestión
-            y genera reportes detallados para los administradores académicos.
+            El Sistema de Asignación Docente ICPNA automatiza la asignación de
+            profesores a cursos, optimizando horarios según disponibilidad y
+            requisitos. Facilita la gestión y genera reportes detallados para
+            los administradores académicos.
           </p>
 
           <button

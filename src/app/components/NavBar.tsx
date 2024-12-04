@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useMsal } from '@azure/msal-react';
 import Image from 'next/image';
-import { msalInstance } from '../../pages/api/lib/msalConfig';
+import { PublicClientApplication, BrowserAuthError } from '@azure/msal-browser';
+import { getMsalConfig } from '../../pages/api/lib/msalConfig';
 import Link from 'next/link';
 
 const NavBar = () => {
   const { accounts } = useMsal();
   const [userAccount, setUserAccount] = useState({ name: '', username: '' });
+  const [msalConfig, setMsalConfig] = useState<PublicClientApplication | null>(null);
 
   useEffect(() => {
     if (accounts[0]) {
@@ -15,16 +17,44 @@ const NavBar = () => {
         username: accounts[0].username || '',
       });
       localStorage.setItem('user', accounts[0].username || '');
-
       document.cookie = `rol=${accounts[0]?.idTokenClaims?.roles} ; path=/; secure`;
     }
   }, [accounts]);
 
+  useEffect(() => {
+    const initializeMsal = async () => {
+      try {
+        const config = await getMsalConfig();
+        const msalInstance = new PublicClientApplication(config);
+        await msalInstance.initialize();  // Asegúrate de que MSAL esté completamente inicializado
+        setMsalConfig(msalInstance);
+      } catch (error) {
+        console.error('Error al inicializar MSAL:', error);
+      }
+    };
+
+    initializeMsal();
+  }, []);
+
   const logout = async () => {
-    try {
-      await msalInstance.logoutRedirect();
-    } catch (error) {
-      console.error('Error during logout:', error);
+    if (msalConfig) {
+      try {
+        // Eliminar datos del usuario y cookies antes de cerrar sesión
+        localStorage.removeItem('user');
+        document.cookie = 'rol=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+
+        // Espera que MSAL esté completamente inicializado antes de hacer logout
+        await msalConfig.handleRedirectPromise();  // Asegura que cualquier promesa pendiente sea manejada
+        await msalConfig.logoutRedirect();  // Redirige para cerrar sesión
+      } catch (error) {
+        if (error instanceof BrowserAuthError) {
+          console.error('BrowserAuthError during logout:', error);
+        } else {
+          console.error('Error during logout:', error);
+        }
+      }
+    } else {
+      console.error('MSAL instance is not initialized.');
     }
   };
 
@@ -41,7 +71,6 @@ const NavBar = () => {
             role="button"
             className="hover:opacity-80 cursor-pointer size-12"
           />
-
           <ul
             tabIndex={0}
             className="dropdown-content menu rounded-box z-[1] w-36 p-0.5 shadow bg-transparent hover:opacity-80"
