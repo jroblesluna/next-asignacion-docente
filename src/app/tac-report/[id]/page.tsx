@@ -142,14 +142,16 @@ const Page = () => {
 
   const downloadExcel = () => {
     if (ProgramacionAcademicaDataTac[0]) {
-      Rol.split(',').includes('Administrador')
-        ? downloadExcelTac(ProgramacionAcademicaDataTac, id)
-        : downloadExcelTac(
-            ProgramacionAcademicaDataTac.filter(
-              (rowTac) => rowTac.location.toLowerCase() === sedeCouch.toLowerCase().trim()
-            ),
-            id
-          );
+      if (Rol.split(',').includes('Administrador')) {
+        downloadExcelTac(ProgramacionAcademicaDataTac, id);
+      } else {
+        downloadExcelTac(
+          ProgramacionAcademicaDataTac.filter(
+            (rowTac) => rowTac.location.toLowerCase() === sedeCouch.toLowerCase().trim()
+          ),
+          id
+        );
+      }
     }
   };
 

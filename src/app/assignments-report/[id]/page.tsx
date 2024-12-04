@@ -284,27 +284,29 @@ const ReportAssignments = () => {
             </label>
 
             <button
-              className="bg-[#50B403] font-roboto py-2 px-6 text-[14px]  text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center "
+              className="bg-[#50B403] font-roboto py-2 px-6 text-[14px] text-white font-semibold hover:opacity-80 mx-auto flex flex-row items-center"
               onClick={() => {
                 if (ProgramacionAcademicaData[0]) {
-                  Rol.split(',').includes('Administrador')
-                    ? handleDownload(
-                        ProgramacionAcademicaData,
-                        'reporteAsignaciones' + id,
-                        'asignaciones' + id
-                      )
-                    : handleDownload(
-                        ProgramacionAcademicaData.filter(
-                          (PA) =>
-                            (PA.nombreSede.toLowerCase().trim() === 'virtual' &&
-                              PA.NombreCompletoProfesor == null) ||
-                            (PA.nombreSedeAlojada &&
-                              PA.nombreSedeAlojada.toLowerCase().trim() ==
-                                sedeCouch.toLowerCase().trim())
-                        ),
-                        'reporteAsignaciones' + id,
-                        'asignaciones' + id
-                      );
+                  if (Rol.split(',').includes('Administrador')) {
+                    handleDownload(
+                      ProgramacionAcademicaData,
+                      'reporteAsignaciones' + id,
+                      'asignaciones' + id
+                    );
+                  } else {
+                    handleDownload(
+                      ProgramacionAcademicaData.filter(
+                        (PA) =>
+                          (PA.nombreSede.toLowerCase().trim() === 'virtual' &&
+                            PA.NombreCompletoProfesor == null) ||
+                          (PA.nombreSedeAlojada &&
+                            PA.nombreSedeAlojada.toLowerCase().trim() ===
+                              sedeCouch.toLowerCase().trim())
+                      ),
+                      'reporteAsignaciones' + id,
+                      'asignaciones' + id
+                    );
+                  }
                 }
               }}
             >
