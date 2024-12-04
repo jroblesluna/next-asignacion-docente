@@ -17,7 +17,7 @@ const nextConfig = {
             value:
             //"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://*.azureedge.net https://*.azure.com https://login.microsoftonline.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.azureedge.net; font-src 'self' https://fonts.gstatic.com https://*.azureedge.net; img-src 'self' data: https://*.azureedge.net https://*.azure.com; connect-src 'self' https://*.azure.com https://management.azure.com https://login.microsoftonline.com https://*.azureedge.net; frame-src 'self' https://login.microsoftonline.com; object-src 'none'; base-uri 'self'; form-action 'self'; report-uri /csp-violation-report-endpoint;",
 
-              "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self';",
+              "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://login.microsoftonline.com; object-src 'none'; frame-ancestors 'self'; form-action 'self';",
           },
           {
             key: "Strict-Transport-Security",
