@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "cross-env NEXT_PUBLIC_BUILD_DATE=\"$(TZ=Etc/GMT+5 date '+%Y-%m-%d %H:%M:%S UTC%z')\" next build",
+    "build": "cross-env TZ=America/Lima NEXT_PUBLIC_BUILD_DATE=\"$(date '+%Y-%m-%d %H:%M:%S UTC%z')\" next build",
     "start": "next start",
     "lint": "next lint"
   },
