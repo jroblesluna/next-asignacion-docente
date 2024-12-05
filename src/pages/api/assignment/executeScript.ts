@@ -6,8 +6,6 @@ import { connectToDatabase } from '../lib/db';
 import sql from 'mssql';
 import { sendEmail } from '../lib/conectEmail';
 
-// AGREGAR LA CONVERSIÓN DE FRECUENCIAS A NUMEROS SI ES NECESARIO A FUTURO
-
 const obtenerNumerosPorDias = (frecuencia: string): number[] => {
   let numerosDias: number[] = [];
 
@@ -1032,7 +1030,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     AND P.idSede =  @idSede
                      AND P.idDocente is null
                     ORDER BY
-                        numeroCursos ASC,
+                        H.HorarioInicio,
                         P.idHorario,
                         intencidadDocente ASC,
                         minutosTotales DESC;`);
