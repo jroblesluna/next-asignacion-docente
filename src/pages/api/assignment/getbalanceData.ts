@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  console.log('GET@/pages/api/assignment/getall.ts');
+  console.log('GET@/pages/api/assignment/getbalanceData.ts');
   let pool;
 
   try {
