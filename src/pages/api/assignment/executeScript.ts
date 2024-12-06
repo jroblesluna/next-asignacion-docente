@@ -796,7 +796,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
            ELSE 0 
        END)         WHERE periodo=@id`);
       }
-      // ##########################pruebas #######################################################
+      // // ##########################pruebas #######################################################
       // if (addEvents == 'true') {
       //   await pool
       //     .request()
@@ -808,7 +808,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       //     data: true,
       //   });
       // }
-      // ##########################pruebas #######################################################
+      // // ##########################pruebas #######################################################
 
       if (tipo == 'total') {
         // se crea la version por que es un reproceso total

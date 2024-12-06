@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('id', periodo)
         .query(
           `SELECT distinct NombreEvento  FROM [dbo].[disponibilidad_docente] where 
-                    PeriodoAcademico =@id and NombreEvento is not null`
+                    PeriodoAcademico =@id and NombreEvento is not null and EstadoDisponible=0 `
         );
 
       if (result.recordset.length == 0) {

@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .input('periodo', sql.Int, Number(resultActivo.recordset[0].idPeriodo))
       .execute('ad_actualizarEventos');
 
-    console.log(resultActivo.recordset[0].idPeriodo);
+    await pool.request().execute('ad_actualizarPeriodos');
 
     return res.status(200).json({
       message:

@@ -370,18 +370,25 @@ const ReportAssignments = () => {
             </div>
           </div>
         </div>
-        {ProgramacionAcademicaData.length === 0 &&
-        nombresSedesData.length === 0 &&
-        filterSedes.length === 0 &&
+        {(ProgramacionAcademicaData.length === 0 ||
+          nombresSedesData.length === 0 ||
+          filterSedes.length === 0) &&
         !dataVacia ? (
           <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
             <span className="loading loading-bars loading-lg"></span>
           </div>
         ) : (
           <>
-            {dataVacia === true ? (
+            {dataVacia === true ||
+            (sedeCouch == '' && !Rol.split(',').includes('Administrador')) ? (
               <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
-                <h1 className="font-bold text-5xl"> Datos No Encontrados</h1>
+                {sedeCouch == '' && !Rol.split(',').includes('Administrador') ? (
+                  <h1 className="font-bold text-5xl">
+                    No se ha encontrado una sede relacionada a ese coach
+                  </h1>
+                ) : (
+                  <h1 className="font-bold text-5xl"> Datos No Encontrados</h1>
+                )}
               </div>
             ) : (
               <div className="w-full overflow-auto min-h-[48vh] max-h-[48vh]  ">
