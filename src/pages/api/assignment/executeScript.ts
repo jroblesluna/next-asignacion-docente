@@ -279,6 +279,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('id', periodo)
         .query(`UPDATE [dbo].[ad_periodo] SET estado='CARGANDO'  where idPeriodo=@id`);
 
+      if (addEvents == 'true') {
+        // Actualizar tablas desde el dwh - Invoke Pipeline
+        // API Invoke Pipeline
+        // let resStatus = API GET STATUS Pipeline
+        // while (!resStatus.data){
+        //   console.log('Actualizando las tablas del DWH');
+        //   setInterval(()=>{
+        //     // let resStatus = API GET STATUS Pipeline
+        //   },6000)
+        // }
+      }
+
       // Se Genera el registro de avance si no existe para ese periodo
       await pool.request().input('periodoID', sql.Int, periodo)
         .query(` IF NOT EXISTS (SELECT 1 FROM ad_avanceAlgoritmo WHERE idPeriodo = @periodoID)
