@@ -17,11 +17,9 @@ const obtenerNumerosPorDias = (frecuencia: string): number[] => {
       numerosDias = [1, 2, 3, 4, 5];
       break;
     case 'LM':
-      numerosDias = [1, 2, 3];
+      numerosDias = [1, 3];
       break;
-    case 'MV':
-      numerosDias = [2, 3, 5];
-      break;
+
     case 'MJS':
       numerosDias = [2, 4, 6];
       break;
@@ -227,8 +225,80 @@ const calcularCodigoAnterior = (codigo: string, mesesARestar: number) => {
   return Number(`${nuevoAnio}${nuevoMes}`);
 };
 
+const invokePipeline = async (action: 'run' | 'monitor', url_base: string) => {
+  const pipelineName = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_NAME || '';
+
+  try {
+    // Send a POST request to invoke or monitor the pipeline
+    const response = await fetch(url_base + '/api/invokePipeline', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        pipelineName, // Name of the pipeline to act upon
+        action, // Action: either 'run' or 'monitor'
+      }),
+    });
+
+    const data = await response.json(); // Parse the JSON response
+
+    if (response.ok) {
+      // Handling success for 'run' action
+      if (action === 'run') {
+        if (data.runningPipelines?.length) {
+          // If pipeline is already running, show message and list running pipelines
+          console.log('Pipeline is already running.');
+          console.log(
+            data.runningPipelines.map((runId: string) => ({ runId, status: 'Running' }))
+          );
+        } else {
+          // If pipeline is not running, invoke the pipeline and show success mes sage
+          console.log(`Success: ${data.message}`);
+          console.log([{ runId: data.runId, status: 'Running' }]);
+        }
+
+        return true;
+      }
+      // Handling success for 'monitor' action
+      else if (action === 'monitor') {
+        if (data.runningPipelines?.length) {
+          // If there are running pipelines, show monitoring message and list them
+          console.log('Monitoring the pipeline...');
+          console.log(
+            data.runningPipelines.map((runId: string) => ({ runId, status: 'Running' }))
+          );
+          return false;
+        } else {
+          // If no pipelines are running, show a no running pipelines message
+          console.log('No running pipelines found.');
+          return true;
+        }
+      }
+    } else {
+      // Handle error if the response is not OK
+      console.log(`Error: ${data.error}`);
+      return true;
+    }
+  } catch (error: unknown) {
+    // Catch any unexpected errors and display the message
+    const errorMessage = (error as Error).message || 'An unexpected error occurred';
+    console.log(`Error: ${errorMessage}`);
+    return true;
+  }
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+
+    // Obtener el host (dominio)
+    const host = req.headers.host;
+
+    // Construir el dominio base
+    const baseUrl = `${protocol}://${host}`;
+
+    console.log(baseUrl);
     console.log('GET@/pages/api/assignment/executeScript.ts');
     const pool = await connectToDatabase();
 
@@ -237,6 +307,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const MAX_HORAS_FT = parseInt(process.env.MAX_HORAS_FT || '48', 10);
       const MAX_HORAS_PT = parseInt(process.env.MAX_HORAS_PT || '24', 10);
+      const uidIdSede = process.env.UID_SEDE_VIRTUAL || '';
 
       console.log('Horas maximas por docentes PT: ' + MAX_HORAS_PT);
       console.log('Horas maximas por docentes FT: ' + MAX_HORAS_FT);
@@ -279,16 +350,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('id', periodo)
         .query(`UPDATE [dbo].[ad_periodo] SET estado='CARGANDO'  where idPeriodo=@id`);
 
-      if (addEvents == 'true') {
-        // Actualizar tablas desde el dwh - Invoke Pipeline
-        // API Invoke Pipeline
-        // let resStatus = API GET STATUS Pipeline
-        // while (!resStatus.data){
-        //   console.log('Actualizando las tablas del DWH');
-        //   setInterval(()=>{
-        //     // let resStatus = API GET STATUS Pipeline
-        //   },6000)
-        // }
+      const resultExistDataPeriod = await pool
+        .request()
+        .input('id', periodo)
+        .query(`SELECT  TOP 1 * FROM [dbo].[ad_programacionAcademica] where idPeriodo=@id`);
+
+      if (addEvents === 'true' || resultExistDataPeriod.recordset.length == 0) {
+        // Actualizar tablas desde el DWH - Invoke Pipeline
+        console.log('Llamando al pipeline Invoke');
+        await invokePipeline('run', baseUrl);
+
+        let resStatusPipeline;
+
+        console.log('Actualizando las tablas del DWH');
+        do {
+          // Esperar 6 segundos antes de ejecutar el siguiente paso
+          console.log('esperando 5 segundo');
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          console.log('Llamando al monitoreo del pipeline');
+          resStatusPipeline = await invokePipeline('monitor', baseUrl);
+        } while (!resStatusPipeline);
       }
 
       // Se Genera el registro de avance si no existe para ese periodo
@@ -463,8 +544,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const resultadoIDVirtual = await pool
               .request()
               .input('id', periodo)
+              .input('uidVirtual', uidIdSede)
               .query(
-                `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = '28894d3f-e9e1-476c-9314-764dc0bcd003'and  nombreSede = 'Virtual'    and periodo=@id`
+                `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = @uidVirtual and  nombreSede = 'Virtual'    and periodo=@id`
               );
 
             const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
@@ -808,19 +890,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
            ELSE 0 
        END)         WHERE periodo=@id`);
       }
-      // // ##########################pruebas #######################################################
-      // if (addEvents == 'true') {
-      //   await pool
-      //     .request()
-      //     .input('id', periodo)
-      //     .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
-
-      //   return res.status(200).json({
-      //     message: 'Algoritmo de asignación docente terminado exitosamente',
-      //     data: true,
-      //   });
-      // }
-      // // ##########################pruebas #######################################################
 
       if (tipo == 'total') {
         // se crea la version por que es un reproceso total
@@ -857,8 +926,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const resultadoIDVirtual = await pool
         .request()
         .input('id', periodo)
+        .input('uidVirtual', uidIdSede)
         .query(
-          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = '28894d3f-e9e1-476c-9314-764dc0bcd003'and  nombreSede = 'Virtual'    and periodo=@id`
+          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = @uidVirtual and  nombreSede = 'Virtual'    and periodo=@id`
         );
 
       const virtualID = resultadoIDVirtual.recordset[0]?.idSede;

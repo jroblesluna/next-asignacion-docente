@@ -121,6 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('GET@/pages/api/teacher/compatibility.ts');
     let pool;
     const AulaActos: RoomDisponibility[] = [];
+    const uidIdSede = process.env.UID_SEDE_VIRTUAL || '';
 
     try {
       pool = await connectToDatabase();
@@ -194,8 +195,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const resultadoIDVirtual = await pool
         .request()
         .input('id', idPeriod)
+        .input('uidVirtual', uidIdSede)
         .query(
-          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = '28894d3f-e9e1-476c-9314-764dc0bcd003'and  nombreSede = 'Virtual'    and periodo=@id`
+          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = @uidVirtual and  nombreSede = 'Virtual'    and periodo=@id`
         );
 
       const virtualID = resultadoIDVirtual.recordset[0]?.idSede;

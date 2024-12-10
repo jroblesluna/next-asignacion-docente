@@ -192,6 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const MAX_HORAS_FT = parseInt(process.env.MAX_HORAS_FT || '48', 10);
       const MAX_HORAS_PT = parseInt(process.env.MAX_HORAS_PT || '24', 10);
+      const uidIdSede = process.env.UID_SEDE_VIRTUAL || '';
 
       console.log(MAX_HORAS_PT);
       console.log(MAX_HORAS_FT);
@@ -257,8 +258,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const resultadoIDVirtual = await pool
         .request()
         .input('id', idPeriod)
+        .input('uidVirtual', uidIdSede)
         .query(
-          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = '28894d3f-e9e1-476c-9314-764dc0bcd003'and  nombreSede = 'Virtual'    and periodo=@id`
+          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = @uidVirtual and  nombreSede = 'Virtual'    and periodo=@id`
         );
 
       const virtualID = resultadoIDVirtual.recordset[0]?.idSede;

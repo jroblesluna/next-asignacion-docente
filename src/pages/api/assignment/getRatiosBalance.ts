@@ -12,6 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { idPeriod } = req.query;
+    const uidIdSede = process.env.UID_SEDE_VIRTUAL || '';
 
     if (!idPeriod) {
       return res
@@ -21,14 +22,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     pool = await connectToDatabase();
 
-    const result = await pool.request().input('id', idPeriod).query(`
+    const result = await pool.request().input('id', idPeriod).input('uidVirtual', uidIdSede)
+      .query(`
         IF EXISTS (SELECT 1 FROM [dbo].[ad_sede] WHERE periodo = @id)
                     BEGIN
-                    	select idSede from [dbo].[ad_sede] WHERE periodo = @id and uidIdSede='28894d3f-e9e1-476c-9314-764dc0bcd003'
+                    	select idSede from [dbo].[ad_sede] WHERE periodo = @id and uidIdSede= @uidVirtual
                     END
                     ELSE
                     BEGIN
-                    	select idSede from [dbo].[ad_sede] WHERE periodo = 1 and uidIdSede='28894d3f-e9e1-476c-9314-764dc0bcd003'
+                    	select idSede from [dbo].[ad_sede] WHERE periodo = 1 and uidIdSede= @uidVirtual
                     END
       `);
     const idSedeVirtual = result.recordset[0].idSede;

@@ -14,6 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       pool = await connectToDatabase();
+      const uidIdSede = process.env.UID_SEDE_VIRTUAL || '';
 
       const result = await pool
         .request()
@@ -46,8 +47,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const resultadoIDVirtual = await pool
         .request()
         .input('id', idPeriodo)
+        .input('uidVirtual', uidIdSede)
         .query(
-          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = '28894d3f-e9e1-476c-9314-764dc0bcd003'and  nombreSede = 'Virtual'    and periodo=@id`
+          `SELECT idSede FROM [dbo].[ad_sede] where uidIdSede = @uidVirtual and  nombreSede = 'Virtual'    and periodo=@id`
         );
 
       const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
