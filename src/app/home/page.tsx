@@ -22,7 +22,7 @@ const Page = () => {
 
   return (
     <LayoutValidation>
-      <main className="flex flex-col gap-5 w-full min-h-[100vh] p-6">
+      <main className="flex flex-col gap-5 w-full min-h-[100vh] p-6 items-start justify-start">
         <NavBar />
         <BasicTitle name="Sistema de Asignación docente ICPNA" />
         {dataPerido === undefined ? (
@@ -30,20 +30,18 @@ const Page = () => {
             <span className="loading loading-bars loading-lg"></span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 justify-items-center w-[90%] mx-auto mt-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 justify-items-center w-[90%] mx-auto mt-10  min-h-[50vh]">
             <ButtonOptionMain
               img={'/history-icon.svg'}
               isDisabled={false}
               title="Historial"
               linkTo="/history"
-              //className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
             <ButtonOptionMain
               img={'/new-period-icon.svg'}
               isDisabled={dataPerido.idPeriodo !== -1}
               title={'Nuevo Período'}
               linkTo="/new-period"
-              //className="text-sm sm:text-base md:text-lg px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4"
             />
             <ButtonOptionMain
               img={'/current-period.svg'}
@@ -57,20 +55,19 @@ const Page = () => {
               title="Configurar escenarios"
               linkTo="/config-data"
             />
-            {/* <ButtonOptionMain
+            <ButtonOptionMain
               img={'/reload-icon.svg'}
-              isDisabled={true}
+              isDisabled={dataPerido.idPeriodo === -1}
               title="Reiniciar y procesar"
               linkTo="/reload-period"
             />
             <ButtonOptionMain
               img={'/upload-icon.svg'}
-              isDisabled={true}
+              isDisabled={dataPerido.idPeriodo === -1}
               title="Sincronizar a Inicio"
-              linkTo="/"
-            /> */}
-            <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" />
-            <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" />
+              linkTo="/synchronize"
+            />
+
             <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" />
             <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" />
           </div>

@@ -115,7 +115,6 @@ const Page = () => {
 
   useEffect(() => {
     if (balancaDatarray.length !== 0) {
-      console.log(balancaDatarray);
       const uniqueCombinations = new Set<string>();
       const result: esquemaFrecuenciaHorario[] = [];
 

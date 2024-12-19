@@ -29,6 +29,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: [] });
       }
 
+      await pool.request().input('id', idPeriod)
+        .query(`UPDATE  [dbo].[ad_docente] set dictaClase =(CASE 
+           WHEN EXISTS (SELECT top 1 * 
+                        FROM [dbo].[LibroPorDocente] 
+                        WHERE [dbo].[LibroPorDocente].DocenteID = ad_docente.idDocente) 
+           THEN 1 
+           ELSE 0 
+       END)         WHERE periodo=@id`);
+
       const result = await pool.request().input('id', idPeriod).query(`
         WITH CTE_Docente AS (
                             SELECT  

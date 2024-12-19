@@ -18,7 +18,6 @@ const Page = () => {
     setDataPeriodo(resPerido.data);
 
     const resEscenario = await assigmentService.getEscenarios();
-    console.log(resEscenario.data);
     setDataEscenario(resEscenario.data);
   };
 
@@ -37,11 +36,16 @@ const Page = () => {
           </div>
         ) : (
           <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-start min-h-[50vh]">
-            <div className="grid grid-cols-3 gap-4 w-full  min-w-[90vw] mx-auto">
-              {dataEscenario &&
+            <div className="grid grid-cols-3 gap-4 w-full  min-w-[90vw] mx-auto min-h-[200px]">
+              {!dataEscenario ? (
+                <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
+                  <span className="loading loading-bars loading-lg"></span>
+                </div>
+              ) : (
                 dataEscenario.map((item, index) => (
                   <EscenarioBase activo={item.activo} escenario={item.escenario} key={index} />
-                ))}
+                ))
+              )}
             </div>
             <div className="flex flex-col gap-4">
               <p className="font-bold text-3xl">Leyenda</p>

@@ -27,11 +27,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      // await pool
-      //   .request()
-      //   .input('id', idPeriodo)
-      //   .input('estado', 'CARGANDO')
-      //   .query('UPDATE ad_periodo SET estado = @estado WHERE idPeriodo = @id');
+      await pool
+        .request()
+        .input('id', idPeriodo)
+        .input('estado', 'CARGANDO')
+        .query('UPDATE ad_periodo SET estado = @estado WHERE idPeriodo = @id');
 
       await pool
         .request()
@@ -39,11 +39,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('user', sql.VarChar, correo)
         .execute('ad_actualizarTablaOuput');
 
-      // await pool
-      //   .request()
-      //   .input('id', idPeriodo)
-      //   .input('estado', 'ACTIVO')
-      //   .query('UPDATE ad_periodo SET estado = @estado WHERE idPeriodo = @id');
+      await pool
+        .request()
+        .input('id', idPeriodo)
+        .input('estado', 'ACTIVO')
+        .query('UPDATE ad_periodo SET estado = @estado WHERE idPeriodo = @id');
 
       return res.status(200).json({
         message: `TEST EVENTOS RETURN`,

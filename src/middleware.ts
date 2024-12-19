@@ -3,8 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(req: NextRequest) {
   const PermisosRol = req.cookies.get('rol')?.value;
   // borrar
-  if (req.nextUrl.pathname === '/reload-period') {
-    return NextResponse.redirect(new URL('/home', req.url));
+  // if (req.nextUrl.pathname === '/reload-period') {
+  //   return NextResponse.redirect(new URL('/home', req.url));
+  // }
+  const url = req.nextUrl;
+
+  if (url.pathname === '/') {
+    url.pathname = '/welcome';
+    return NextResponse.redirect(url);
   }
 
   if (PermisosRol) {
@@ -24,5 +30,6 @@ export const config = {
     '/events-period/:path*',
     '/balance-report/:path*',
     '/reload-period',
+    '/synchronize',
   ],
 };

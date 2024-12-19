@@ -15,7 +15,6 @@ export const EscenarioBase: React.FC<EscenarioInterfaz> = ({ escenario, activo }
     setIsUpdating(true); // Indica que está en proceso de actualización.
     try {
       const result = await assigmentService.updateEscenario(escenario);
-      console.log(result.data);
       if (result.data !== false) {
         setActivoEscenario((prev) => !prev); // Cambia el estado solo si la operación es exitosa.
       }

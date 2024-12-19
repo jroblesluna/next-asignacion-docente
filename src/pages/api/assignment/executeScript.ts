@@ -1,10 +1,31 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prefer-const */
+
+/* Importaciones necesarias para el funcionamiento de la API. */
 import { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDatabase } from '../lib/db';
-
 import sql from 'mssql';
 import { sendEmail } from '../lib/conectEmail';
+
+/*Estrucuturas de interfaces necesarias para el correcto funcionamiento del codigo */
+
+interface disponibilidadDocenteInterface {
+  DocenteID: number;
+  PeriodoAcademico: number;
+  EstadoDisponible: number;
+  FechaInicio: string;
+  FechaFin: string;
+}
+
+interface EventosCambiosDocente {
+  idDocente: string;
+  cambioDisponibilidad: boolean;
+  cambioHorarioBloqueado: boolean;
+  cambioLibroDocente: boolean;
+}
+
+/* Función que convierte una frecuencia en un array de números, representando los 
+días de la semana (1-7) que abarca dicha frecuencia. */
 
 const obtenerNumerosPorDias = (frecuencia: string): number[] => {
   let numerosDias: number[] = [];
@@ -58,14 +79,7 @@ const obtenerNumerosPorDias = (frecuencia: string): number[] => {
   return numerosDias;
 };
 
-interface disponibilidadDocenteInterface {
-  DocenteID: number;
-  PeriodoAcademico: number;
-  EstadoDisponible: number;
-  FechaInicio: string;
-  FechaFin: string;
-}
-
+/* Función auxiliar que determina si dos frecuencias se superponen o intersectan. */
 const hayNumeroComunEntreArrays = (array1: number[], array2: number[]): boolean => {
   for (const num of array1) {
     if (array2.includes(num)) {
@@ -74,6 +88,8 @@ const hayNumeroComunEntreArrays = (array1: number[], array2: number[]): boolean 
   }
   return false;
 };
+
+/* Función que recibe dos rangos de tiempo como parámetros y verifica si se solapan o se intersectan. */
 
 const rangosDeTiempoSeSolapan = (rango1: string, rango2: string): boolean => {
   const convertirTiempoEnMinutos = (tiempo: string): number => {
@@ -86,6 +102,9 @@ const rangosDeTiempoSeSolapan = (rango1: string, rango2: string): boolean => {
 
   return inicio1 < fin2 && inicio2 < fin1;
 };
+
+/* Función que recibe como parámetros la frecuencia, el horario de inicio y fin de dos clases,
+ y verifica si se solapan. Devuelve false si no hay intersección entre los horarios. */
 
 const claseSolapada = (
   frecuencia1: string,
@@ -110,6 +129,9 @@ const claseSolapada = (
 
   return true;
 };
+
+/* Función diseñada para validar si un horario bloqueado de un docente se solapa con la combinación de frecuencia, 
+   hora de inicio y hora de fin de una clase. */
 
 const solapaHorarioBloqueado = (
   tipoSemana: string,
@@ -150,6 +172,8 @@ const solapaHorarioBloqueado = (
   return finRango > inicioHorario && finHorario > inicioRango;
 };
 
+/* Función que valida si dos fechas se superponen o intersectan. Devuelve false si  hay intersección entre ellas. */
+
 const disponibleEnFecha = (
   fechaInicio1: string,
   fechaFinal1: string,
@@ -175,6 +199,7 @@ const disponibleEnFecha = (
   }
 };
 
+/* Función que valida si dos horarios se solapan. Devuelve true si hay solapamiento entre ellos. */
 const solapamientoHorario = (rango: string, horarioInicio: string, horarioFin: string) => {
   function convertirHora(cadenaHora: string): Date {
     const [horas, minutos] = cadenaHora.split(':').map(Number);
@@ -192,6 +217,8 @@ const solapamientoHorario = (rango: string, horarioInicio: string, horarioFin: s
   return finRango > inicioHorario && finHorario > inicioRango;
 };
 
+/* Función que valida si dos frecuencias se solapan. Devuelve true si hay solapamiento entre ellos. */
+
 const solapamientoFrecuencia = (f1: string, f2: string) => {
   const dias1 = obtenerNumerosPorDias(f1);
   const dias2 = obtenerNumerosPorDias(f2);
@@ -201,17 +228,14 @@ const solapamientoFrecuencia = (f1: string, f2: string) => {
   return true;
 };
 
+/* Función que genera una cadena para bloquear los horarios y frecuencias que se solapan con otros, 
+   y así excluirlos al buscar docentes disponibles para un curso. */
+
 const maquetarDatos = (frecuenciaId: string, horarioId: string, cabezera: string) => {
   return ` OR (${cabezera}.idFrecuencia =${frecuenciaId} AND ${cabezera}.idHorario = ${horarioId} )`;
 };
 
-interface EventosCambiosDocente {
-  idDocente: string;
-  cambioDisponibilidad: boolean;
-  cambioHorarioBloqueado: boolean;
-  cambioLibroDocente: boolean;
-}
-
+/* Función auxiliar que obtiene el periodo anterior requirido a partir del periodo actual. */
 const calcularCodigoAnterior = (codigo: string, mesesARestar: number) => {
   const year = parseInt(codigo.slice(0, 4), 10);
   const month = parseInt(codigo.slice(4, 6), 10);
@@ -225,6 +249,7 @@ const calcularCodigoAnterior = (codigo: string, mesesARestar: number) => {
   return Number(`${nuevoAnio}${nuevoMes}`);
 };
 
+/* Llamada al pipeline para la actualización del Data Warehouse (DWH). */
 const invokePipeline = async (action: 'run' | 'monitor', url_base: string) => {
   const pipelineName = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_NAME || '';
 
@@ -288,23 +313,31 @@ const invokePipeline = async (action: 'run' | 'monitor', url_base: string) => {
   }
 };
 
+/* Inicio formal de la API. */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
+    console.log('GET@/pages/api/assignment/executeScript.ts');
+
+    /* Construir de la url base para la llamada del pipeline */
     const protocol = req.headers['x-forwarded-proto'] || 'http';
-
-    // Obtener el host (dominio)
     const host = req.headers.host;
-
-    // Construir el dominio base
     const baseUrl = `${protocol}://${host}`;
 
     console.log(baseUrl);
-    console.log('GET@/pages/api/assignment/executeScript.ts');
-    const pool = await connectToDatabase();
 
     try {
+      /*Conexión a la base de datos */
+      const pool = await connectToDatabase();
+
+      /* Parámetros requeridos para el funcionamiento del algoritmo de asignación docente:
+   - periodo: código del periodo para realizar la asignación.
+   - correo: dirección de correo del usuario que solicitó la generación.
+   - addeventos: indica si se deben añadir los eventos a la asignación.
+   - tipo: especifica el tipo de asignación a realizar. */
+
       const { periodo, correo, addEvents, tipo } = req.query;
 
+      /* Acceso a las variables de entorno que afectan la asignación. */
       const MAX_HORAS_FT = parseInt(process.env.MAX_HORAS_FT || '48', 10);
       const MAX_HORAS_PT = parseInt(process.env.MAX_HORAS_PT || '24', 10);
       const uidIdSede = process.env.UID_SEDE_VIRTUAL || '';
@@ -312,6 +345,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log('Horas maximas por docentes PT: ' + MAX_HORAS_PT);
       console.log('Horas maximas por docentes FT: ' + MAX_HORAS_FT);
 
+      /* Verificación de la existencia de los parámetros. */
       if (!periodo && !correo && !addEvents && !tipo) {
         return res
           .status(400)
@@ -323,6 +357,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('id', periodo)
         .query(`select * from [dbo].[ad_periodo] where idPeriodo=@id`);
 
+      /* Verificación de la existencia del periodo. */
       if (result.recordset.length == 0) {
         return res.status(200).json({
           message: 'No existe el  periodo ' + periodo,
@@ -331,7 +366,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const periodoData = result.recordset[0];
-
+      /* Verificación de que el periodo esté activo o en proceso de carga; de lo contrario, no se puede iniciar la asignación. */
       if (periodoData.estado != 'ACTIVO' && periodoData.estado != 'CARGANDO') {
         return res.status(200).json({
           message: 'No existe el  periodo ' + periodo,
@@ -343,19 +378,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      // Actualizar de estado de activo a  cargando
+      /* Actualiza el estado de "activo" a "cargando" para evitar modificaciones mientras el sistema realiza la asignación.*/
 
       await pool
         .request()
         .input('id', periodo)
         .query(`UPDATE [dbo].[ad_periodo] SET estado='CARGANDO'  where idPeriodo=@id`);
 
+      /* Obtener los datos si ya existe programación académica para el periodo especificado. */
       const resultExistDataPeriod = await pool
         .request()
         .input('id', periodo)
         .query(`SELECT  TOP 1 * FROM [dbo].[ad_programacionAcademica] where idPeriodo=@id`);
 
-      if (addEvents === 'true' || resultExistDataPeriod.recordset.length == 0) {
+      /* El pipeline de actualización se llamará solo en los siguientes casos:
+   1. Si hay eventos, es decir, si addEvents es true.
+   2. Si no existe programación académica para el periodo actual, lo que indica que es la primera vez que se realiza la asignación.
+   3. Si el tipo es "reinicio", lo que significa obtener las últimas actualizaciones desde el inicio del sistema y reprocesar. */
+
+      if (
+        addEvents === 'true' ||
+        resultExistDataPeriod.recordset.length == 0 ||
+        tipo == 'reinicio'
+      ) {
         // Actualizar tablas desde el DWH - Invoke Pipeline
         console.log('Llamando al pipeline Invoke');
         await invokePipeline('run', baseUrl);
@@ -363,8 +408,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let resStatusPipeline;
 
         console.log('Actualizando las tablas del DWH');
+
+        /* Mediante un bucle, se espera hasta que el pipeline termine su ejecución. */
         do {
-          // Esperar 6 segundos antes de ejecutar el siguiente paso
+          // Esperar 5 segundos antes de ejecutar el siguiente paso
           console.log('esperando 5 segundo');
           await new Promise((resolve) => setTimeout(resolve, 5000));
           console.log('Llamando al monitoreo del pipeline');
@@ -372,7 +419,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } while (!resStatusPipeline);
       }
 
-      // Se Genera el registro de avance si no existe para ese periodo
+      /* Se genera un registro de avance si no existe uno para el periodo especificado. */
+
       await pool.request().input('periodoID', sql.Int, periodo)
         .query(` IF NOT EXISTS (SELECT 1 FROM ad_avanceAlgoritmo WHERE idPeriodo = @periodoID)
                       BEGIN
@@ -383,6 +431,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       let flagAvance = true;
 
+      /* Obtiene el resultado de avance. Si se ha detenido, permite volver al punto desde la última asignación registrada. */
+
       const resultadoAvance = await pool
         .request()
         .input('id', periodo)
@@ -390,12 +440,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const dataAvance = resultadoAvance.recordset;
 
+      /* Si no hay avance, se sigue el procedimiento estándar. */
+
       if (dataAvance[0].idSede === null) {
         flagAvance = false;
       }
 
-      // Logica de creación de versiones
-
+      /* Obtención de la disponibilidad de los docentes para un periodo específico. */
       const resultDesponibilidad = await pool.request().input('id', periodo).query(`
                       SELECT DocenteID, PeriodoAcademico,EstadoDisponible,FORMAT(FechaInicio, 'dd-MM-yyyy')
                  as FechaInicio, FORMAT(FechaFin , 'dd-MM-yyyy') as FechaFin
@@ -404,7 +455,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const disponibilidadDocente = resultDesponibilidad.recordset;
 
-      // Bloques Horarios bloqueados de docente
+      /* Obtención de los Horarios bloqueados de los docente para un periodo específico. */
+
       const resultHorariosBloquedos = await pool.request().query(`
                                   SELECT DISTINCT 
                                                 hbd.CodigoBloque, 
@@ -420,7 +472,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                     `);
       const BloquesBloqueadosCompletos = resultHorariosBloquedos.recordset;
 
-      // Reinicio del periodo
+      /* Si el tipo es "reinicio", se llama al procedimiento ad_reiniciarDataPeriodo, que borra y genera las nuevas tablas snapshot. */
 
       if (tipo == 'reinicio') {
         await pool
@@ -431,31 +483,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (!flagAvance) {
-        // SNAPTSHOT solo la primera vez
+        /* Crea las tablas snapshot si no existen para el periodo especificado. */
         await pool
           .request()
           .input('periodo', sql.Int, Number(periodo))
           .input('nombreCreador', sql.VarChar, correo)
           .execute('ad_capturaDatosNuevoPeriodo');
 
-        // Copia de la programación academica  del nuevo periodo solo la primera vez
+        /* Crea la tabla de programación academica si no existe para el periodo especificado. */
         await pool
           .request()
           .input('periodo', sql.Int, Number(periodo))
           .execute('ad_CrearNuevaProgramacionAcademica');
 
-        // VERIFICA SI SE INCORPORAN O NO LOS EVENTOS
+        /* Verifica si se deben incorporar o no los eventos. */
         if (addEvents == 'true') {
           const resultEvents = await pool.request().input('id', periodo).query(`
                 SELECT  * FROM  ad_evento WHERE periodo=@id and estado=0 `);
 
-          // VERIFICA SI HAY EVENTOS
           const listaEventos = resultEvents.recordset;
+          /* Verifica si hay al menos un evento */
 
           if (listaEventos.length !== 0) {
             console.log('Hay ' + listaEventos.length + ' eventos ');
 
-            // se crea la version si hay eventos
+            /* Genera una nueva versión de la programación académica para el periodo especificado. */
+
             const resultNewVersion = await pool
               .request()
               .input('idPeriodo', sql.Int, periodo)
@@ -463,8 +516,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               .execute('ad_crearVersion');
 
             const nuevaIdVersion = resultNewVersion.recordset[0].nuevoIdVersion;
+            /* Copia la programación del curso y le asigna una nueva versión generada. */
 
-            // COPIAR LA PROGRAMACIÓN CURSO Y AGREGARLE UNA NUEVA VERSIÓN
             await pool
               .request()
               .input('periodo', sql.Int, periodo)
@@ -473,6 +526,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             const Revisardocentes: EventosCambiosDocente[] = [];
             const RevisarProgramacion: string[] = [];
+
+            /* Función que crea un array de clave-valor, donde el idDocente es la clave, 
+           y actualiza los estados de sus cambios y los eventos correspondientes que le afecten. */
 
             const actualizarCampoDocente = <
               K extends keyof Omit<EventosCambiosDocente, 'idDocente'>
@@ -489,9 +545,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             };
 
             for (const evento of listaEventos) {
-              // ACTUALIZACIÓN DE LAS TABLAS SNAPTSHOT
-              const entidad = evento.entidadReferencia.split('.')[1];
+              /* Actualización de las tablas snapshot . */
 
+              const entidad = evento.entidadReferencia.split('.')[1];
               console.log('periodo: ' + Number(evento.periodo));
               console.log('uuid: ' + evento.uuidEntidad.toString());
               console.log('entidad: ' + entidad.toString());
@@ -519,7 +575,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 });
               }
 
-              // ver el campo si es igual o no  (uuidEntidad o entidadDId)
               if (evento.entidadReferencia.split('.')[1] == 'disponibilidad_docente') {
                 actualizarCampoDocente(evento.entidadId, 'cambioDisponibilidad', true);
                 console.log('Entro a ' + 'cambioDisponibilidad');
@@ -1857,14 +1912,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ' con desviación standar de: ' +
             MenorDesviacion.desviacion
         );
-
-        // await pool
-        //   .request()
-        //   .input('id', periodo)
-        //   .input('idversion', version)
-        //   .input('escenario', MenorDesviacion.escenario)
-        //   .input('idSede', sede.idSede).query(`
-        //         `);
 
         console.log(
           periodo + ' | ' + version + ' | ' + MenorDesviacion.escenario + ' | ' + sede.idSede

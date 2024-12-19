@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (estado == 'CERRADO') {
-        console.log('CERRANDO PERIDO Y  BORRANDO VERSIONES ');
+        console.log('CERRANDO PERIODO Y  BORRANDO VERSIONES ');
 
         await pool
           .request()
