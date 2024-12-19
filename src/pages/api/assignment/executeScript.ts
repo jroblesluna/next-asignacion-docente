@@ -545,13 +545,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             };
 
             for (const evento of listaEventos) {
-              /* Actualización de las tablas snapshot . */
-
               const entidad = evento.entidadReferencia.split('.')[1];
               console.log('periodo: ' + Number(evento.periodo));
               console.log('uuid: ' + evento.uuidEntidad.toString());
               console.log('entidad: ' + entidad.toString());
-
+              /* Actualización de las tablas snapshot . */
               await pool
                 .request()
                 .input('periodo', sql.Int, Number(evento.periodo))
@@ -559,6 +557,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .input('NombreTabla', sql.VarChar, entidad)
                 .execute('ad_ActualizarTablasSnaptshot');
 
+              /* Añade al docente a la lista de cambios*/
               if (
                 !Revisardocentes.find((d) => d.idDocente == evento.entidadId.toString()) &&
                 (evento.entidadReferencia.split('.')[1] == 'dim_docente' ||
@@ -575,26 +574,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 });
               }
 
+              /* Verifica si hubo un cambio de disponibilidad de un docente en especifico. */
+
               if (evento.entidadReferencia.split('.')[1] == 'disponibilidad_docente') {
                 actualizarCampoDocente(evento.entidadId, 'cambioDisponibilidad', true);
                 console.log('Entro a ' + 'cambioDisponibilidad');
               }
 
+              /* Verifica si hubo un cambio en Libro por docente de un docente en especifico. */
+
               if (evento.entidadReferencia.split('.')[1] == 'LibroPorDocente') {
                 actualizarCampoDocente(evento.entidadId, 'cambioLibroDocente', true);
                 console.log('Entro a ' + 'cambioLibroDocente');
               }
+              /* Verifica si hubo un cambio en horario bloqueado de un docente en especifico. */
 
               if (evento.entidadReferencia.split('.')[1] == 'horario_bloqueado_docente') {
                 actualizarCampoDocente(evento.entidadId, 'cambioHorarioBloqueado', true);
                 console.log('Entro a ' + 'cambioHorarioBloqueado');
               }
+              /* Verifica si hubo un cambio en programación curso*/
 
               if (evento.entidadReferencia.split('.')[1] == 'ProgramacionCursos') {
                 RevisarProgramacion.push(evento.uuidEntidad);
                 console.log('Entro a ' + 'ProgramacionCursos');
               }
             }
+            /* Obtener el id de la sede Virtual*/
 
             const resultadoIDVirtual = await pool
               .request()
@@ -605,9 +611,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               );
 
             const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
+            /* Recorre cada uno de los docentes modificados y analiza los cambios generados que afectan al docente. */
 
             for (const docenteAnalisis of Revisardocentes) {
               console.log('analisando el docente:  ' + docenteAnalisis.idDocente);
+
+              /* Obtener los datos del docente*/
 
               const resultOneDocente = await pool
                 .request()
@@ -619,6 +628,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               console.log(
                 resultOneDocente.recordset[0]?.vigente ? 'El docente sigue vigente' : ''
               );
+              /* Verifica la vigencia del docente. Si ya no está vigente, se le desasignan todos los cursos asignados. */
 
               if (resultOneDocente.recordset[0]?.vigente == false) {
                 console.log('DESASIGNAR , ya no esta vigente el docente');
@@ -647,6 +657,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 continue;
               }
 
+              /* Verifica si ha habido algún cambio en el docente; de lo contrario, pasa al siguiente docente. */
+
               if (
                 !docenteAnalisis.cambioLibroDocente &&
                 !docenteAnalisis.cambioHorarioBloqueado &&
@@ -657,6 +669,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 );
                 continue;
               }
+              /* Obtiene las clases asignadas al docente. */
 
               const resultClasesAsignadas = await pool
                 .request()
@@ -690,7 +703,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
               const ClasesAsignadas = resultClasesAsignadas.recordset;
 
+              /* Recorre cada una de las clases asignadas al docente y evalúa los criterios de cambio 
+              para determinar si es necesario desasignarlo de la clase. */
+
               for (const claseDocente of ClasesAsignadas) {
+                /* Verifica si se ha cambiado el libro por docente para ese docente. */
+
                 if (docenteAnalisis.cambioLibroDocente) {
                   console.log(
                     'Analisando cambioLibroDocente para el docente ' +
@@ -704,6 +722,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     .query(
                       `SELECT top 1 * FROM [dbo].[LibroPorDocente] where DocenteID = @idDocente and CursoID= @idCurso`
                     );
+                  /* Verifica si el docente tiene la capacidad de enseñar el curso; si no es así, se desasigna. */
 
                   if (resultDictaCurso.recordset.length === 0) {
                     console.log(
@@ -742,6 +761,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     continue;
                   }
                 }
+                /* Verifica si se ha cambiado la disponibilidad para ese docente. */
 
                 if (docenteAnalisis.cambioDisponibilidad) {
                   console.log(
@@ -753,6 +773,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     (item: disponibilidadDocenteInterface) =>
                       item.DocenteID == Number(docenteAnalisis.idDocente)
                   );
+
+                  /* Verifica si el docente está disponible para enseñar durante toda la clase; si no es así, se desasigna.*/
 
                   if (docenteDisponibleData.length > 0) {
                     const respuesta = docenteDisponibleData.every(
@@ -809,7 +831,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     }
                   }
                 }
-
+                /* Verifica si se ha cambiado los horarios bloqueados para ese docente. */
                 if (docenteAnalisis.cambioHorarioBloqueado) {
                   console.log(
                     'Analisando cambioHorarioBloqueado para el docente ' +
@@ -821,6 +843,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                       horario.DocenteID == Number(docenteAnalisis.idDocente)
                   );
 
+                  /* Verifica si la clase sigue cumpliendo con los horarios bloqueados del docente; si no es así, se desasigna. */
                   if (BloquesBloqueados.length > 0) {
                     const respuesta = BloquesBloqueados.every(
                       (item: { CodigoBloque: string; bloque: string }) => {
@@ -876,6 +899,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               }
             }
 
+            /* Se realiza un análisis de las clases afectadas para verificar su vigencia o si están canceladas; 
+             de ser así, se desasigna al docente. */
+
             for (const programacionAnailis of RevisarProgramacion) {
               const resultOneProgramacion = await pool
                 .request()
@@ -917,9 +943,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               }
             }
 
-            // actualizar todos esos luego de Hacer los cambios
+            // Recorre los eventos y actualiza su estado a 1, lo que significa que ha sido analizado y ejecutado.
             for (const evento of listaEventos) {
-              //actualiza el estado de cada evento despues de incorporarlo
               await pool
                 .request()
                 .input('id', periodo)
@@ -929,12 +954,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 );
             }
           }
+
+          /* Mensaje en la consola que indica si hubo eventos. */
+
           if (listaEventos.length === 0) {
             console.log('No Hay eventos');
           }
         }
 
-        // actualizar las dicta clase de los docentes
+        /* Actualiza el estado de los docentes para determinar si pueden dictar clases, basándose en si están 
+        capacitados para enseñar al menos un curso, lo cual debe estar reflejado en el registro "libro por docente". */
 
         await pool.request().input('id', periodo)
           .query(`UPDATE  [dbo].[ad_docente] set dictaClase =(CASE 
@@ -946,8 +975,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
        END)         WHERE periodo=@id`);
       }
 
+      /* El tipo de reproceso total genera una copia de la versión académica, desasigna a todos los docentes 
+      que no tengan el candado (es decir, aquellos que no han 
+      sido modificados manualmente o por el sistema de inicio) y sigue el proceso normal de asignación. */
+
       if (tipo == 'total') {
-        // se crea la version por que es un reproceso total
+        /* Creación de una nueva versión. */
         const resultNewVersion = await pool
           .request()
           .input('idPeriodo', sql.Int, periodo)
@@ -955,7 +988,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .execute('ad_crearVersion');
 
         const nuevaIdVersion = resultNewVersion.recordset[0].nuevoIdVersion;
-        // COPIAR LA PROGRAMACIÓN CURSO Y AGREGARLE UNA NUEVA VERSIÓN
+        /* Copia la programación del curso y le asigna una nueva versión. */
+
         await pool
           .request()
           .input('periodo', sql.Int, periodo)
@@ -963,7 +997,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .execute('ad_copiarProgramacionAcademicaConNuevaVersion');
       }
 
-      // obtener el max id version del periodo en actividad academica
+      /* Obtiene el máximo ID de versión del periodo en actividad académica. */
 
       const resultadoVersion = await pool
         .request()
@@ -974,10 +1008,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const version = resultadoVersion.recordset[0]?.Lastversion;
 
-      // P3:  Obtener orden de sedes
-
-      // obtener ID SEDE VIRTUAL
-
+      /* Obtiene el ID de la sede virtual. */
       const resultadoIDVirtual = await pool
         .request()
         .input('id', periodo)
@@ -988,7 +1019,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const virtualID = resultadoIDVirtual.recordset[0]?.idSede;
 
-      console.log('virtual: ' + virtualID);
+      console.log('Id virtual: ' + virtualID);
+
+      /*  P3:  Obtener orden de sedes */
+      /* Se obtiene el orden de las sedes calculando los ratios de docentes FT y PT, con una proporción de 3 a 1 respectivamente. 
+   Al final, se agrega la sede virtual, ya que es una regla en la asignación. */
+
       const resultadoSedes = await pool
         .request()
         .input('id', periodo)
@@ -1069,6 +1105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(sedesArray);
 
       if (tipo == 'total') {
+        /*  Desasignación a todos los docentes que no tengan el candado  */
         await pool.request().input('id', periodo).input('idVersion', version).query(`
                   UPDATE ad_programacionAcademica 
                   SET idDocente = NULL
@@ -1082,9 +1119,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   SET idAula = idAulaInicial,  aulaModificada=null
                   WHERE  idSede=@idVirtual and  aulaModificada is not null  and docenteModificado is null  and idVersion=@idVersion and idPeriodo=@id`);
       }
+      /* P4: Iteración por sede */
 
-      // P4: Iteración por sede
+      /*Consulta la enumeración de los slots recorrido */
       let aux_slotsRecorridos = dataAvance[0].slotsRecorridos;
+
+      /* Obtención de todos los escenarios activos. */
       const resultadoEscenariosActivos = await pool
         .request()
         .query(`SELECT  * FROM [dbo].[ad_escenario] where activo=1`);
@@ -1110,7 +1150,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                           SET totalSlots = ${cantidadSlots.cantidad}
                                           WHERE idPeriodo = ${periodo};`;
 
+      /*Recorrido para cada sede */
       for (const sede of sedesArray) {
+        /* Verifica si hay datos en el backup y continúa desde lo almacenado; si no, sigue con el procedimiento normal. */
         if (Number(dataAvance[0].idSede) != Number(sede.idSede) && flagAvance === true) {
           continue;
         }
@@ -1122,6 +1164,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             sede.NombreSede +
             ' |#################'
         );
+
+        /* Obtención de los cursos presenciales de una sede específica. */
 
         const resultCursos = await pool
           .request()
@@ -1174,12 +1218,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const cursosXsedeArray = resultCursos.recordset;
 
-        // si no hay cursos ir al siguiente
+        /* Si no hay cursos disponibles, se pasa a la siguiente sede. */
+
         if (cursosXsedeArray.length === 0) {
           continue;
         }
 
-        // Llamada a consultas estaticas
+        /* Obtención de todos los horarios disponibles en la programación académica. */
 
         const resultH = await pool.request().input('id', periodo).input('version', version)
           .query(`
@@ -1190,7 +1235,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const resultadoHorario = resultH.recordset;
 
-        // CALCULO DE HORARIOS SOLAPADOS
+        /* Cálculo de los horarios solapados. */
 
         const horariosMap = new Map<number, number[]>();
 
@@ -1212,7 +1257,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             horariosMap.set(horario1.idHorario, []);
           }
         });
-        // CALCULO DE FREUENCIA SOLAPADOS
+        /* Cálculo de frecuencias solapadas. */
 
         const resultFrecuencia = await pool
           .request()
@@ -1226,6 +1271,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const resultadoFrecuencia = resultFrecuencia.recordset;
 
         const frecuenciaMap = new Map<number, number[]>();
+
+        /* Cálculo de la combinación frecuencia y horarios solapados. */
 
         resultadoFrecuencia.forEach((frecuencia1) => {
           const solapados: number[] = [];
@@ -1252,9 +1299,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         console.log('Numero de slots : ' + cursosXsedeArray.length);
 
-        //   // P5: Iteración por escenarios
+        /*P5: Iteración por escenarios */
 
         for (const escenario of ListaEscenario) {
+          /* Verifica si hay datos en el backup y continúa desde lo almacenado; si no, sigue con el procedimiento normal. */
+
           if (flagAvance && dataAvance[0].escenario != escenario.escenario) {
             continue;
           }

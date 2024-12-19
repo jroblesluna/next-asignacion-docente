@@ -174,7 +174,8 @@ const Page = () => {
                 <p className="text-[13px]">
                   ● La función de sincronización con *Inicio* sube la última información de las
                   asignaciones del sistema de asignación docente al sistema *Inicio* mediante
-                  la invocación de un pipeline. Para ello, se ejecutan las siguientes acciones:
+                  la invocación de un pipeline (Transmisión de datos). Para ello, se ejecutan
+                  las siguientes acciones:
                 </p>
                 <p className="text-[13px]">
                   ● Se limpia y actualiza la tabla <strong>{'ad_asignacion_output'}</strong> a
@@ -210,23 +211,21 @@ const Page = () => {
             </div>
             <div className="w-1/2 min-h-[50vh] max-h-[50vh]   flex flex-col  gap-3 p-2 mt-10 ">
               <div className="p-6">
-                <h1 className="text-4xl font-bold mb-4 ">Estado de Ejecución del pipeline</h1>
+                <h1 className="text-4xl font-bold mb-4 ">Estado de la sincronización</h1>
                 {loading == true ? (
                   <div className="w-[100%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[40vh]">
                     <span className="loading loading-spinner text-primary loading-lg"></span>
                     {typeActionPipeline == 'monitoreo' ? (
                       <p className="font-bold text-3xl">
-                        Pipeline de Sincronización Ejecutandose - Monitoreando
+                        Sincronización en progreso - Monitoreando pipeline
                       </p>
                     ) : (
-                      <p className="font-bold text-3xl">
-                        Ejecutando Pipeline de Sincronización
-                      </p>
+                      <p className="font-bold text-3xl">Sincronización Iniciada</p>
                     )}
                   </div>
                 ) : (
                   <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[40vh]">
-                    <p className="font-bold text-3xl">No hay pipeline Ejecutandose</p>
+                    <p className="font-bold text-3xl">No hay sincronización en proceso</p>
                   </div>
                 )}
 
