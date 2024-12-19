@@ -1307,22 +1307,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (flagAvance && dataAvance[0].escenario != escenario.escenario) {
             continue;
           }
-
-          //      Contador de slots
+          /* Contador de slots en iteración*/
           let i = 0;
           const orderByClause = escenario.logica;
 
+          /*Declaración para almacenar el orden a asignar los cursos de la sede virtual */
           let ordenDisponibilidadVirtuales: { idSede: string }[] = [];
           let iteradorOrden = 0;
 
           let x = 0;
+          /* Punto de regreso para esta sección del bucle. */
           reiniciar: for (; x < cursosXsedeArray.length; x++) {
             const cursosXsede = cursosXsedeArray[x];
 
             i = i + 1;
+            /* Verifica si hay datos en el backup y continúa desde lo almacenado; si no, sigue con el procedimiento normal. */
+
             if (dataAvance[0].idSlot != cursosXsede.uuuidProgramacionAcademica && flagAvance) {
               continue;
             }
+            /* Logica para obtener y determinar los slots recorridos*/
 
             if (
               i == cursosXsedeArray.length &&
@@ -1330,6 +1334,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ) {
               aux_slotsRecorridos += cursosXsedeArray.length;
             }
+
+            /* Último nivel del backup de regreso. */
 
             if (flagAvance === true) {
               flagAvance = false;
@@ -1350,6 +1356,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             console.log(cursosXsede);
 
+            /* Si el curso es virtual, se debe obtener el ranking de disponibilidad de las sedes presenciales. */
             if (Number(sede.idSede) === virtualID) {
               const resultadoDisponibilidadVirtuales = await pool
                 .request()
@@ -1431,12 +1438,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               ordenDisponibilidadVirtuales = resultadoDisponibilidadVirtuales.recordset;
             }
 
+            /* Mostrar la sede presencial que se está evaluando para asignar a la clase. */
+
             if (ordenDisponibilidadVirtuales.length > 0) {
               console.log(
                 'PROBANDO ASIGNARLE UN PROFESOR DE LA SEDE : ' +
                   ordenDisponibilidadVirtuales[iteradorOrden].idSede
               );
             }
+            /* Obtención dinámica de la combinación y frecuencias solapadas. */
 
             const fId = cursosXsede.idFrecuencia;
             const hid = cursosXsede.idHorario;
@@ -1446,18 +1456,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const arraryFrecuencias = frecuenciaMap.get(Number(fId)) || [Number(fId)];
             const arraryHorario = horariosMap.get(Number(hid)) || [Number(hid)];
 
+            /* Creación de la cadena dinámica con el prefijo "PC" (Programación Curso). */
+
             arraryFrecuencias.forEach((element1) => {
               arraryHorario.forEach((element2) => {
                 cadenaPC += maquetarDatos(element1.toString(), element2.toString(), 'PC');
               });
             });
-
+            /* Creación de la cadena dinámica con el prefijo "TA" (Test Asignación). */
             arraryFrecuencias.forEach((element1) => {
               arraryHorario.forEach((element2) => {
                 cadenaTA += maquetarDatos(element1.toString(), element2.toString(), 'TA');
               });
             });
 
+            /* Llamada al procedimiento ad_obtenerDocentesDisponiblesXsede para obtener 
+            los docentes disponibles que puedan enseñar el curso para una clase específica. */
             const resultDocentes = await pool
               .request()
               .input('OrderBy', sql.NVarChar, orderByClause)
