@@ -727,7 +727,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         DocentesActos.push({
           id: docente.DocenteID,
-          nombre: docente.NombreCompletoProfesor,
+          nombre: docente.NombreCompletoProfesor || '',
           minutosTotales: (Number(docente.MinutosAcumulados) / 60).toFixed(2) + 'Hrs',
           tipoContrato: docente.TipoJornada,
           nombreSede: docente.nombreSede,

@@ -142,15 +142,15 @@ const Page = () => {
   };
 
   const filteredProfessors = dataDocentesActivos.filter((teacher) => {
-    const matchesName = teacher.NombreCompletoProfesor.toLowerCase().includes(
-      inputValue.toLowerCase()
-    );
+    const matchesName = (teacher.NombreCompletoProfesor || '')
+      .toLowerCase()
+      .includes(inputValue.toLowerCase());
     const matchesLocation =
       selectedLocation.toLowerCase() === 'Todas'.toLowerCase() ||
-      teacher.NombreSede.toLowerCase() === selectedLocation.toLowerCase();
+      (teacher.NombreSede || '').toLowerCase() === selectedLocation.toLowerCase();
     const matchesState =
       selectedState === 'Todas' ||
-      (teacher.TipoJornada.toLowerCase() === selectedState.toLowerCase() &&
+      ((teacher.TipoJornada.toLowerCase() || '') === selectedState.toLowerCase() &&
         teacher.eventoIndisponible == '-') ||
       selectedState.toLowerCase() ==
         convertToCustomAcronym(teacher.eventoIndisponible).toLowerCase();
@@ -374,7 +374,7 @@ const Page = () => {
                         <option value="Todas">Todas</option>
                         {nombresSedesData.map((item, index) => (
                           <option key={index} value={item.NombreSede}>
-                            {item?.NombreSede?.toLowerCase() || ''}
+                            {(item?.NombreSede || '').toLowerCase() || ''}
                           </option>
                         ))}
                       </select>
@@ -418,7 +418,7 @@ const Page = () => {
                           <TableActiveTeacher
                             key={index}
                             location={teacher.NombreSede}
-                            teacher={teacher.NombreCompletoProfesor}
+                            teacher={teacher.NombreCompletoProfesor || ''}
                             status={
                               teacher.eventoIndisponible == '-'
                                 ? teacher.TipoJornada

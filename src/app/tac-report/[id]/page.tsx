@@ -115,7 +115,7 @@ const Page = () => {
         (obj, index, self) =>
           index === self.findIndex((o) => o.uuidDocente === obj.uuidDocente)
       ).map((item) => ({
-        teacher: item.NombreCompletoProfesor,
+        teacher: item.NombreCompletoProfesor || '',
         location: item.NombreSede,
         EstadoDisponible: item.EstadoDisponible,
         eventoIndisponible: item.eventoIndisponible,

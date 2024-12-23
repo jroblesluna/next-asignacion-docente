@@ -1,7 +1,7 @@
 import { EmailClient } from '@azure/communication-email';
 
 const connectionString = process.env.COMMUNICATION_SERVICES_CONNECTION_STRING;
-
+const senderAddress = process.env.SENDER_ADDRESS;
 export async function sendEmail(to: string, subject: string, plainText: string) {
   if (!connectionString) {
     throw new Error(
@@ -12,7 +12,7 @@ export async function sendEmail(to: string, subject: string, plainText: string) 
   const client = new EmailClient(connectionString);
 
   const emailMessage = {
-    senderAddress: 'noreply@notificaciones.icpna-virtual.edu.pe',
+    senderAddress: senderAddress || '',
     content: {
       subject,
       plainText,

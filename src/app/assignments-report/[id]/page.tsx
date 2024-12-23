@@ -193,9 +193,9 @@ const ReportAssignments = () => {
         classroom: item.identificadorFisico || '-',
         teacher:
           item.nombreSede === item.nombreSedeAlojada
-            ? item.NombreCompletoProfesor
+            ? item.NombreCompletoProfesor || ''
             : item.nombreSedeAlojada !== null
-            ? item.NombreCompletoProfesor + ` (${item.nombreSedeAlojada})`
+            ? (item.NombreCompletoProfesor || '') + ` (${item.nombreSedeAlojada})`
             : '-',
         teacherId: item.idDocente !== null ? item.idDocente.toString() : '',
         numberOfStudents: item.matriculados,

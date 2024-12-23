@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { EmailClient } from '@azure/communication-email';
 
 const connectionString = process.env.COMMUNICATION_SERVICES_CONNECTION_STRING;
+const senderAddress = process.env.SENDER_ADDRESS;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -21,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const client = new EmailClient(connectionString);
 
       const emailMessage = {
-        senderAddress: 'noreply@notificaciones.icpna-virtual.edu.pe',
+        senderAddress: senderAddress || '',
         content: {
           subject,
           plainText,
