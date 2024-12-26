@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: release.zip
+          path: release_1.1.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -54,10 +54,10 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip -q release.zip
+        run: unzip -q release_1.1.zip
 
       - name: Move release.zip to public folder
-        run: mv release.zip ./public
+        run: mv release_1.1.zip ./public
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
