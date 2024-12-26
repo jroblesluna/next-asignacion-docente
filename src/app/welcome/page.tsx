@@ -17,7 +17,7 @@ function Page() {
         error instanceof BrowserAuthError &&
         error.errorCode === "interaction_in_progress"
       ) {
-        console.log("Interacción de autenticación ya en progreso.");
+        console.log("Interacción de autenticación ya está en progreso.");
       } else {
         console.error("Otro error ocurrió:", error);
       }
