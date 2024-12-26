@@ -6,8 +6,8 @@ export default function Page() {
   return (
     <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
       <p>a: {a}</p>
-      <p>b:{b}</p>
-      <p>PUBLIC_AZURE_WEBAPP_ID_CLIEN: {c}</p>
+      <p>b: {b}</p>
+      <p>PUBLIC_AZURE_WEBAPP_ID_CLIENT: {c}</p>
       <h1>Client ID: {clientId}</h1>
     </main>
   );
