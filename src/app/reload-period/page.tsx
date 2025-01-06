@@ -200,7 +200,7 @@ const Page = () => {
                 <div className="w-1/2 min-h-[72vh] max-h-[72vh] justify-center   flex flex-col  gap-3 p-2 -mt-10 ">
                   <div className="w-1/2 mx-auto">
                     <button
-                      className={`btn  py-4 px-5 text-white font-semibold text-2xl  h-24 w-96 -ml-16 mt-4 ${
+                      className={`btn  py-3 px-5 text-white font-semibold text-2xl  h-20 w-96 -ml-16 mt-4 ${
                         dataPerido?.estado != 'ACTIVO'
                           ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
                           : 'bg-secundary hover:bg-secundary_ligth cursor-pointer '

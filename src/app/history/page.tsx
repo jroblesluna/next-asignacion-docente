@@ -17,7 +17,9 @@ import { getCookie } from '../utils/other';
 function Page() {
   const [inputValue, setInputValue] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(new Date());
+  const [endDate, setEndDate] = useState<Date | null>(
+    new Date(new Date().getFullYear(), new Date().getMonth())
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 6;
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -55,12 +57,51 @@ function Page() {
   const filteredData = historyData
     .filter((period) => period.idPeriodo.toString().includes(inputValue))
     .filter((period) => {
+      // Convertir las fechas del periodo a objetos de fecha
       const periodStartDate = parseDate(convertirFormatoFecha(period.fechaInicio));
       const periodEndDate = parseDate(convertirFormatoFecha(period.fechaFinal));
 
-      return (
-        (!startDate || periodStartDate >= startDate) && (!endDate || periodEndDate <= endDate)
+      // Extraer los meses y años de las fechas
+      const periodStartMonth = periodStartDate.getMonth();
+      const periodStartYear = periodStartDate.getFullYear();
+      const periodEndMonth = periodEndDate.getMonth();
+      const periodEndYear = periodEndDate.getFullYear();
+
+      // Extraer meses y años de los filtros
+      const filterStartMonth = startDate ? startDate.getMonth() : null;
+      const filterStartYear = startDate ? startDate.getFullYear() : null;
+      const filterEndMonth = endDate ? endDate.getMonth() : null;
+      const filterEndYear = endDate ? endDate.getFullYear() : null;
+
+      console.log('Periodo Inicio:', periodStartMonth + 1, periodStartYear);
+      console.log('Periodo Fin:', periodEndMonth + 1, periodEndYear);
+      console.log(
+        'Filtro Inicio:',
+        filterStartMonth !== null ? filterStartMonth + 1 : 'N/A',
+        filterStartYear
       );
+      console.log(
+        'Filtro Fin:',
+        filterEndMonth !== null ? filterEndMonth + 1 : 'N/A',
+        filterEndYear
+      );
+
+      // Comparar solo meses y años
+      const isAfterStartDate =
+        !startDate ||
+        (filterStartYear !== null && periodStartYear > filterStartYear) ||
+        (periodStartYear === filterStartYear &&
+          filterStartMonth !== null &&
+          periodStartMonth >= filterStartMonth);
+
+      const isBeforeEndDate =
+        !endDate ||
+        (filterEndYear !== null && periodEndYear < filterEndYear) ||
+        (periodEndYear === filterEndYear &&
+          filterEndMonth !== null &&
+          periodEndMonth <= filterEndMonth);
+
+      return isAfterStartDate && isBeforeEndDate;
     });
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const paginatedData = filteredData.slice(startIndex, endIndex);
@@ -152,7 +193,7 @@ function Page() {
                         ? new Date(startDate.getFullYear(), startDate.getMonth())
                         : undefined
                     }
-                    maxDate={new Date()}
+                    maxDate={new Date(new Date().getFullYear(), new Date().getMonth() + 1)}
                     locale={es}
                   />
                 </div>

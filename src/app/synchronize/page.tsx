@@ -11,6 +11,7 @@ import assigmentService from '@/services/assigment';
 const Page = () => {
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [dataVacia, setDataVacia] = useState(false);
+  const [failPipeline, setFailPipeline] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isRuningPipeline, setIsRuningPipeline] = useState(false);
   const [typeActionPipeline, setTypeActionPipeline] = useState('monitor');
@@ -74,6 +75,7 @@ const Page = () => {
         // Handle error if the response is not OK
         console.log(`Error: ${data.error}`);
         setIsRuningPipeline(false);
+        setFailPipeline(true);
         return false;
       }
     } catch (error: unknown) {
@@ -81,6 +83,7 @@ const Page = () => {
       const errorMessage = (error as Error).message || 'An unexpected error occurred';
       console.log(`Error: ${errorMessage}`);
       setIsRuningPipeline(false);
+      setFailPipeline(true);
       return false;
     } finally {
       setLoading(false);
@@ -151,99 +154,112 @@ const Page = () => {
           </div>
         ) : (
           <div className="w-full flex flex-row">
-            <div className="w-1/2 min-h-[400px]  p-5 flex  justify-center  items-start">
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-row gap-10 items-center">
-                  <div className="flex flex-row gap-2">
-                    <strong>Codigo de Periodo: </strong> {dataPerido?.idPeriodo}
-                  </div>
-                  <div className="flex flex-row gap-2">
-                    <strong>Estado: </strong> {dataPerido?.estado}
-                  </div>
-                  <div className="flex flex-row gap-2">
-                    <strong>Fecha:</strong>
-                    <p className={dataPerido?.fechaInicio ? '' : 'skeleton h-4 w-[200px] '}>
-                      {dataPerido?.fechaInicio !== undefined &&
-                        ` ${convertirFormatoFecha(
-                          dataPerido?.fechaInicio
-                        )} - ${convertirFormatoFecha(dataPerido?.fechaFinal)} `}
+            {!failPipeline ? (
+              <>
+                <div className="w-1/2 min-h-[400px]  p-5 flex  justify-center  items-start">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-row gap-10 items-center">
+                      <div className="flex flex-row gap-2">
+                        <strong>Codigo de Periodo: </strong> {dataPerido?.idPeriodo}
+                      </div>
+                      <div className="flex flex-row gap-2">
+                        <strong>Estado: </strong> {dataPerido?.estado}
+                      </div>
+                      <div className="flex flex-row gap-2">
+                        <strong>Fecha:</strong>
+                        <p
+                          className={dataPerido?.fechaInicio ? '' : 'skeleton h-4 w-[200px] '}
+                        >
+                          {dataPerido?.fechaInicio !== undefined &&
+                            ` ${convertirFormatoFecha(
+                              dataPerido?.fechaInicio
+                            )} - ${convertirFormatoFecha(dataPerido?.fechaFinal)} `}
+                        </p>
+                      </div>
+                    </div>
+                    <h2 className="font-bold text-[18px]">Definición:</h2>
+                    <p className="text-[13px]">
+                      ● La función de sincronización con *Inicio* sube la última información de
+                      las asignaciones del sistema de asignación docente al sistema *Inicio*
+                      mediante la invocación de un pipeline (Transmisión de datos). Para ello,
+                      se ejecutan las siguientes acciones:
                     </p>
+                    <p className="text-[13px]">
+                      ● Se limpia y actualiza la tabla{' '}
+                      <strong>{'ad_asignacion_output'}</strong> a la última versión generada
+                      con sus modificaciones correspondientes, preparándola para la invocación
+                      del pipeline de sincronización.
+                    </p>
+                    <p className="text-[13px]">
+                      ● Se invoca el pipeline de sincronización y se monitorea constantemente
+                      hasta que finalice correctamente.
+                    </p>
+                    <h2 className="font-bold text-[18px]">Nota:</h2>
+                    <p className="text-[13px]">
+                      ● Asegúrese de revisar y confirmar los cambios antes de sincronizarlos
+                      con el sistema *Inicio*. Si se realizan modificaciones posteriores,
+                      deberá volver a ejecutar la sincronización.
+                    </p>
+
+                    <div className="w-1/2 mx-auto">
+                      <button
+                        className={`btn  py-2 px-10 text-white font-semibold  mt-10 ${
+                          dataPerido?.estado != 'ACTIVO' ||
+                          isRuningPipeline != false ||
+                          loading == true
+                            ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
+                            : 'bg-secundary hover:bg-secundary_ligth cursor-pointer '
+                        } `}
+                        onClick={invokePipelineRun}
+                      >
+                        Sincronizar con sistema Inicio
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <h2 className="font-bold text-[18px]">Definición:</h2>
-                <p className="text-[13px]">
-                  ● La función de sincronización con *Inicio* sube la última información de las
-                  asignaciones del sistema de asignación docente al sistema *Inicio* mediante
-                  la invocación de un pipeline (Transmisión de datos). Para ello, se ejecutan
-                  las siguientes acciones:
-                </p>
-                <p className="text-[13px]">
-                  ● Se limpia y actualiza la tabla <strong>{'ad_asignacion_output'}</strong> a
-                  la última versión generada con sus modificaciones correspondientes,
-                  preparándola para la invocación del pipeline de sincronización.
-                </p>
-                <p className="text-[13px]">
-                  ● Se invoca el pipeline de sincronización y se monitorea constantemente hasta
-                  que finalice correctamente.
-                </p>
-                <h2 className="font-bold text-[18px]">Nota:</h2>
-                <p className="text-[13px]">
-                  ● Asegúrese de revisar y confirmar los cambios antes de sincronizarlos con el
-                  sistema *Inicio*. Si se realizan modificaciones posteriores, deberá volver a
-                  ejecutar la sincronización.
-                </p>
-
-                <div className="w-1/2 mx-auto">
-                  <button
-                    className={`btn  py-2 px-10 text-white font-semibold  mt-10 ${
-                      dataPerido?.estado != 'ACTIVO' ||
-                      isRuningPipeline != false ||
-                      loading == true
-                        ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
-                        : 'bg-secundary hover:bg-secundary_ligth cursor-pointer '
-                    } `}
-                    onClick={invokePipelineRun}
-                  >
-                    Sincronizar con sistema Inicio
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="w-1/2 min-h-[50vh] max-h-[50vh]   flex flex-col  gap-3 p-2 mt-10 ">
-              <div className="p-6">
-                <h1 className="text-4xl font-bold mb-4 ">Estado de la sincronización</h1>
-                {loading == true ? (
-                  <div className="w-[100%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[40vh]">
-                    <span className="loading loading-spinner text-primary loading-lg"></span>
-                    {typeActionPipeline == 'monitoreo' ? (
-                      <p className="font-bold text-3xl">
-                        Sincronización en progreso - Monitoreando pipeline
-                      </p>
+                <div className="w-1/2 min-h-[50vh] max-h-[50vh]   flex flex-col  gap-3 p-2 mt-10 ">
+                  <div className="p-6">
+                    <h1 className="text-4xl font-bold mb-4 ">Estado de la sincronización</h1>
+                    {loading == true ? (
+                      <div className="w-[100%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[40vh]">
+                        <span className="loading loading-spinner text-primary loading-lg"></span>
+                        {typeActionPipeline == 'monitoreo' ? (
+                          <p className="font-bold text-3xl">
+                            Sincronización en progreso - Monitoreando pipeline
+                          </p>
+                        ) : (
+                          <p className="font-bold text-3xl">Sincronización Iniciada</p>
+                        )}
+                      </div>
                     ) : (
-                      <p className="font-bold text-3xl">Sincronización Iniciada</p>
+                      <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[40vh]">
+                        <p className="font-bold text-3xl">No hay sincronización en proceso</p>
+                      </div>
+                    )}
+
+                    {runIds.length > 0 && (
+                      <div className="mt-4">
+                        <h2 className="font-semibold">Run IDs:</h2>
+                        <ul className="list-disc pl-6">
+                          {runIds.map((run, index) => (
+                            <li key={index} className="text-blue-500">
+                              {run.runId || 'No Run ID Available'} -{' '}
+                              <span className="text-gray-600">{run.status}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
-                ) : (
-                  <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[40vh]">
-                    <p className="font-bold text-3xl">No hay sincronización en proceso</p>
-                  </div>
-                )}
-
-                {runIds.length > 0 && (
-                  <div className="mt-4">
-                    <h2 className="font-semibold">Run IDs:</h2>
-                    <ul className="list-disc pl-6">
-                      {runIds.map((run, index) => (
-                        <li key={index} className="text-blue-500">
-                          {run.runId || 'No Run ID Available'} -{' '}
-                          <span className="text-gray-600">{run.status}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
+                </div>
+              </>
+            ) : (
+              <h1 className="font-bold text-5xl mx-auto h-full mt-36  w-[90%]">
+                {
+                  'La transmición de datos (pipeline) ha fallado. Por favor contactar con el equipo de TI.'
+                }
+              </h1>
+            )}
           </div>
         )}
       </main>

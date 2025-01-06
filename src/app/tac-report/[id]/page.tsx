@@ -275,7 +275,7 @@ const Page = () => {
                   <option value="PT">PT</option>
                   {Array.isArray(newStatus) &&
                     newStatus.map((item) => {
-                      return <option key={item}>{item}</option>;
+                      return <option key={item}>{convertToCustomAcronym(item || '')}</option>;
                     })}
                 </select>
               </label>

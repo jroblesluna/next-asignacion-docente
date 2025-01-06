@@ -10,7 +10,7 @@ export function convertToCustomAcronym(phrase: string): string {
     return 'LIC';
   }
 
-  if (normalizedPhrase.includes('Maternidad')) {
+  if (normalizedPhrase.includes('maternidad')) {
     return 'MAT';
   }
 
