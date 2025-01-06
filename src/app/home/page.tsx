@@ -55,9 +55,9 @@ const Page = () => {
               title="Configurar escenarios"
               linkTo="/config-data"
             />
-            {/* <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" />
-            <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" /> */}
-            <ButtonOptionMain
+            <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" />
+            <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" />
+            {/* <ButtonOptionMain
               img={'/reload-icon.svg'}
               isDisabled={dataPerido.idPeriodo === -1}
               title="Reiniciar y procesar"
@@ -68,7 +68,7 @@ const Page = () => {
               isDisabled={dataPerido.idPeriodo === -1}
               title="Sincronizar a Inicio"
               linkTo="/synchronize"
-            />
+            /> */}
 
             <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" />
             <ButtonOptionMain img={''} isDisabled={true} title="" linkTo="/" />
