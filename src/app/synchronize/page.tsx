@@ -147,7 +147,7 @@ const Page = () => {
     <LayoutValidation>
       <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
         <NavBar></NavBar>
-        <ReturnTitle name="Sincronizar a Inicio" />
+        <ReturnTitle name="Sincronizar a Inicio" link="/home" />
         {dataPerido?.idPeriodo === undefined || dataVacia ? (
           <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
             <span className="loading loading-bars loading-lg"></span>

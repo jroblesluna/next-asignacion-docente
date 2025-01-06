@@ -123,7 +123,7 @@ const Page = () => {
     <LayoutValidation>
       <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
         <NavBar></NavBar>
-        <ReturnTitle name="Reiniciar Período - Sincronizar desde Inicio" />
+        <ReturnTitle name="Reiniciar Período - Sincronizar desde Inicio" link="/home" />
         {(dataPerido?.idPeriodo === undefined &&
           dataDocentesActivos[0]?.DocenteID === undefined &&
           nombresSedesData.length === 0 &&

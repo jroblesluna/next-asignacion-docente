@@ -29,7 +29,7 @@ const Page = () => {
     <LayoutValidation>
       <main className="flex flex-col gap-5 w-full min-h-[100vh] p-4">
         <NavBar />
-        <ReturnTitle name="Configuración de Escenarios" />
+        <ReturnTitle name="Configuración de Escenarios" link="/home" />
         {dataPerido === undefined ? (
           <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
             <span className="loading loading-bars loading-lg"></span>

@@ -25,6 +25,7 @@ const Page = () => {
   const [ratiosData, setRatiosData] = useState<ratioData[]>([]);
   const [balancaDatarray, setBalancaDatarray] = useState<balanceDataInterface[]>([]);
   const [balanceSchedule, setBalanceSchedule] = useState<esquemaFrecuenciaHorario[]>([]);
+  const [dataVacia, setDataVacia] = useState(false);
 
   const ordenDeseado: string[] = [
     'Lima Centro',
@@ -95,10 +96,15 @@ const Page = () => {
     const resRatioData = await assigmentService.getRatiosBalance(id);
 
     const sedesOrdenadas = ordenarSedes(resRatioData.data, ordenDeseado);
-
+    console.log(sedesOrdenadas);
     setRatiosData(sedesOrdenadas);
-
     const resBalanceData = await assigmentService.getDataBalance(id);
+
+    // && !dataVacia
+    if (resBalanceData.data.length === 0) {
+      setDataVacia(true);
+    }
+    console.log(resBalanceData.data);
     setBalancaDatarray(resBalanceData.data);
   };
 
@@ -217,191 +223,206 @@ const Page = () => {
           </button>
         </div>
 
-        {ratiosData.length === 0 || balanceSchedule.length === 0 ? (
+        {ratiosData.length === 0 || (balanceSchedule.length === 0 && !dataVacia) ? (
           <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
             <span className="loading loading-bars loading-lg"></span>
           </div>
         ) : (
-          <div className="w-full py-3  ">
-            <table className="w-full max-w-full">
-              <thead className="sticky top-0 w-full">
-                <tr className="text-black truncate text-[11px]">
-                  <th className="py-1 uppercase max-w-16  font-inter bg-[#062060] text-white min-w-32">
-                    FRECUENCIA
-                  </th>
-                  <th className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-32">
-                    HORARIO
-                  </th>
-                  <th className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24">
-                    TOTAL
-                  </th>
-                  {ratiosData.map((item, index) => (
-                    <th
-                      key={`daily-${index}`}
-                      className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24"
-                    >
-                      {item.NombreSede}
-                    </th>
-                  ))}
-                  <th className="py-1 uppercase font-inter border text-white min-w-24"></th>
-                  {ratiosData.map((item, index) => (
-                    <th
-                      key={`daily-${index}`}
-                      className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24"
-                    >
-                      {item.NombreSede}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="text-xs border sticky top-[20px] bg-gray-100  ">
-                  <td></td>
-                  <td className="text-center border font-bold">FULL TIME</td>
-                  <td className="text-center border bfont-bold">
-                    {ratiosData.reduce((acc: number, item: ratioData) => acc + item.FT, 0)}
-                  </td>
-                  {ratiosData.map((item, index) => (
-                    <td className="text-center border " key={index}>
-                      {item.FT}
-                    </td>
-                  ))}
-                  <td></td>
-                  {ratiosData.map((item, index) => (
-                    <td className="text-center border font-bold " key={index}>
-                      {item.Ratio.toFixed(2) + '%'}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="text-xs border sticky top-[36px] bg-gray-100">
-                  <td></td>
-                  <td className="text-center border font-bold">PART TIME</td>
-                  <td className="text-center border">
-                    {ratiosData.reduce((acc: number, item: ratioData) => acc + item.PT, 0)}
-                  </td>
-                  {ratiosData.map((item, index) => (
-                    <td className="text-center border" key={index}>
-                      {item.PT}
-                    </td>
-                  ))}
-                  <td className="text-center border font-bold">
-                    {
-                      balancaDatarray.filter((rowBalance) => rowBalance.idDocente === null)
-                        .length
-                    }
-                  </td>
-                  {ratiosData.map((item, index) => (
-                    <td className="text-center border font-bold " key={index}></td>
-                  ))}
-                </tr>
-
-                <tr className="text-xs border sticky top-[52px] bg-gray-100">
-                  <td></td>
-                  <td className="text-center border font-bold">RATIO</td>
-                  <td className="text-center border">
-                    {(
-                      ratiosData.reduce((acc: number, item: ratioData) => acc + item.FT, 0) +
-                      ratiosData.reduce((acc: number, item: ratioData) => acc + item.PT, 0) / 3
-                    ).toFixed(2)}
-                  </td>
-                  {ratiosData.map((item, index) => (
-                    <td className="text-center border" key={index}>
-                      {item.Ratio.toFixed(2) + '%'}
-                    </td>
-                  ))}
-                  <td></td>
-                  {/* carga modificacion extraña */}
-                  {ratiosData.map((item) => (
-                    <td key={item.idSede} className="text-center border">
-                      {(
-                        balancaDatarray.reduce(
-                          (acc: number, itemBalance: balanceDataInterface) =>
-                            itemBalance.nombreSedeAlojada === item.NombreSede
-                              ? acc + itemBalance.carga
-                              : acc,
-                          0
-                        ) /
-                        (item.FT + item.PT / 3)
-                      ).toFixed(2)}
-                    </td>
-                  ))}
-                </tr>
-
-                {filteredSchedules.map((item, index) => {
-                  return (
-                    <tr className="text-xs text-center border" key={index}>
-                      <td className="border font-semibold">{item.frecuencia}</td>
-                      <td className="border font-semibold"> {item.horario}</td>
-                      <td>
-                        {
-                          balancaDatarray.filter(
-                            (rowBalance) =>
-                              rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
-                              `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
-                                item.horario
-                          ).length
-                        }
+          <>
+            {dataVacia ? (
+              <h1 className="font-bold text-5xl mx-auto mt-28"> Datos No Encontrados</h1>
+            ) : (
+              <div className="w-full py-3  ">
+                <table className="w-full max-w-full">
+                  <thead className="sticky top-0 w-full">
+                    <tr className="text-black truncate text-[11px]">
+                      <th className="py-1 uppercase max-w-16  font-inter bg-[#062060] text-white min-w-32">
+                        FRECUENCIA
+                      </th>
+                      <th className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-32">
+                        HORARIO
+                      </th>
+                      <th className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24">
+                        TOTAL
+                      </th>
+                      {ratiosData.map((item, index) => (
+                        <th
+                          key={`daily-${index}`}
+                          className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24"
+                        >
+                          {item.NombreSede}
+                        </th>
+                      ))}
+                      <th className="py-1 uppercase font-inter border text-white min-w-24"></th>
+                      {ratiosData.map((item, index) => (
+                        <th
+                          key={`daily-${index}`}
+                          className="py-1 uppercase font-inter border bg-[#062060] text-white min-w-24"
+                        >
+                          {item.NombreSede}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="text-xs border sticky top-[20px] bg-gray-100  ">
+                      <td></td>
+                      <td className="text-center border font-bold">FULL TIME</td>
+                      <td className="text-center border bfont-bold">
+                        {ratiosData.reduce((acc: number, item: ratioData) => acc + item.FT, 0)}
                       </td>
-
-                      {ratiosData.map((itemLocation, index) => (
-                        <td className="text-center border" key={index}>
-                          {
-                            balancaDatarray.filter(
-                              (rowBalance) =>
-                                rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
-                                `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
-                                  item.horario &&
-                                rowBalance.nombreSedeAlojada === itemLocation.NombreSede &&
-                                rowBalance.idDocente !== null
-                            ).length
-                          }
+                      {ratiosData.map((item, index) => (
+                        <td className="text-center border " key={index}>
+                          {item.FT}
                         </td>
                       ))}
-                      <td className="text-center border" key={index}>
+                      <td></td>
+                      {ratiosData.map((item, index) => (
+                        <td className="text-center border font-bold " key={index}>
+                          {item.Ratio.toFixed(2) + '%'}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className="text-xs border sticky top-[36px] bg-gray-100">
+                      <td></td>
+                      <td className="text-center border font-bold">PART TIME</td>
+                      <td className="text-center border">
+                        {ratiosData.reduce((acc: number, item: ratioData) => acc + item.PT, 0)}
+                      </td>
+                      {ratiosData.map((item, index) => (
+                        <td className="text-center border" key={index}>
+                          {item.PT}
+                        </td>
+                      ))}
+                      <td className="text-center border font-bold">
                         {
-                          balancaDatarray.filter(
-                            (rowBalance) =>
-                              rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
-                              `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
-                                item.horario &&
-                              rowBalance.idDocente === null
-                          ).length
+                          balancaDatarray.filter((rowBalance) => rowBalance.idDocente === null)
+                            .length
                         }
                       </td>
+                      {ratiosData.map((item, index) => (
+                        <td className="text-center border font-bold " key={index}></td>
+                      ))}
+                    </tr>
 
-                      {ratiosData.map((itemLocation, index) => (
+                    <tr className="text-xs border sticky top-[52px] bg-gray-100">
+                      <td></td>
+                      <td className="text-center border font-bold">RATIO</td>
+                      <td className="text-center border">
+                        {(
+                          ratiosData.reduce(
+                            (acc: number, item: ratioData) => acc + item.FT,
+                            0
+                          ) +
+                          ratiosData.reduce(
+                            (acc: number, item: ratioData) => acc + item.PT,
+                            0
+                          ) /
+                            3
+                        ).toFixed(2)}
+                      </td>
+                      {ratiosData.map((item, index) => (
                         <td className="text-center border" key={index}>
-                          {balancaDatarray.filter(
-                            (rowBalance) =>
-                              rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
-                              `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
-                                item.horario
-                          ).length !== 0
-                            ? (
-                                (balancaDatarray.filter(
+                          {item.Ratio.toFixed(2) + '%'}
+                        </td>
+                      ))}
+                      <td></td>
+                      {/* carga modificacion extraña */}
+                      {ratiosData.map((item) => (
+                        <td key={item.idSede} className="text-center border">
+                          {(
+                            balancaDatarray.reduce(
+                              (acc: number, itemBalance: balanceDataInterface) =>
+                                itemBalance.nombreSedeAlojada === item.NombreSede
+                                  ? acc + itemBalance.carga
+                                  : acc,
+                              0
+                            ) /
+                            (item.FT + item.PT / 3)
+                          ).toFixed(2)}
+                        </td>
+                      ))}
+                    </tr>
+
+                    {filteredSchedules.map((item, index) => {
+                      return (
+                        <tr className="text-xs text-center border" key={index}>
+                          <td className="border font-semibold">{item.frecuencia}</td>
+                          <td className="border font-semibold"> {item.horario}</td>
+                          <td>
+                            {
+                              balancaDatarray.filter(
+                                (rowBalance) =>
+                                  rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
+                                  `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                    item.horario
+                              ).length
+                            }
+                          </td>
+
+                          {ratiosData.map((itemLocation, index) => (
+                            <td className="text-center border" key={index}>
+                              {
+                                balancaDatarray.filter(
                                   (rowBalance) =>
                                     rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
                                     `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
                                       item.horario &&
-                                    rowBalance.nombreSedeAlojada === itemLocation.NombreSede
-                                ).length /
-                                  balancaDatarray.filter(
-                                    (rowBalance) =>
-                                      rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
-                                      `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
-                                        item.horario
-                                  ).length) *
-                                100
-                              ).toFixed(2) + '%'
-                            : ''}
-                        </td>
-                      ))}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                                    rowBalance.nombreSedeAlojada === itemLocation.NombreSede &&
+                                    rowBalance.idDocente !== null
+                                ).length
+                              }
+                            </td>
+                          ))}
+                          <td className="text-center border" key={index}>
+                            {
+                              balancaDatarray.filter(
+                                (rowBalance) =>
+                                  rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
+                                  `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                    item.horario &&
+                                  rowBalance.idDocente === null
+                              ).length
+                            }
+                          </td>
+
+                          {ratiosData.map((itemLocation, index) => (
+                            <td className="text-center border" key={index}>
+                              {balancaDatarray.filter(
+                                (rowBalance) =>
+                                  rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
+                                  `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                    item.horario
+                              ).length !== 0
+                                ? (
+                                    (balancaDatarray.filter(
+                                      (rowBalance) =>
+                                        rowBalance.NombreAgrupFrecuencia === item.frecuencia &&
+                                        `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                          item.horario &&
+                                        rowBalance.nombreSedeAlojada ===
+                                          itemLocation.NombreSede
+                                    ).length /
+                                      balancaDatarray.filter(
+                                        (rowBalance) =>
+                                          rowBalance.NombreAgrupFrecuencia ===
+                                            item.frecuencia &&
+                                          `${rowBalance.HorarioInicio} - ${rowBalance.HorarioFin}` ===
+                                            item.horario
+                                      ).length) *
+                                    100
+                                  ).toFixed(2) + '%'
+                                : ''}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </main>
     </LayoutValidation>

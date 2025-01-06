@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const BASE_URL = '/api/period';
 
@@ -7,9 +7,11 @@ const periodService = {
   getAll: async () => {
     try {
       const { data } = await axios.get(`${BASE_URL}/getall`);
+
       return data;
     } catch (error) {
-      console.error('Error al obtener todos los periodos:', error);
+      // console.error('Error al obtener todos los periodos:', error);
+      console.error('Error aaa', (error as AxiosError).name);
       return null;
     }
   },
@@ -68,7 +70,12 @@ const periodService = {
       const { data } = await axios.get(`${BASE_URL}/verify-active`);
       return data;
     } catch (error) {
-      console.error('Error al obtener todos los periodos:', error);
+      console.error('Error al verificar los periodos:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        alert(error.response.data.message);
+      } else {
+        console.error('Error: ', error);
+      }
       return null;
     }
   },
