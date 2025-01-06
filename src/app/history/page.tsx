@@ -73,19 +73,6 @@ function Page() {
       const filterEndMonth = endDate ? endDate.getMonth() : null;
       const filterEndYear = endDate ? endDate.getFullYear() : null;
 
-      console.log('Periodo Inicio:', periodStartMonth + 1, periodStartYear);
-      console.log('Periodo Fin:', periodEndMonth + 1, periodEndYear);
-      console.log(
-        'Filtro Inicio:',
-        filterStartMonth !== null ? filterStartMonth + 1 : 'N/A',
-        filterStartYear
-      );
-      console.log(
-        'Filtro Fin:',
-        filterEndMonth !== null ? filterEndMonth + 1 : 'N/A',
-        filterEndYear
-      );
-
       // Comparar solo meses y años
       const isAfterStartDate =
         !startDate ||
