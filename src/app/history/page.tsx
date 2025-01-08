@@ -18,7 +18,7 @@ function Page() {
   const [inputValue, setInputValue] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(
-    new Date(new Date().getFullYear(), new Date().getMonth())
+    new Date(new Date(new Date().getFullYear(), new Date().getMonth() + 1))
   );
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 6;
@@ -160,7 +160,9 @@ function Page() {
                     showMonthYearPicker
                     maxDate={
                       endDate
-                        ? new Date(endDate.getFullYear(), endDate.getMonth(), 0)
+                        ? new Date(
+                            new Date(new Date().getFullYear(), new Date().getMonth() + 1)
+                          )
                         : undefined
                     }
                     locale={es}

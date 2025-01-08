@@ -29,6 +29,7 @@ export interface ProgramacionAcademica {
   idSedeAlojada: number;
   nombreSedeAlojada: string;
   codigoCurso: string;
+  codigodocente: string;
   nombreSede: string;
 }
 
@@ -112,6 +113,7 @@ export interface docentesTac {
   minutosCurso: number;
   EstadoDisponible: string;
   eventoIndisponible: string;
+  codigodocente: string;
 }
 
 export interface classSchedule {
@@ -123,6 +125,7 @@ export interface classSchedule {
 
 export interface tacData {
   teacher: string;
+  teacherCode: string;
   location: string;
   status: string;
   classSchedule: classSchedule[];

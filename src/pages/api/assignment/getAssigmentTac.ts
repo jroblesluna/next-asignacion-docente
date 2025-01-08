@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .input('idVersion', selectedVersion).query(`
        IF EXISTS (SELECT  top 1 * FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
-              SELECT  D.uuidDocente,D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
+              SELECT  D.uuidDocente,D.NombreCompletoProfesor, DD1.codigodocente, D.NombreSede,  TC.TipoJornada , PA.* ,
              H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
               (H.MinutosReal * aux.NumDias) as minutosCurso ,D.AntiguedadMeses , ISNULL(DD.EstadoDisponible, 1) AS EstadoDisponible ,  
 							ISNULL(DD.NombreEvento, '-') AS eventoIndisponible 
@@ -46,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion and PA.vigente=1 and PA.cancelado=0
             INNER JOIN [dbo].[dim_tipo_contrato] AS TC     
             ON  D.idTipoContrato =TC.TipoContratoID
+           LEFT JOIN [dbo].[dim_docente] AS DD1 ON D.uuidDocente = DD1.uidIdDocente 
             LEFT JOIN [dbo].[ad_horario]as H
              ON H.idHorario= PA.idHorario AND H.periodo=@id
             LEFT JOIN [dbo].[ad_frecuencia] as F
@@ -68,12 +69,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         END
         ELSE
         BEGIN
-                    SELECT D.uuidDocente, D.NombreCompletoProfesor, D.NombreSede,  TC.TipoJornada , PA.* ,
+                    SELECT D.uuidDocente, D.NombreCompletoProfesor, DD1.codigodocente, D.NombreSede,  TC.TipoJornada , PA.* ,
                      H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
                     (H.MinutosReal  * aux.NumDias) as minutosCurso , D.AntiguedadMeses
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
                     ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion  and PA.vigente=1 and PA.cancelado=0
+                     LEFT JOIN [dbo].[dim_docente] AS DD1 ON D.uuidDocente = DD1.uidIdDocente 
                     INNER JOIN [dbo].[dim_tipo_contrato] AS TC     
                     ON  D.idTipoContrato =TC.TipoContratoID
                     LEFT JOIN [dbo].[ad_horario]as H

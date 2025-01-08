@@ -250,7 +250,7 @@ const calcularCodigoAnterior = (codigo: string, mesesARestar: number) => {
 };
 
 /* Llamada al pipeline para la actualización del Data Warehouse (DWH). */
-const invokePipeline = async (action: 'run' | 'monitor', url_base: string) => {
+const invokePipeline = async (action: 'run' | 'monitor', url_base: string, correo: string) => {
   const pipelineName = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_NAME || '';
 
   try {
@@ -303,12 +303,27 @@ const invokePipeline = async (action: 'run' | 'monitor', url_base: string) => {
     } else {
       // Handle error if the response is not OK
       console.log(`Error: ${data.error}`);
+      if (correo) {
+        await sendEmail(
+          correo as string,
+          'Sistema de Asignación Docente Infoma',
+          'La transmición de datos (pipeline) ha fallado. Por favor contactar con el equipo de TI.'
+        );
+      }
+
       return true;
     }
   } catch (error: unknown) {
     // Catch any unexpected errors and display the message
     const errorMessage = (error as Error).message || 'An unexpected error occurred';
     console.log(`Error: ${errorMessage}`);
+    if (correo) {
+      await sendEmail(
+        correo as string,
+        'Sistema de Asignación Docente Infoma',
+        'La transmición de datos (pipeline) ha fallado. Por favor contactar con el equipo de TI.'
+      );
+    }
     return true;
   }
 };
@@ -403,9 +418,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ) {
         // Actualizar tablas desde el DWH - Invoke Pipeline
         console.log('Llamando al pipeline Invoke');
-        await invokePipeline('run', baseUrl);
+        if (correo) {
+          await invokePipeline('run', baseUrl, Array.isArray(correo) ? correo[0] : correo);
+        }
 
-        let resStatusPipeline;
+        let resStatusPipeline = false;
 
         console.log('Actualizando las tablas del DWH');
 
@@ -415,7 +432,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           console.log('esperando 5 segundo');
           await new Promise((resolve) => setTimeout(resolve, 5000));
           console.log('Llamando al monitoreo del pipeline');
-          resStatusPipeline = await invokePipeline('monitor', baseUrl);
+          if (correo) {
+            resStatusPipeline =
+              (await invokePipeline(
+                'monitor',
+                baseUrl,
+                Array.isArray(correo) ? correo[0] : correo
+              )) || false;
+          }
         } while (!resStatusPipeline);
       }
 
@@ -912,6 +936,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   WHERE uuuidProgramacionAcademica = @uuidProgramacionAcademica  AND idPeriodo = @id 
                   AND idVersion= @idVersion`);
 
+              /* si el curso no existe no hacer nada */
+              if (
+                !resultOneProgramacion?.recordset ||
+                resultOneProgramacion.recordset.length == 0
+              ) {
+                console.log(
+                  `No se encontró programación para ${programacionAnailis}, omitiendo...`
+                );
+                continue;
+              }
+
               if (
                 resultOneProgramacion.recordset[0]?.cancelado == true ||
                 resultOneProgramacion.recordset[0]?.vigente == false
@@ -1263,7 +1298,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .request()
           .input('id', periodo)
           .input('version', version).query(`
-    SELECT distinct PA.idFrecuencia, F.NombreFrecuencia, F.NombreAgrupFrecuencia FROM [dbo].[ad_programacionAcademica] AS PA
+            SELECT distinct PA.idFrecuencia, F.NombreFrecuencia, F.NombreAgrupFrecuencia FROM [dbo].[ad_programacionAcademica] AS PA
             INNER JOIN [dbo].[ad_frecuencia] AS F ON F.idFrecuencia=PA.idFrecuencia AND F.periodo=@id
              where PA.idPeriodo=@id and  PA.idVersion =@version  and PA.vigente=1 and PA.cancelado=0
       `);
@@ -2046,7 +2081,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const plainText =
         'Algoritmo de asignación docente terminado exitosamente para el periodo ' +
         periodo +
-        'y la versión ' +
+        ' y la versión ' +
         version;
 
       if (correo) {

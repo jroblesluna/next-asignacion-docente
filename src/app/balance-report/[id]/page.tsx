@@ -114,8 +114,8 @@ const Page = () => {
   }, [id]);
 
   const descargarBalance = () => {
-    if (ratiosData.length > 0 && balancaDatarray.length > 0 && filteredSchedules.length > 0) {
-      exportBalance(ratiosData, balancaDatarray, filteredSchedules, id);
+    if (ratiosData.length > 0 && balancaDatarray.length > 0 && balanceSchedule.length > 0) {
+      exportBalance(ratiosData, balancaDatarray, balanceSchedule, id);
     }
   };
 

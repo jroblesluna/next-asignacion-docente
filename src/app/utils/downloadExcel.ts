@@ -26,7 +26,8 @@ export const handleDownload = (
     { header: 'Código Curso', key: 'codigoCurso', width: 15 },
     { header: 'Nombre Sede', key: 'nombreSede', width: 20 },
     { header: 'Sede Alojada', key: 'sedeAlojada', width: 20 },
-    { header: 'Profesor', key: 'NombreCompletoProfesor', width: 40 },
+    { header: 'Docente', key: 'NombreCompletoProfesor', width: 40 },
+    { header: 'Código Docente', key: 'codigodocente', width: 40 },
     { header: 'Horario Inicio', key: 'HorarioInicio', width: 15 },
     { header: 'Horario Fin', key: 'HorarioFin', width: 15 },
     { header: 'Frecuencia', key: 'NombreFrecuencia', width: 15 },
@@ -34,8 +35,9 @@ export const handleDownload = (
     { header: 'Inicio Clase', key: 'inicioClase', width: 15 },
     { header: 'Final Clase', key: 'finalClase', width: 15 },
     { header: 'Aula', key: 'idAula', width: 10 },
+    { header: 'Modificado Docente', key: 'modificadoD', width: 20 },
+    { header: 'Modificado Aula', key: 'modificadoA', width: 20 },
   ];
-
   // Agregar los datos
   data.forEach((item) => {
     worksheet.addRow({
@@ -45,6 +47,7 @@ export const handleDownload = (
       nombreSede: item.nombreSede,
       sedeAlojada: item.nombreSedeAlojada || 'NO ASIGNADO',
       NombreCompletoProfesor: item.NombreCompletoProfesor || 'NO ASIGNADO',
+      codigodocente: item.codigodocente || '',
       HorarioInicio: item.HorarioInicio,
       HorarioFin: item.HorarioFin,
       NombreFrecuencia: item.NombreFrecuencia,
@@ -52,6 +55,8 @@ export const handleDownload = (
       inicioClase: item.inicioClase,
       finalClase: item.finalClase,
       idAula: item.identificadorFisico || 'SIN ASIGNAR',
+      modificadoD: `${!item.docenteModificado ? 'NO' : item.docenteModificado} `,
+      modificadoA: ` ${!item.aulaModificada ? 'NO' : item.aulaModificada} `,
     });
   });
 
@@ -93,12 +98,14 @@ export const handleDownload = (
 // Función para descargar el archivo Excel
 export const downloadExcelTac = (data: tacData[], ID: string) => {
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Teacher Assignment Report');
+  const worksheet: Worksheet = workbook.addWorksheet('ReporteTAC_' + ID);
+  // const worksheet = workbook.addWorksheet('ReporteTAC_' + ID);
 
   // Agregar cabeceras
   worksheet.columns = [
     { header: '#', width: 5 },
     { header: 'Docente', width: 40 },
+    { header: 'Código Docente', width: 20 },
     { header: 'Sede', width: 20 },
     { header: 'Estado', width: 10 },
     ...timeDaily.map((time) => ({ header: time, width: 15 })),
@@ -111,8 +118,8 @@ export const downloadExcelTac = (data: tacData[], ID: string) => {
 
   // Agregar datos
   let i = 1;
-  data.forEach(({ classSchedule, location, status, teacher }) => {
-    const rowData: (string | number)[] = [i, teacher, location, status];
+  data.forEach(({ classSchedule, location, status, teacher, teacherCode }) => {
+    const rowData: (string | number)[] = [i, teacher, teacherCode, location, status];
     i++;
 
     // Obtener clases diarias
@@ -203,7 +210,7 @@ export const downloadExcelTac = (data: tacData[], ID: string) => {
   // Generar el archivo Excel y descargarlo
   workbook.xlsx.writeBuffer().then((buffer) => {
     const blob = new Blob([buffer], { type: 'application/octet-stream' });
-    saveAs(blob, 'Teacher_Assignment_Report_' + ID + '.xlsx');
+    saveAs(blob, 'TAC_Report_' + ID + '.xlsx');
   });
 };
 
