@@ -168,10 +168,10 @@ const Page = () => {
                       ● La función de reinicio permite realizar un restablecimiento completo
                       del periodo actual. Al ejecutarla, se eliminarán todos los datos
                       asociados al periodo en curso, incluidos los snapshots almacenados.
-                      Posteriormente, se creará un nuevo periodo vacío y se ejecutará
-                      nuevamente la importación de datos proporcionados por el Data Warehouse
-                      (DWH) desde el inicio. Esta función garantiza que los datos reflejen la
-                      última información disponible en el DWH.
+                      Posteriormente, se ejecutará nuevamente la importación de datos
+                      proporcionados por el Data Warehouse (DWH) desde el inicio. Esta función
+                      garantiza que los datos reflejen la última información disponible en el
+                      DWH.
                     </p>
                     <p className="text-[13px]">
                       ● Las versiones creadas para visualización se conservarán, y el proceso

@@ -164,9 +164,7 @@ const ReportAssignments = () => {
 
     const resSedesData = await assigmentService.getLocation(id);
     setNombresSedeData(resSedesData.data);
-
     setRols(getCookie('rol') || '');
-
     if (res.data.length === 0) {
       setDataVacia(true);
     }

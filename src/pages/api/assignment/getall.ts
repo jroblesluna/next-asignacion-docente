@@ -51,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           INNER JOIN ad_frecuencia AS F ON F.idFrecuencia = PA.idFrecuencia AND F.periodo = @id
           INNER JOIN ad_sede AS S ON S.idSede = PA.idSede AND S.periodo = @id
           WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0
+          ORDER BY  S.nombreSede, H.HorarioInicio, H.HorarioFin , C.codigoCurso 
         END
         ELSE
         BEGIN
@@ -68,6 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           INNER JOIN ad_frecuencia AS F ON F.idFrecuencia = PA.idFrecuencia AND F.periodo = 1
           INNER JOIN ad_sede AS S ON S.idSede = PA.idSede AND S.periodo = 1
           WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0 
+          ORDER BY  S.nombreSede, H.HorarioInicio, H.HorarioFin , C.codigoCurso 
         END
       `);
 
