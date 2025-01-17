@@ -37,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .input('idVersion', selectedVersion).query(`
        IF EXISTS (SELECT  top 1 * FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
+        WITH DocenteData AS (
               SELECT  D.uuidDocente,D.NombreCompletoProfesor, DD1.codigodocente, D.NombreSede,  TC.TipoJornada , PA.* ,
              H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
               (H.MinutosReal * aux.NumDias) as minutosCurso ,D.AntiguedadMeses , ISNULL(DD.EstadoDisponible, 1) AS EstadoDisponible ,  
@@ -63,9 +64,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               	AND PA.idPeriodo = aux.Periodo)  
                 END AS NumDias 
                 ) AS aux    
-            WHERE D.periodo=@id  AND D.dictaClase=1    and (D.vigente =1   or  (PA.idDocente is not null AND PA.vigente=1 and PA.cancelado=0) )   
+            WHERE D.periodo=@id  AND D.dictaClase=1    and (D.vigente =1   or  (PA.idDocente is not null AND PA.vigente=1 and PA.cancelado=0) ))   
 					  
-            ORDER BY D.AntiguedadMeses DESC,eventoIndisponible DESC
+            SELECT *
+            FROM DocenteData
+            ORDER BY  AntiguedadMeses DESC,EstadoDisponible asc;
         END
         ELSE
         BEGIN
@@ -92,9 +95,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               	AND PA.idPeriodo = aux.Periodo)  
                 END AS NumDias 
                 ) AS aux 
-                    WHERE D.periodo=1   AND D.dictaClase=1 
-                    and (D.vigente =1  or  PA.idDocente is not null) and PA.vigente=1   AND PA.cancelado = 0
-             ORDER BY D.AntiguedadMeses DESC  , eventoIndisponible DESC
+                      WHERE D.periodo=1   AND D.dictaClase=1    and (D.vigente =1   or  (PA.idDocente is not null AND PA.vigente=1 and PA.cancelado=0) )
+             ORDER BY D.AntiguedadMeses DESC  
         END
       `);
 
