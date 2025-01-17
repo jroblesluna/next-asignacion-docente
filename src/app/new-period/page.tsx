@@ -433,6 +433,9 @@ const Page = () => {
                   </div>
                   {dataDocentesActivos.length !== 0 ? (
                     <div className="flex justify-end flex-row items-center gap-5 ">
+                      <p className="text-xs">
+                        Total encontrados: {filteredProfessors && filteredProfessors.length}
+                      </p>
                       <p className="text-xs">Filas por página: {pageSize}</p>
                       <span className="text-xs">
                         Página {currentPage} de {totalPages}
