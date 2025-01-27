@@ -244,7 +244,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                WHERE P.uidIdIntensidadFase = aux.uididintensidadfase AND P.idPeriodo = aux.PeriodoAcademico) 
                ELSE 
                (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE P.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND P.idPeriodo = aux.Periodo)  
+              	AND P.idPeriodo = aux.Periodo AND P.idPeriodo = aux.PeriodoAcademico)  
                 END AS NumDias 
                 ) AS aux    
                     WHERE 
@@ -397,7 +397,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
                ELSE 
                (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND t2.idPeriodo = aux.Periodo)  
+              	AND t2.idPeriodo = aux.Periodo AND t2.idPeriodo = aux.PeriodoAcademico)  
                 END AS NumDias 
                 ) AS aux    
                     WHERE t2.idDocente = LD.DocenteID
@@ -415,7 +415,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
                ELSE 
                (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND t2.idPeriodo = aux.Periodo)  
+              	AND t2.idPeriodo = aux.Periodo AND t2.idPeriodo = aux.PeriodoAcademico)  
                 END AS NumDias 
                 ) AS aux    
                     where
@@ -437,7 +437,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
                ELSE 
                (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND t2.idPeriodo = aux.Periodo)  
+              	AND t2.idPeriodo = aux.Periodo AND t2.idPeriodo = aux.PeriodoAcademico)  
                 END AS NumDias 
                 ) AS aux    
                       WHERE  
@@ -504,7 +504,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
                ELSE 
                (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND t2.idPeriodo = aux.Periodo)  
+              	AND t2.idPeriodo = aux.Periodo AND t2.idPeriodo = aux.PeriodoAcademico)  
                 END AS NumDias 
                 ) AS aux    
                       WHERE
@@ -523,7 +523,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
                ELSE 
                (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND t2.idPeriodo = aux.Periodo)  
+              	AND t2.idPeriodo = aux.Periodo AND t2.idPeriodo = aux.PeriodoAcademico)  
                 END AS NumDias 
                 ) AS aux    
                     WHERE
@@ -545,7 +545,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
                ELSE 
                (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND t2.idPeriodo = aux.Periodo)  
+              	AND t2.idPeriodo = aux.Periodo AND t2.idPeriodo = aux.PeriodoAcademico)  
                 END AS NumDias 
                 ) AS aux    
                     WHERE                   

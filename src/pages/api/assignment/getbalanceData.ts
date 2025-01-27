@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase AND PA.idPeriodo = aux.PeriodoAcademico) 
                ELSE 
                (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND PA.idPeriodo = aux.Periodo)  
+              	AND PA.idPeriodo = aux.Periodo AND PA.idPeriodo = aux.PeriodoAcademico)  
                 END AS NumDias 
                 ) AS aux 
           WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0 
@@ -74,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase AND PA.idPeriodo = aux.PeriodoAcademico) 
                ELSE 
                (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND PA.idPeriodo = aux.Periodo)  
+              	AND PA.idPeriodo = aux.Periodo AND PA.idPeriodo = aux.PeriodoAcademico)  
                 END AS NumDias 
                 ) AS aux 
           WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 
