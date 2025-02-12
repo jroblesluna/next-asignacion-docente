@@ -403,6 +403,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     WHERE t2.idDocente = LD.DocenteID
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
+                    AND t2.vigente=1
+                    AND t2.cancelado=0
                 ), 0) AS MinutosAcumulados, 
                    ISNULL((SELECT SUM(H.MinutosReal   * F.CantidadDiasSemanales) 
                     FROM [dbo].[ad_programacionAcademica] t2
@@ -422,6 +424,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id  
 				          	AND t2.idVersion=@version
+                    AND t2.vigente=1
+                    AND t2.cancelado=0
                 ), 0) AS totalTiempoSemanal, 
                    D.idTipoContrato, 
                    TC.TipoJornada, 
@@ -444,6 +448,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                      t2.idDocente = LD.DocenteID
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
+                    AND t2.vigente=1
+                    AND t2.cancelado=0
                 ), 0) + @tiempoCurso) / CAST((TC.HoraSemana * 60 * 4) AS DECIMAL(10, 2))), 0
                    ) AS Equidad
             FROM [dbo].[LibroPorDocente] AS LD
@@ -469,6 +475,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         PC.idDocente = D.idDocente
                         AND PC.idPeriodo = @id
                         AND PC.idVersion= @version
+                        AND PC.vigente=1
+                        AND PC.cancelado=0
 						AND (
         (PC.idFrecuencia = @idFrecuencia AND PC.idHorario = @idHorario)  
 		 ` +
@@ -511,6 +519,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                      t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
+                    AND t2.vigente=1
+                    AND t2.cancelado=0
                 ), 0) AS MinutosAcumulados, 
                    ISNULL((SELECT SUM(H.MinutosReal * F.CantidadDiasSemanales) 
                     FROM [dbo].[ad_programacionAcademica] t2
@@ -552,6 +562,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                      t2.idDocente = D.idDocente
                     AND t2.idPeriodo = @id
 				          	AND t2.idVersion=@version
+                    AND t2.vigente=1
+                    AND t2.cancelado=0
                 ), 0) + @tiempoCurso) / CAST((TC.HoraSemana * 60 * 4) AS DECIMAL(10, 2))), 0
                    ) AS Equidad
             FROM [dbo].[LibroPorDocente] AS LD
@@ -577,6 +589,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         PC.idDocente = D.idDocente
                         AND PC.idPeriodo = @id
                         AND PC.idVersion= @version
+                        AND PC.vigente=1
+                        AND PC.cancelado=0
 						AND (
         (PC.idFrecuencia = @idFrecuencia AND PC.idHorario = @idHorario)  
 		 ` +
@@ -600,6 +614,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const ListaDocentes = resultDocentes.recordset;
 
       for (const docente of ListaDocentes) {
+        if (docente.totalTiempoSemanal == 1091) {
+          console.log(docente.NombreCompletoProfesor);
+        }
         console.log('Minutos Semanales Acumulado: ' + docente.totalTiempoSemanal);
         console.log(
           'Minutos Semanales Curso: ' + resultCurso.recordset[0]?.minutosTotalesSemanales
@@ -648,6 +665,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           );
 
           if (!respuesta) {
+            console.log('continue Disponibilidad ');
             continue;
           }
         }
@@ -668,6 +686,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
 
           if (!respuesta) {
+            if (docente.totalTiempoSemanal == 1091) {
+              console.log('continue Horario bloqueado ');
+            }
             continue;
           }
         }

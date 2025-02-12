@@ -9,7 +9,7 @@ export function isTimeInRange(time: string, range: string): boolean {
   const timeInMinutes = timeToMinutes(time);
 
   // Incluye la hora inicial del rango como válida
-  return timeInMinutes >= startTime && timeInMinutes <= endTime - 2;
+  return timeInMinutes >= startTime - 10 && timeInMinutes <= endTime - 2;
 }
 
 export function evaluateExpression(a: number, b: string, operator: string): boolean {
