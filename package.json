@@ -12,7 +12,7 @@
     "@azure/communication-email": "^1.0.0",
     "@azure/msal-browser": "^3.23.0",
     "@azure/msal-react": "^2.0.22",
-    "axios": "^1.7.7",
+    "axios": "^1.8.4",
     "daisyui": "^4.12.10",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
