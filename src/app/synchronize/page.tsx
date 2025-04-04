@@ -8,6 +8,7 @@ import periodService from '@/services/period';
 
 import { convertirFormatoFecha } from '../utils/managmentDate';
 import assigmentService from '@/services/assigment';
+import { ModalConfirm } from '../components/Modals';
 const Page = () => {
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [dataVacia, setDataVacia] = useState(false);
@@ -130,6 +131,11 @@ const Page = () => {
     console.log('ejecutado');
     let isruning = false;
 
+    assigmentService.sincronizarDespuesTablasAD(
+      (dataPerido?.idPeriodo || '').toString(),
+      correo || ''
+    );
+
     do {
       setTypeActionPipeline('monitoreo');
       console.log('monitoreando');
@@ -200,7 +206,14 @@ const Page = () => {
                       con el sistema *Inicio*. Si se realizan modificaciones posteriores,
                       deberá volver a ejecutar la sincronización.
                     </p>
-
+                    <ModalConfirm
+                      subtitle={
+                        'Esta acción es irreversible. Asegúrese de revisar y confirmar los cambios antes de sincronizarlos con el sistema Inicio.'
+                      }
+                      title="¿Está seguro de sincronizar los datos con sistema inicio?"
+                      idModal={'sincronizar-' + dataPerido?.idPeriodo.toString()}
+                      setFunction={invokePipelineRun}
+                    />
                     <div className="w-1/2 mx-auto">
                       <button
                         className={`btn  py-2 px-10 text-white font-semibold  mt-10 ${
@@ -210,7 +223,14 @@ const Page = () => {
                             ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
                             : 'bg-secundary hover:bg-secundary_ligth cursor-pointer '
                         } `}
-                        onClick={invokePipelineRun}
+                        onClick={() => {
+                          const modal = document.getElementById(
+                            'sincronizar-' + dataPerido?.idPeriodo.toString()
+                          );
+                          if (modal) {
+                            (modal as HTMLDialogElement).showModal();
+                          }
+                        }}
                       >
                         Sincronizar con sistema Inicio
                       </button>

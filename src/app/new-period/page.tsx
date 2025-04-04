@@ -2,7 +2,7 @@
 import NavBar from '../components/NavBar';
 import { ReturnTitle } from '../components/Titles';
 import { convertirFecha, convertirFormatoFecha } from '../utils/managmentDate';
-import { ModalWarning } from '../components/Modals';
+import { ModalConfirm, ModalWarning } from '../components/Modals';
 import { useEffect, useState } from 'react';
 import { TableActiveTeacher } from '../components/Rows';
 import Image from 'next/image';
@@ -30,10 +30,12 @@ const Page = () => {
   const [isRuningPipeline, setIsRuningPipeline] = useState(false);
   const [typeActionPipeline, setTypeActionPipeline] = useState('monitor');
   const [isDataUpdate, setIsDataUpdate] = useState(false);
+  const [isUpdateDisponibility, setIsUpdateDisponibility] = useState(false);
 
   const pipelineName = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_NAME;
+  const pipelineNameDisponibility = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_UPDATE_DIS;
 
-  const invokePipeline = async (action: 'run' | 'monitor') => {
+  const invokePipeline = async (action: 'run' | 'monitor', pipelineName: string) => {
     setLoading(true);
 
     try {
@@ -108,14 +110,38 @@ const Page = () => {
   const invokePipelineRun = async () => {
     setIsRuningPipeline(true);
 
-    await invokePipeline('run');
+    await invokePipeline('run', pipelineName || '');
     console.log('ejecutado');
     let isruning = false;
     let aux = false;
     do {
       setTypeActionPipeline('monitoreo');
       console.log('monitoreando');
-      isruning = (await invokePipeline('monitor')) || false;
+      isruning = (await invokePipeline('monitor', pipelineName || '')) || false;
+      if (isruning) {
+        aux = true;
+      }
+    } while (isruning);
+
+    if (aux == true) {
+      setIsDataUpdate(true);
+    }
+  };
+
+  const invokePipelineUpdateDisponibility = async () => {
+    setLoading(true);
+    setIsUpdateDisponibility(true);
+    setDataVacia(true);
+    setIsRuningPipeline(true);
+
+    await invokePipeline('run', pipelineNameDisponibility || '');
+    console.log('ejecutado');
+    let isruning = false;
+    let aux = false;
+    do {
+      setTypeActionPipeline('monitoreo');
+      console.log('monitoreando');
+      isruning = (await invokePipeline('monitor', pipelineNameDisponibility || '')) || false;
       if (isruning) {
         aux = true;
       }
@@ -179,7 +205,7 @@ const Page = () => {
     do {
       if (dataPerido?.estado != 'ACTIVO') {
         console.log('monitoreando');
-        isruning = (await invokePipeline('monitor')) || false;
+        isruning = (await invokePipeline('monitor', pipelineName || '')) || false;
         if (isruning) {
           aux = true;
         }
@@ -252,9 +278,15 @@ const Page = () => {
               <>
                 {isDataUpdate == true ? (
                   <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
-                    <h1 className="font-bold text-5xl">
-                      {'Datos Actualizados desde sistema Inicio  '}
-                    </h1>
+                    {!isUpdateDisponibility ? (
+                      <h1 className="font-bold text-5xl">
+                        {'Datos Actualizados desde sistema Inicio'}
+                      </h1>
+                    ) : (
+                      <h1 className="font-bold text-5xl">
+                        {'Datos Actualizados de Disponibilidad de Docentes'}
+                      </h1>
+                    )}
                     <button
                       className={`btn  py-2 px-10 text-white font-semibold  mt-10 ${
                         dataPerido?.estado != 'NO ACTIVO' || isRuningPipeline != false
@@ -268,9 +300,17 @@ const Page = () => {
                   </div>
                 ) : (
                   <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
-                    <h1 className="font-bold text-5xl">
-                      {'Datos No Encontrados para el nuevo periodo '}
-                    </h1>
+                    {!isUpdateDisponibility ? (
+                      <h1 className="font-bold text-5xl">
+                        {'Datos No Encontrados para el nuevo periodo '}
+                      </h1>
+                    ) : (
+                      <h1 className="font-bold text-4xl text-center">
+                        {
+                          'Actualizando Disponibilidad de Docentes, por favor espere hasta que el proceso termine.'
+                        }
+                      </h1>
+                    )}
                     {loading == true ? (
                       <>
                         {' '}
@@ -326,6 +366,16 @@ const Page = () => {
                       idModal={'abrirNuevoPeriodo-' + dataPerido?.idPeriodo.toString()}
                       setFunction={abrirPeriodo}
                     />
+                    <ModalConfirm
+                      subtitle={
+                        'Esta acción actualizará los datos de disponibilidad docente obtenidos del excel para el periodo ' +
+                        dataPerido?.idPeriodo.toString() +
+                        '.'
+                      }
+                      title="¿Está seguro de actualizar los datos?"
+                      idModal={'actualizarDisponibilidad-' + dataPerido?.idPeriodo.toString()}
+                      setFunction={invokePipelineUpdateDisponibility}
+                    />
                     <button
                       className="btn bg-secundary py-2 px-20 text-white font-semibold hover:bg-secundary_ligth  mt-10"
                       onClick={() => {
@@ -341,9 +391,26 @@ const Page = () => {
                     </button>
                   </div>
                 </div>
-                <div className="w-1/2 min-h-[72vh] max-h-[72vh]   flex flex-col  gap-3 p-2 -mt-10 ">
+                <div className="w-1/2 min-h-[72vh] max-h-[72vh]   flex flex-col  gap-3 p-2 -mt-10  ">
                   <h2 className="text-center mb-8 font-roboto text-2xl font-bold">
                     Listado de Docentes Activos:
+                    <button
+                      className={`btn  ml-5  py-0  px-2 text-white font-semibold  text-[10px] ${
+                        dataPerido?.estado != 'NO ACTIVO' || isRuningPipeline != false
+                          ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
+                          : 'bg-green-600 hover:bg-green-400 cursor-pointer '
+                      } `}
+                      onClick={() => {
+                        const modal = document.getElementById(
+                          'actualizarDisponibilidad-' + dataPerido?.idPeriodo.toString()
+                        );
+                        if (modal) {
+                          (modal as HTMLDialogElement).showModal();
+                        }
+                      }}
+                    >
+                      Actualizar Disponibilidad
+                    </button>
                   </h2>
                   <div className="w-full flex flex-row gap-5 items-start ">
                     <div className="w-1/2 relative text-black border rounded-md h-fit">

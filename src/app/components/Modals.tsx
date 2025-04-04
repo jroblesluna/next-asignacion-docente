@@ -13,6 +13,12 @@ interface ModalProps {
   idModal: string;
   setFunction: (value: string) => void;
 }
+interface ModalPropsConfirm {
+  title: string;
+  subtitle: string;
+  idModal: string;
+  setFunction: () => void;
+}
 
 export const ModalWarning: React.FC<ModalProps> = ({
   linkTo,
@@ -69,6 +75,51 @@ export const ModalWarning: React.FC<ModalProps> = ({
             <span className="loading loading-bars loading-lg"></span>
           </div>
         )}
+      </div>
+    </dialog>
+  );
+};
+
+export const ModalConfirm: React.FC<ModalPropsConfirm> = ({
+  title,
+  subtitle,
+  idModal,
+  setFunction,
+}) => {
+  return (
+    <dialog id={idModal} className="modal overflow-hidden ">
+      <div className="modal-box py-14 px-10 ">
+        <>
+          <div className="flex flex-row gap-5 items-center">
+            <Image
+              alt="img"
+              src={'/warning-icon.svg'}
+              width={20}
+              height={20}
+              className="text-[#FFA500] size-32"
+            />
+            <span className="flex flex-col gap-4">
+              <h3 className="font-bold text-3xl -ml-2">{title}</h3>
+              <p className="font-semibold">{subtitle}</p>
+            </span>
+          </div>
+
+          <div className="modal-action">
+            <form method="dialog" className="flex justify-around w-full">
+              <button
+                className="bg-primary py-2 text-white font-semibold hover:bg-primary_light w-48 text-center "
+                onClick={() => {
+                  setFunction();
+                }}
+              >
+                Aceptar
+              </button>
+              <button className="bg-secundary py-2 text-white font-semibold hover:bg-secundary_ligth w-48 ">
+                Salir
+              </button>
+            </form>
+          </div>
+        </>
       </div>
     </dialog>
   );

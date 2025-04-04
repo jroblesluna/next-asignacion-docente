@@ -227,7 +227,25 @@ const assigmentService = {
       });
       return data;
     } catch (error) {
-      console.log("Error", error)
+      console.log('Error', error);
+      return null;
+    }
+  },
+
+  sincronizarDespuesTablasAD: async (idPeriodo: string, correo: string) => {
+    try {
+      const { data } = await axios.post(`${BASE_URL}/sincAfter`, {
+        idPeriodo,
+        correo,
+      });
+
+      if (!data.data) {
+        alert(data.message);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error al actualizar:', error);
       return null;
     }
   },

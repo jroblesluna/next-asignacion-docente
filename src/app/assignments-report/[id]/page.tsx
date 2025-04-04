@@ -23,7 +23,7 @@ import periodService from '@/services/period';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
 import { getCookie } from '@/app/utils/other';
 import teacherService from '@/services/teacher';
-import { ModalWarning } from '@/app/components/Modals';
+// import { ModalWarning } from '@/app/components/Modals';
 
 const ReportAssignments = () => {
   const { id } = useParams() as { id: string };
@@ -141,10 +141,10 @@ const ReportAssignments = () => {
     }
   };
 
-  const onhandleClickSinc = async (idPeriodo: string) => {
-    const correo = localStorage.getItem('user');
-    await assigmentService.sincronizarTablaOutput(idPeriodo, correo || '');
-  };
+  // const onhandleClickSinc = async (idPeriodo: string) => {
+  //   const correo = localStorage.getItem('user');
+  //   await assigmentService.sincronizarTablaOutput(idPeriodo, correo || '');
+  // };
 
   const loadDataTest = async () => {
     const resPerido = await periodService.getById(id);
@@ -317,7 +317,7 @@ const ReportAssignments = () => {
               />
               Descargar Reporte
             </button>
-            {dataPerido?.estado == 'ACTIVO' && Rol.split(',').includes('Administrador') && (
+            {/* {dataPerido?.estado == 'ACTIVO' && Rol.split(',').includes('Administrador') && (
               <>
                 <ModalWarning
                   linkTo={'/home'}
@@ -347,7 +347,7 @@ const ReportAssignments = () => {
                   Sincronizar
                 </button>
               </>
-            )}
+            )} */}
           </div>
           <div className="flex flex-row gap-10 items-center">
             <div className="flex flex-row gap-2">

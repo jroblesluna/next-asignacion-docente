@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .query('UPDATE ad_periodo SET estado = @estado WHERE idPeriodo = @id');
 
       return res.status(200).json({
-        message: `TEST EVENTOS RETURN`,
+        message: `Tabla de output sincronizada exitosamente`,
         data: 'Se ha sincronizado exitosamente',
       });
     } catch (error) {

@@ -6,6 +6,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDatabase } from '../lib/db';
 import sql from 'mssql';
 import { sendEmail } from '../lib/conectEmail';
+import { getCurrentDateTimeLima } from '@/app/utils/managmentTime';
 
 /*Estrucuturas de interfaces necesarias para el correcto funcionamiento del codigo */
 
@@ -248,7 +249,7 @@ const calcularCodigoAnterior = (codigo: string, mesesARestar: number) => {
 
   return Number(`${nuevoAnio}${nuevoMes}`);
 };
-
+let problems = false;
 /* Llamada al pipeline para la actualización del Data Warehouse (DWH). */
 const invokePipeline = async (action: 'run' | 'monitor', url_base: string, correo: string) => {
   const pipelineName = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_NAME || '';
@@ -302,28 +303,23 @@ const invokePipeline = async (action: 'run' | 'monitor', url_base: string, corre
       }
     } else {
       // Handle error if the response is not OK
+      const message = `La transmición de datos (pipeline) ha fallado a las ${getCurrentDateTimeLima()}; . Por favor contactar con el equipo de TI.`;
       console.log(`Error: ${data.error}`);
       if (correo) {
-        await sendEmail(
-          correo as string,
-          'Sistema de Asignación Docente Infoma',
-          'La transmición de datos (pipeline) ha fallado. Por favor contactar con el equipo de TI.'
-        );
+        await sendEmail(correo as string, 'Sistema de Asignación Docente Informa:', message);
       }
-
+      problems = true;
       return true;
     }
   } catch (error: unknown) {
     // Catch any unexpected errors and display the message
     const errorMessage = (error as Error).message || 'An unexpected error occurred';
     console.log(`Error: ${errorMessage}`);
+    const message = `La transmición de datos (pipeline) ha fallado a las ${getCurrentDateTimeLima()}; . Por favor contactar con el equipo de TI.`;
     if (correo) {
-      await sendEmail(
-        correo as string,
-        'Sistema de Asignación Docente Informa ',
-        'La transmición de datos (pipeline) ha fallado. Por favor contactar con el equipo de TI.'
-      );
+      await sendEmail(correo as string, 'Sistema de Asignación Docente Informa:', message);
     }
+    problems = true;
     return true;
   }
 };
@@ -410,12 +406,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
    1. Si hay eventos, es decir, si addEvents es true.
    2. Si no existe programación académica para el periodo actual, lo que indica que es la primera vez que se realiza la asignación.
    3. Si el tipo es "reinicio", lo que significa obtener las últimas actualizaciones desde el inicio del sistema y reprocesar. */
-
+      let firstIteration = false;
       if (
         addEvents === 'true' ||
         resultExistDataPeriod.recordset.length == 0 ||
         tipo == 'reinicio'
       ) {
+        if (resultExistDataPeriod.recordset.length == 0) {
+          firstIteration = true;
+        }
+
         // Actualizar tablas desde el DWH - Invoke Pipeline
         console.log('Llamando al pipeline Invoke');
         if (correo) {
@@ -1014,6 +1014,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       que no tengan el candado (es decir, aquellos que no han 
       sido modificados manualmente o por el sistema de inicio) y sigue el proceso normal de asignación. */
 
+      if (firstIteration === true) {
+        await pool
+          .request()
+          .input('id', periodo)
+          .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
+
+        const subject = 'Sistema de Asignación Docente';
+        const plainText =
+          `Carga y ejecución de la primera Iteración teminada exitosamente a las ${getCurrentDateTimeLima()} para el periodo ` +
+          periodo +
+          ' y versión ' +
+          1 +
+          '\n' +
+          (problems
+            ? 'Problemas detectados: Pipeline de sincranización falló, el algoritmo continuo con los datos no actualizados '
+            : '');
+
+        if (correo) {
+          await sendEmail(correo as string, subject, plainText);
+        }
+
+        return res.status(200).json({
+          message: 'Algoritmo de asignación docente terminado ',
+          data: true,
+        });
+      }
+
       if (tipo == 'total') {
         /* Creación de una nueva versión. */
         const resultNewVersion = await pool
@@ -1031,6 +1058,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('idVersion', sql.Int, nuevaIdVersion)
           .execute('ad_copiarProgramacionAcademicaConNuevaVersion');
       }
+
+      await pool.request().input('periodo', periodo).query(`
+                      MERGE INTO ad_programacionAcademica AS destino
+                      USING (
+                          SELECT DISTINCT * 
+                          FROM ProgramacionCursos 
+                      	WHERE Periodo = @periodo
+                      ) AS origen 
+                      ON origen.uidIdPrograma = destino.uuuidProgramacionAcademica  
+                      AND destino.idPeriodo = @periodo
+                      AND destino.idVersion = (
+                          SELECT MAX(idVersion) 
+                          FROM dbo.ad_programacionAcademica 
+                          WHERE idPeriodo = @periodo
+                      )
+                      WHEN MATCHED THEN
+                          UPDATE SET destino.matriculados = origen.CantMatriculas;
+                      `);
 
       /* Obtiene el máximo ID de versión del periodo en actividad académica. */
 
@@ -2079,17 +2124,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const subject = 'Sistema de Asignación Docente';
       const plainText =
-        'Algoritmo de asignación docente terminado exitosamente para el periodo ' +
+        `Algoritmo de asignación docente terminado exitosamente a las ${getCurrentDateTimeLima()} para el periodo ` +
         periodo +
         ' y la versión ' +
-        version;
+        version +
+        '\n' +
+        (problems
+          ? 'Problemas detectados: Pipeline de sincranización falló, el algoritmo continuo con los datos no actualizados '
+          : '');
 
       if (correo) {
         await sendEmail(correo as string, subject, plainText);
       }
 
       return res.status(200).json({
-        message: 'Algoritmo de asignación docente terminado exitosamente',
+        message: 'Algoritmo de asignación docente terminado ',
         data: true,
       });
     } catch (error) {
