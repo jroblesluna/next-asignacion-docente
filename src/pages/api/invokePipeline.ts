@@ -35,8 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   console.log(pipelineName);
 
   const params = {
-    pUsuario: 'JoseTest',
-    vUsuario: 'JoseTest2',
+    pUsuario: userParams,
   };
 
   // Validate the action
@@ -86,7 +85,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const bearerToken = authResult.accessToken;
-    console.log(userParams);
     // Query the pipeline runs from Azure
     const queryResponse = await fetch(pipelineRunUrl, {
       method: 'POST',
@@ -98,12 +96,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         lastUpdatedAfter: new Date(new Date().getTime() - 60 * 60 * 1000).toISOString(), // Check past hour
         lastUpdatedBefore: new Date().toISOString(),
         filters: [{ operand: 'PipelineName', operator: 'Equals', values: [pipelineName] }],
-        parameters: params,
       }),
     });
 
     // Parse the query response
     const queryData: QueryResponse = await queryResponse.json();
+
     const runningPipelines = queryData.value.filter((run) => run.status === 'InProgress');
 
     if (runningPipelines.length > 0) {
@@ -123,16 +121,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           Authorization: `Bearer ${bearerToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          parameters: params,
-        }),
+        body: JSON.stringify(params),
       });
 
-      console.log(
-        JSON.stringify({
-          parameters: params,
-        })
-      );
       if (pipelineResponse.ok) {
         // Successfully triggered the pipeline run
         const result = await pipelineResponse.json();
