@@ -320,9 +320,17 @@ const Page = () => {
                             Monitoreando pipeline en Ejecución
                           </p>
                         ) : (
-                          <p className="font-bold text-3xl">
-                            Ejecutando Pipeline de Sincronización
-                          </p>
+                          <>
+                            {!isUpdateDisponibility ? (
+                              <p className="font-bold text-3xl">
+                                Ejecutando Pipeline de Sincronización
+                              </p>
+                            ) : (
+                              <p className="font-bold text-3xl">
+                                Ejecutando Pipeline - Actualizar Disponibilidad de Docentes
+                              </p>
+                            )}
+                          </>
                         )}
                       </>
                     ) : (

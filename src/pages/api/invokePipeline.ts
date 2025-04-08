@@ -19,8 +19,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Destructure the pipeline name and action from the request body
-  const { pipelineName, action }: { pipelineName: string; action: 'run' | 'monitor' } =
-    req.body;
+  const {
+    pipelineName,
+    action,
+    userParams = 'user1',
+  }: { pipelineName: string; action: 'run' | 'monitor'; userParams?: string } = req.body;
 
   // Validate the required parameters
   if (!pipelineName || !action) {
@@ -30,17 +33,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   // Log the pipeline name for debugging purposes
   console.log(pipelineName);
+
+  const params = {
+    pUsuario: 'JoseTest',
+    vUsuario: 'JoseTest2',
+  };
+
   // Validate the action
   if (!['run', 'monitor'].includes(action)) {
     return res
       .status(400)
       .json({ error: "Invalid action. Allowed values are 'run' or 'monitor'" });
   }
-  // Define pipeline parameters, calls parameters from the body
-  //   const pipelineParameters = {
-  //     param1: 'valor1',
-  //     param2: 'valor2',
-  //   };
 
   // Get environment variables for Azure API
   const tenantID = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT as string;
@@ -82,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const bearerToken = authResult.accessToken;
-
+    console.log(userParams);
     // Query the pipeline runs from Azure
     const queryResponse = await fetch(pipelineRunUrl, {
       method: 'POST',
@@ -94,6 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         lastUpdatedAfter: new Date(new Date().getTime() - 60 * 60 * 1000).toISOString(), // Check past hour
         lastUpdatedBefore: new Date().toISOString(),
         filters: [{ operand: 'PipelineName', operator: 'Equals', values: [pipelineName] }],
+        parameters: params,
       }),
     });
 
@@ -118,12 +123,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           Authorization: `Bearer ${bearerToken}`,
           'Content-Type': 'application/json',
         },
-        // body: JSON.stringify({
-        //   // Incluir los parámetros dentro del body
-        //   parameters: pipelineParameters,
-        // }),
+        body: JSON.stringify({
+          parameters: params,
+        }),
       });
 
+      console.log(
+        JSON.stringify({
+          parameters: params,
+        })
+      );
       if (pipelineResponse.ok) {
         // Successfully triggered the pipeline run
         const result = await pipelineResponse.json();

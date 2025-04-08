@@ -7,6 +7,7 @@ import { connectToDatabase } from '../lib/db';
 import sql from 'mssql';
 import { sendEmail } from '../lib/conectEmail';
 import { getCurrentDateTimeLima } from '@/app/utils/managmentTime';
+import { useParams } from 'next/navigation';
 
 /*Estrucuturas de interfaces necesarias para el correcto funcionamiento del codigo */
 
@@ -264,6 +265,7 @@ const invokePipeline = async (action: 'run' | 'monitor', url_base: string, corre
       body: JSON.stringify({
         pipelineName, // Name of the pipeline to act upon
         action, // Action: either 'run' or 'monitor'
+        useParams: correo,
       }),
     });
 
@@ -1022,7 +1024,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const subject = 'Sistema de Asignación Docente';
         const plainText =
-          `Carga y ejecución de la primera Iteración teminada exitosamente a las ${getCurrentDateTimeLima()} para el periodo ` +
+          `Carga y ejecución de la primera Iteración teminada  a las ${getCurrentDateTimeLima()} para el periodo ` +
           periodo +
           ' y versión ' +
           1 +
@@ -2124,7 +2126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const subject = 'Sistema de Asignación Docente';
       const plainText =
-        `Algoritmo de asignación docente terminado exitosamente a las ${getCurrentDateTimeLima()} para el periodo ` +
+        `Algoritmo de asignación docente terminado  a las ${getCurrentDateTimeLima()} para el periodo ` +
         periodo +
         ' y la versión ' +
         version +
