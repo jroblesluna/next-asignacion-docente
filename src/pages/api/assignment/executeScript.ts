@@ -522,6 +522,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .input('periodo', sql.Int, Number(periodo))
           .execute('ad_CrearNuevaProgramacionAcademica');
 
+        /* Actualiza el estado de los docentes para determinar si pueden dictar clases, basándose en si están 
+        capacitados para enseñar al menos un curso, lo cual debe estar reflejado en el registro "libro por docente". */
+
+        await pool.request().input('id', periodo)
+          .query(`UPDATE  [dbo].[ad_docente] set dictaClase =(CASE 
+           WHEN EXISTS (SELECT top 1 * 
+                        FROM [dbo].[LibroPorDocente] 
+                        WHERE [dbo].[LibroPorDocente].DocenteID = ad_docente.idDocente) 
+           THEN 1 
+           ELSE 0 
+       END)         WHERE periodo=@id`);
+
         /* Verifica si se deben incorporar o no los eventos. */
         if (addEvents == 'true') {
           const resultEvents = await pool.request().input('id', periodo).query(`
@@ -990,31 +1002,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   `UPDATE ad_evento  SET estado=1 , fechaCambio=DATEADD(HOUR, -5, GETDATE())  WHERE periodo=@id and indice=@idEvento`
                 );
             }
-          }
 
-          /* Mensaje en la consola que indica si hubo eventos. */
+            await pool
+              .request()
+              .input('id', periodo)
+              .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
+
+            const subject = 'Sistema de Asignación Docente';
+            const plainText =
+              `Se terminó de añadir los eventos  de asignación docente a las ${getCurrentDateTimeLima()} para el periodo ` +
+              periodo +
+              ' se creo la nueva versión ' +
+              nuevaIdVersion +
+              '\n' +
+              (problems
+                ? 'Problemas detectados: Pipeline de sincranización falló, el algoritmo continuo con los datos no actualizados '
+                : '');
+
+            if (correo) {
+              await sendEmail(correo as string, subject, plainText);
+            }
+
+            return res.status(200).json({
+              message: 'Algoritmo de asignación docente (EVENTOS) terminado ',
+              data: true,
+            });
+          }
 
           if (listaEventos.length === 0) {
-            console.log('No Hay eventos');
+            console.log('No hay eventos para el periodo ' + periodo);
+            await pool
+              .request()
+              .input('id', periodo)
+              .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
+
+            const subject = 'Sistema de Asignación Docente';
+            const plainText = `No hubo eventos de asignación docente a las ${getCurrentDateTimeLima()} para el periodo `;
+            '\n' +
+              (problems
+                ? 'Problemas detectados: Pipeline de sincranización falló, el algoritmo continuo con los datos no actualizados '
+                : '');
+
+            if (correo) {
+              await sendEmail(correo as string, subject, plainText);
+            }
+
+            return res.status(200).json({
+              message: 'Algoritmo de asignación docente (EVENTOS) terminado ',
+              data: true,
+            });
           }
         }
-
-        /* Actualiza el estado de los docentes para determinar si pueden dictar clases, basándose en si están 
-        capacitados para enseñar al menos un curso, lo cual debe estar reflejado en el registro "libro por docente". */
-
-        await pool.request().input('id', periodo)
-          .query(`UPDATE  [dbo].[ad_docente] set dictaClase =(CASE 
-           WHEN EXISTS (SELECT top 1 * 
-                        FROM [dbo].[LibroPorDocente] 
-                        WHERE [dbo].[LibroPorDocente].DocenteID = ad_docente.idDocente) 
-           THEN 1 
-           ELSE 0 
-       END)         WHERE periodo=@id`);
       }
-
-      /* El tipo de reproceso total genera una copia de la versión académica, desasigna a todos los docentes 
-      que no tengan el candado (es decir, aquellos que no han 
-      sido modificados manualmente o por el sistema de inicio) y sigue el proceso normal de asignación. */
 
       if (firstIteration === true) {
         await pool
@@ -1038,10 +1077,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         return res.status(200).json({
-          message: 'Algoritmo de asignación docente terminado ',
+          message: 'Algoritmo de asignación docente (PRIMERA ITERACIÓN) terminado ',
           data: true,
         });
       }
+
+      /* El tipo de reproceso total genera una copia de la versión académica, desasigna a todos los docentes 
+      que no tengan el candado (es decir, aquellos que no han 
+      sido modificados manualmente o por el sistema de inicio) y sigue el proceso normal de asignación. */
 
       if (tipo == 'total') {
         /* Creación de una nueva versión. */

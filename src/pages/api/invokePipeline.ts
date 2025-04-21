@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const {
     pipelineName,
     action,
-    userParams = 'user1',
+    userParams = 'email not found',
   }: { pipelineName: string; action: 'run' | 'monitor'; userParams?: string } = req.body;
 
   // Validate the required parameters

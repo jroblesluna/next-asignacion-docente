@@ -12,6 +12,7 @@ import periodService from '@/services/period';
 import teacherService from '@/services/teacher';
 import assigmentService from '@/services/assigment';
 import { convertToCustomAcronym } from '../utils/managmentWords';
+import { getCurrentDateTimeLima } from '../utils/managmentTime';
 const Page = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('Todas');
@@ -21,6 +22,7 @@ const Page = () => {
   const [dataDocentesActivos, setDataDocentesActivos] = useState<DocentesActivos[]>([]);
   const [nombresSedesData, setNombresSedeData] = useState<{ NombreSede: string }[]>([]);
   const [dataVacia, setDataVacia] = useState(false);
+  const [errorPipeline, setErrorPipeline] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 100;
 
@@ -89,13 +91,16 @@ const Page = () => {
       } else {
         // Handle error if the response is not OK
         console.log(`Error: ${data.error}`);
+        setErrorPipeline(true);
         setIsRuningPipeline(false);
+
         return false;
       }
     } catch (error: unknown) {
       // Catch any unexpected errors and display the message
       const errorMessage = (error as Error).message || 'An unexpected error occurred';
       console.log(`Error: ${errorMessage}`);
+      setErrorPipeline(true);
       setIsRuningPipeline(false);
       return false;
     } finally {
@@ -300,53 +305,71 @@ const Page = () => {
                   </div>
                 ) : (
                   <div className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]">
-                    {!isUpdateDisponibility ? (
-                      <h1 className="font-bold text-5xl">
-                        {'Datos No Encontrados para el nuevo periodo '}
-                      </h1>
-                    ) : (
-                      <h1 className="font-bold text-4xl text-center">
-                        {
-                          'Actualizando Disponibilidad de Docentes, por favor espere hasta que el proceso termine.'
-                        }
-                      </h1>
-                    )}
-                    {loading == true ? (
-                      <>
-                        {' '}
-                        <span className="loading loading-spinner text-primary loading-lg mt-5"></span>
-                        {typeActionPipeline == 'monitoreo' ? (
-                          <p className="font-bold text-3xl">
-                            Monitoreando pipeline en Ejecución
-                          </p>
-                        ) : (
-                          <>
-                            {!isUpdateDisponibility ? (
-                              <p className="font-bold text-3xl">
-                                Ejecutando Pipeline de Sincronización
-                              </p>
-                            ) : (
-                              <p className="font-bold text-3xl">
-                                Ejecutando Pipeline - Actualizar Disponibilidad de Docentes
-                              </p>
-                            )}
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          className={`btn  py-2 px-10 text-white font-semibold  mt-10 ${
-                            dataPerido?.estado != 'NO ACTIVO' || isRuningPipeline != false
-                              ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
-                              : 'bg-secundary hover:bg-secundary_ligth cursor-pointer '
-                          } `}
-                          onClick={invokePipelineRun}
-                        >
-                          Actualizar información desde Sistema Inicio
-                        </button>
-                      </>
-                    )}
+                    <>
+                      {!errorPipeline ? (
+                        <>
+                          {!isUpdateDisponibility ? (
+                            <h1 className="font-bold text-5xl">
+                              {'Datos No Encontrados para el nuevo periodo '}
+                            </h1>
+                          ) : (
+                            <h1 className="font-bold text-4xl text-center">
+                              {
+                                'Actualizando Disponibilidad de Docentes, por favor espere hasta que el proceso termine.'
+                              }
+                            </h1>
+                          )}
+                          {loading == true ? (
+                            <>
+                              {' '}
+                              <span className="loading loading-spinner text-primary loading-lg mt-5"></span>
+                              {typeActionPipeline == 'monitoreo' ? (
+                                <p className="font-bold text-3xl">
+                                  Monitoreando pipeline en Ejecución
+                                </p>
+                              ) : (
+                                <>
+                                  {!isUpdateDisponibility ? (
+                                    <p className="font-bold text-3xl">
+                                      Ejecutando Pipeline actualización de datos general
+                                    </p>
+                                  ) : (
+                                    <p className="font-bold text-3xl">
+                                      Ejecutando Pipeline - Actualizar Disponibilidad de
+                                      Docentes
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                className={`btn  py-2 px-10 text-white font-semibold  mt-10 ${
+                                  dataPerido?.estado != 'NO ACTIVO' ||
+                                  isRuningPipeline != false
+                                    ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
+                                    : 'bg-secundary hover:bg-secundary_ligth cursor-pointer '
+                                } `}
+                                onClick={invokePipelineRun}
+                              >
+                                Actualizar información desde Sistema Inicio
+                              </button>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <h1 className="font-bold text-5xl">
+                            {`La transmición de datos (pipeline) de ${
+                              !isUpdateDisponibility
+                                ? 'actualización de datos general'
+                                : 'actualizacion de Disponibilidad de Docentes'
+                            } ha fallado a las ${getCurrentDateTimeLima()}; . Por favor contactar con el equipo de TI.`}
+                          </h1>
+                        </>
+                      )}
+                    </>
                   </div>
                 )}
               </>

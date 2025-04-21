@@ -1,6 +1,7 @@
 export function convertToCustomAcronym(phrase: string): string {
   const acronymMap: Record<string, string> = {
     vacaciones: 'VAC',
+    VAC: 'VAC',
     'descanso médico': 'DM',
   };
 

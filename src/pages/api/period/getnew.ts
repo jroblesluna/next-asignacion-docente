@@ -3,7 +3,7 @@ import { connectToDatabase } from '../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    console.log('GET@/pages/api/period/getall.ts');
+    console.log('GET@/pages/api/period/getNew.ts');
 
     let pool;
 
