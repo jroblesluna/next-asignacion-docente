@@ -18,7 +18,7 @@ const Page = () => {
   const [typeActionPipeline, setTypeActionPipeline] = useState('monitor');
   const [runIds, setRunIds] = useState<{ runId: string; status: string }[]>([]);
 
-  const pipelineName = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME;
+  const pipelineName = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME || '';
 
   const invokePipeline = async (action: 'run' | 'monitor') => {
     setLoading(true);
@@ -32,7 +32,7 @@ const Page = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          pipelineName, // Name of the pipeline to act upon
+          pipelineName: pipelineName, // Name of the pipeline to act upon
           action, // Action: either 'run' or 'monitor'
         }),
       });
