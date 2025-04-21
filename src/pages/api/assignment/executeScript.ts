@@ -1037,8 +1037,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
 
             const subject = 'Sistema de Asignación Docente';
-            const plainText = `No hubo eventos de asignación docente a las ${getCurrentDateTimeLima()} para el periodo `;
-            '\n' +
+            const plainText =
+              `No hubo eventos de asignación docente a las ${getCurrentDateTimeLima()} para el periodo ` +
+              '\n' +
               (problems
                 ? 'Problemas detectados: Pipeline de sincranización falló, el algoritmo continuo con los datos no actualizados '
                 : '');
