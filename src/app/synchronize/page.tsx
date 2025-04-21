@@ -34,6 +34,7 @@ const Page = () => {
         body: JSON.stringify({
           pipelineName: pipelineName, // Name of the pipeline to act upon
           action, // Action: either 'run' or 'monitor'
+          userParams: 'juan.navarro@icpna.edu.pe',
         }),
       });
 

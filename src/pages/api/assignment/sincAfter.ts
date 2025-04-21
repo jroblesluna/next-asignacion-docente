@@ -37,7 +37,7 @@ const invokePipeline = async (action: 'run' | 'monitor', url_base: string, corre
       }
     } else {
       hasFailed = true; // Indicar que ha fallado
-      const message = `La transmisión de datos (pipeline) ha fallado a las ${getCurrentDateTimeLima()}. Por favor contactar con el equipo de TI.`;
+      const message = `La transmisión de datos (pipeline) de sincronización ha fallado a las ${getCurrentDateTimeLima()}. Por favor contactar con el equipo de TI.`;
       console.log(`Error: ${data.error}`);
       if (correo) await sendEmail(correo, 'Sistema de Asignación Docente Informa:', message);
       return { success: true, hasFailed };
@@ -46,7 +46,7 @@ const invokePipeline = async (action: 'run' | 'monitor', url_base: string, corre
     hasFailed = true; // Indicar que ha fallado
     const errorMessage = (error as Error).message || 'An unexpected error occurred';
     console.log(`Error: ${errorMessage}`);
-    const message = `La transmisión de datos (pipeline) ha fallado a las ${getCurrentDateTimeLima()}. Por favor contactar con el equipo de TI.`;
+    const message = `La transmisión de datos (pipeline) de sincronización  ha fallado a las ${getCurrentDateTimeLima()}. Por favor contactar con el equipo de TI.`;
     if (correo) await sendEmail(correo, 'Sistema de Asignación Docente Informa:', message);
     return { success: true, hasFailed };
   }
@@ -134,21 +134,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 END
             WHERE idPeriodo = @periodo 
             AND idVersion = @IdVersion 
-            AND uuuidProgramacionAcademica IN (SELECT uidProgramacionAcademica FROM [dbo].[ad_asignacion_output])
+            AND uuuidProgramacionAcademica IN (SELECT uididprograma FROM [dbo].[ad_asignacion_output])
 `);
 
         //   actualizar tabla de programacion curso (opcional)
         await pool.request().input('periodo', idPeriodo).query(`
                  MERGE INTO [dbo].[ProgramacionCursos] AS destino
                                   USING (
-            						SELECT * FROM [dbo].[ad_asignacion_output]
+            						SELECT A.idAula, D.idDocente, AO.uidIdPrograma FROM [dbo].[ad_asignacion_output]AS AO 
+                            left join [dbo].[ad_aula] as A ON AO.uididaula=A.uidIdAula AND A.periodo=@periodo
+                            left join [dbo].[ad_docente] as D ON AO.uididprofesor = D.uuidDocente  AND D.periodo=@periodo
                                   ) AS origen 
-                                  ON origen.uidProgramacionAcademica = destino.uidIdPrograma  
+                                  ON origen.uidIdPrograma = destino.uidIdPrograma  
                                   AND destino.Periodo =@periodo
                                   WHEN MATCHED THEN
                                       UPDATE SET 
-            						   destino.DocenteID = origen.idDocente,
-            						   destino.AulaID = origen.idAula;
+            						   destino.DocenteID = CASE WHEN origen.idDocente = '' THEN NULL 
+                                       ELSE origen.idDocente  END,
+            						   destino.AulaID =  CASE WHEN origen.idAula = '' THEN NULL 
+                                       ELSE origen.idAula  END;
                       `);
       }
 
@@ -158,9 +162,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('estado', 'ACTIVO')
         .query('UPDATE ad_periodo SET estado = @estado WHERE idPeriodo = @id');
 
+      console.log(
+        !resStatusFilePipeline
+          ? `Sincronización terminada correctamente a las ${getCurrentDateTimeLima()}  para el periodo ${idPeriodo} `
+          : `Error en la sincronización para el periodo ${idPeriodo} `
+      );
+
+      const subject = 'Sistema de Asignación Docente';
+      const plainText = !resStatusFilePipeline
+        ? `Sincronización terminada correctamente a las ${getCurrentDateTimeLima()}  para el periodo ${idPeriodo} `
+        : `Error en la sincronización para el periodo ${idPeriodo} `;
+
+      if (correo) {
+        await sendEmail(correo as string, subject, plainText);
+      }
+
       return res.status(200).json({
         message: !resStatusFilePipeline
-          ? `Sincronización tablas de asignación para el periodo ${idPeriodo} exitosa`
+          ? `Sincronización terminada correctamente a las ${getCurrentDateTimeLima()}  para el periodo ${idPeriodo} `
           : `Error en la sincronización para el periodo ${idPeriodo} `,
         data: !resStatusFilePipeline
           ? 'Se ha sincronizado exitosamente '
