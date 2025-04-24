@@ -153,10 +153,12 @@ const Page = () => {
 
   useEffect(() => {
     callPipelineNames();
+  }, []);
+  useEffect(() => {
     loadDataTest();
     loadVerify();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pipelineName]);
 
   return (
     <LayoutValidation>
