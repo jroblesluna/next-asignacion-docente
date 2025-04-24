@@ -7,10 +7,6 @@ export default function Page() {
   let c = 'process.env.PUBLIC_AZURE_WEBAPP_ID_CLIENT';
   const [a, seta] = useState('process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT');
 
-  useEffect(() => {
-    callPipelineNames();
-  }, []);
-
   const callPipelineNames = async () => {
     const res = await fetch('/api/getPipelineName');
     const data = await res.json();
@@ -19,6 +15,9 @@ export default function Page() {
     b = data.NamePipelineDelta || 'error';
     c = data.NamePipelineUpdateDisponibility || 'error';
   };
+  useEffect(() => {
+    callPipelineNames();
+  }, []);
 
   return (
     <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
