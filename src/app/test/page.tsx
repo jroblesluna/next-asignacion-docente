@@ -1,5 +1,5 @@
 'use client';
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Page() {
   const clientId = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_CLIENT;
@@ -17,6 +17,7 @@ export default function Page() {
   };
   useEffect(() => {
     callPipelineNames();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
