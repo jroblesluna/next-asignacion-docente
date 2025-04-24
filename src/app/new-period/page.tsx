@@ -33,9 +33,19 @@ const Page = () => {
   const [typeActionPipeline, setTypeActionPipeline] = useState('monitor');
   const [isDataUpdate, setIsDataUpdate] = useState(false);
   const [isUpdateDisponibility, setIsUpdateDisponibility] = useState(false);
+  const [pipelineName, setPipelineName] = useState(
+    'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME '
+  );
+  const [pipelineNameDisponibility, setPipelineNameDisponibility] = useState(
+    'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_UPDATE_DIS'
+  );
 
-  const pipelineName = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_NAME;
-  const pipelineNameDisponibility = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_UPDATE_DIS;
+  const callPipelineNames = async () => {
+    const res = await fetch('/api/getPipelineName');
+    const data = await res.json();
+    setPipelineName(data.NamePipelineDelta);
+    setPipelineNameDisponibility(data.NamePipelineUpdateDisponibility);
+  };
 
   const invokePipeline = async (action: 'run' | 'monitor', pipelineName: string) => {
     setLoading(true);
@@ -232,6 +242,7 @@ const Page = () => {
   };
 
   useEffect(() => {
+    callPipelineNames();
     loadDataTest();
   }, []);
 

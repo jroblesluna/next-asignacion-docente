@@ -17,8 +17,15 @@ const Page = () => {
   const [isRuningPipeline, setIsRuningPipeline] = useState(false);
   const [typeActionPipeline, setTypeActionPipeline] = useState('monitor');
   const [runIds, setRunIds] = useState<{ runId: string; status: string }[]>([]);
+  const [pipelineName, setPipelineName] = useState(
+    'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME '
+  );
 
-  const pipelineName = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME || '';
+  const callPipelineNames = async () => {
+    const res = await fetch('/api/getPipelineName');
+    const data = await res.json();
+    setPipelineName(data.NamePipelineSync);
+  };
 
   const invokePipeline = async (action: 'run' | 'monitor') => {
     setLoading(true);
@@ -145,6 +152,7 @@ const Page = () => {
   };
 
   useEffect(() => {
+    callPipelineNames();
     loadDataTest();
     loadVerify();
     // eslint-disable-next-line react-hooks/exhaustive-deps
