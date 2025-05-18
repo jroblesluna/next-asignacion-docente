@@ -118,23 +118,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             DECLARE @user VARCHAR(255);
             DECLARE @IdVersion INT;        
 
-            SET @user = (SELECT TOP 1 usuarioEjecutado FROM [dbo].[ad_asignacion_output] ORDER BY usuarioEjecutado DESC);
-            -- Obtener la última versión
-            SET @IdVersion = (SELECT MAX(idVersion) FROM ad_version WHERE idPeriodo = @periodo);
-            -- Actualizar la tabla
-            UPDATE [dbo].[ad_programacionAcademica]
-            SET aulaModificada = 
-                CASE 
-                    WHEN (aulaModificada not in ( 'SISTEMA INICIO' ,'')  and  aulaModificada is not null )  THEN @user + ' (SINC)' 
-                    ELSE aulaModificada
-                END,
-                docenteModificado = CASE 
-                    WHEN (docenteModificado <> 'SISTEMA INICIO' AND idDocente is not null  )   THEN @user + ' (SINC)' 
-                    ELSE docenteModificado
-                END
-            WHERE idPeriodo = @periodo 
-            AND idVersion = @IdVersion 
-            AND uuuidProgramacionAcademica IN (SELECT uididprograma FROM [dbo].[ad_asignacion_output])
+            -- Obtener el último usuario que ejecutó
+            SET @user = (
+                SELECT TOP 1 usuarioEjecutado 
+                FROM [dbo].[ad_asignacion_output] 
+                ORDER BY usuarioEjecutado DESC
+            );
+            
+            -- Obtener la última versión para el periodo dado
+            SET @IdVersion = (
+                SELECT MAX(idVersion) 
+                FROM ad_version 
+                WHERE idPeriodo = @periodo
+            );
+            
+            -- MERGE para actualizar aulaModificada y docenteModificada según condición
+            MERGE [dbo].[ad_programacionAcademica] AS target
+            USING (
+                SELECT *
+                FROM [dbo].[ad_asignacion_output]
+                WHERE estado = 1
+            ) AS source
+            ON target.uuuidProgramacionAcademica = source.uididprograma
+               AND target.idPeriodo = @periodo
+               AND target.idVersion = @IdVersion
+            WHEN MATCHED THEN
+                UPDATE SET
+                    target.aulaModificada = CASE 
+                        WHEN ((target.aulaModificada <> 'SISTEMA INICIO' OR  target.aulaModificada IS NULL ) AND target.aulaModificada IS NOT NULL)
+                            THEN @user + ' (SINC)' 
+                        ELSE target.aulaModificada
+                    END,
+                    target.idAulaInicial = target.idAula,
+                    target.docenteModificado = CASE 
+                        WHEN ( (docenteModificado <> 'SISTEMA INICIO' OR  docenteModificado IS NULL ) AND target.idDocente IS NOT NULL)
+                            THEN @user + ' (SINC)' 
+                        ELSE target.docenteModificado
+                    END;
+            
 `);
 
         //   actualizar tabla de programacion curso (opcional)
@@ -143,7 +164,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                   USING (
             						SELECT A.idAula, D.idDocente, AO.uidIdPrograma FROM [dbo].[ad_asignacion_output]AS AO 
                             left join [dbo].[ad_aula] as A ON AO.uididaula=A.uidIdAula AND A.periodo=@periodo
-                            left join [dbo].[ad_docente] as D ON AO.uididprofesor = D.uuidDocente  AND D.periodo=@periodo
+                            left join [dbo].[ad_docente] as D ON AO.uididprofesor = D.uuidDocente  AND D.periodo=@periodo and AO.estado = 1
                                   ) AS origen 
                                   ON origen.uidIdPrograma = destino.uidIdPrograma  
                                   AND destino.Periodo =@periodo

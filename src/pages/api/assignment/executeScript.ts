@@ -445,6 +445,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } while (!resStatusPipeline);
       }
 
+      await pool.request().query(`
+              UPDATE STATISTICS dbo.ad_aula WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_frecuencia WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_curso WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_horario WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_sede WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_docente WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_periodo WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_programacionAcademica WITH FULLSCAN;
+              
+              -- Auxiliares / Auditoría con FULLSCAN
+              UPDATE STATISTICS dbo.ad_pivoteAsignacion WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_version WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_avanceAlgoritmo WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_escenario WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_evento WITH FULLSCAN;
+              UPDATE STATISTICS dbo.ad_asignacion_output WITH FULLSCAN;
+          `);
+
       /* Se genera un registro de avance si no existe uno para el periodo especificado. */
 
       await pool.request().input('periodoID', sql.Int, periodo)

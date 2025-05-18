@@ -2,6 +2,7 @@ import ExcelJS, { Workbook, Worksheet } from 'exceljs';
 import { saveAs } from 'file-saver';
 
 import {
+  AsignacionOutputInterface,
   balanceDataInterface,
   esquemaFrecuenciaHorario,
   ProgramacionAcademica,
@@ -99,8 +100,6 @@ export const handleDownload = (
 export const downloadExcelTac = (data: tacData[], ID: string) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet: Worksheet = workbook.addWorksheet('ReporteTAC_' + ID);
-  // const worksheet = workbook.addWorksheet('ReporteTAC_' + ID);
-
   // Agregar cabeceras
   worksheet.columns = [
     { header: '#', width: 5 },
@@ -351,5 +350,96 @@ export const exportBalance = (
   // Save as Excel file
   workbook.xlsx.writeBuffer().then((buffer) => {
     saveAs(new Blob([buffer]), 'ReporteBalance' + periodo + '.xlsx');
+  });
+};
+
+export const downloadExcelSync = (data: AsignacionOutputInterface[]) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet: Worksheet = workbook.addWorksheet('Detalle sincronización');
+  if (data.length === 0) return;
+
+  // Extraer dinámicamente las claves del primer objeto, excluyendo campos internos si es necesario
+  const excludedKeys = [' Capacidad Aula'];
+  const dataKeys = Object.keys(data[0]).filter((key) => !excludedKeys.includes(key));
+
+  // Crear encabezados legibles
+  const headers = [
+    '#',
+    ...dataKeys.map((key) =>
+      key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())
+    ),
+  ];
+
+  // Agregar encabezados a la hoja
+  worksheet.addRow(headers);
+
+  // Agregar filas de datos
+  data.forEach((item, index) => {
+    const row: (string | number)[] = [index + 1];
+
+    dataKeys.forEach((key) => {
+      if (key === 'estado') {
+        const estado = item.estado ? item.estado : '';
+
+        row.push(
+          estado.toString() === 'true'
+            ? 'Sincronizado'
+            : estado.toString() === 'false'
+            ? 'No sincronizado'
+            : 'No resuelto'
+        );
+      } else {
+        const value = item[key as keyof AsignacionOutputInterface];
+        row.push(value != null ? String(value) : '');
+      }
+    });
+
+    worksheet.addRow(row);
+  });
+
+  // Ajustar ancho de columna al contenido más largo
+  worksheet.columns.forEach((column, colIndex) => {
+    let maxLength = headers[colIndex]?.length ?? 10;
+    column.eachCell?.({ includeEmpty: true }, (cell) => {
+      const cellLength = cell.value?.toString().length ?? 0;
+      if (cellLength > maxLength) maxLength = cellLength;
+    });
+    column.width = maxLength + 2;
+  });
+
+  // Estilizar encabezado
+  const headerRow = worksheet.getRow(1);
+  headerRow.eachCell((cell) => {
+    cell.font = { bold: true };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF7CE407' },
+    };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    cell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' },
+    };
+  });
+
+  // Bordes para todas las celdas
+  worksheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+    });
+  });
+
+  // Generar y descargar el archivo
+  workbook.xlsx.writeBuffer().then((buffer) => {
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
+    saveAs(blob, `Detalle Sincronización ${data[0].fecha} ${data[0].hora}.xlsx`);
   });
 };

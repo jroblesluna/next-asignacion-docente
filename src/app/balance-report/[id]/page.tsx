@@ -96,7 +96,6 @@ const Page = () => {
     const resRatioData = await assigmentService.getRatiosBalance(id);
 
     const sedesOrdenadas = ordenarSedes(resRatioData.data, ordenDeseado);
-    console.log(sedesOrdenadas);
     setRatiosData(sedesOrdenadas);
     const resBalanceData = await assigmentService.getDataBalance(id);
 
@@ -104,7 +103,6 @@ const Page = () => {
     if (resBalanceData.data.length === 0) {
       setDataVacia(true);
     }
-    console.log(resBalanceData.data);
     setBalancaDatarray(resBalanceData.data);
   };
 

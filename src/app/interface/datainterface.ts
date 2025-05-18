@@ -51,6 +51,12 @@ export interface Assignment {
   isEditable: boolean;
 }
 
+export interface FechaHoraEjecucion {
+  fecha: string;
+  hora: string;
+  periodo: string;
+}
+
 export interface PeriodoAcademico {
   idPeriodo: number;
   tiempoCreado: string;
@@ -177,4 +183,23 @@ export interface EventoData {
   description: string;
   name: string;
   estado: boolean;
+}
+
+export interface AsignacionOutputInterface {
+  periodo: string;
+  uididprograma: string;
+  fecha: string;
+  hora: string;
+  usuarioEjecutado: string;
+  estado: string;
+  detestado: string;
+  NombreCompletoProfesor: string | null;
+  NombreSedeProfesor: string | null;
+  identificadorFisico: string | null;
+  CapacidadAula: number | null;
+  codigoCurso: string;
+  HorarioInicio: string;
+  HorarioFin: string;
+  NombreAgrupFrecuencia: string;
+  nombreSede: string;
 }

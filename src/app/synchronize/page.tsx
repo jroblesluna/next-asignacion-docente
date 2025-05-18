@@ -3,12 +3,17 @@ import NavBar from '../components/NavBar';
 import { ReturnTitle } from '../components/Titles';
 import { useEffect, useState } from 'react';
 import LayoutValidation from '../LayoutValidation';
-import { PeriodoAcademico } from '../interface/datainterface';
+import {
+  AsignacionOutputInterface,
+  FechaHoraEjecucion,
+  PeriodoAcademico,
+} from '../interface/datainterface';
 import periodService from '@/services/period';
 
 import { convertirFormatoFecha } from '../utils/managmentDate';
 import assigmentService from '@/services/assigment';
 import { ModalConfirm } from '../components/Modals';
+import { downloadExcelSync } from '../utils/downloadExcel';
 const Page = () => {
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [dataVacia, setDataVacia] = useState(false);
@@ -17,19 +22,30 @@ const Page = () => {
   const [isRuningPipeline, setIsRuningPipeline] = useState(false);
   const [typeActionPipeline, setTypeActionPipeline] = useState('monitor');
   const [runIds, setRunIds] = useState<{ runId: string; status: string }[]>([]);
+  const [updateDataSync, setUpdateDataSync] = useState(false);
   const [pipelineName, setPipelineName] = useState(
-    'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME '
+    'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME'
   );
+  const [lastSync, setLastSync] = useState<FechaHoraEjecucion | null>(null);
+  const [detalleSync, setDetalleSync] = useState<AsignacionOutputInterface[]>([]);
+  const [changePipeline, setChangePipeline] = useState(false);
 
   const callPipelineNames = async () => {
     const res = await fetch('/api/getPipelineName');
     const data = await res.json();
     setPipelineName(data.NamePipelineSync);
   };
-
+  //cambiar para produccion
+  let correoFinal = 'juan.navarro@icpna.edu.pe';
   const invokePipeline = async (action: 'run' | 'monitor') => {
     setLoading(true);
     setRunIds([]);
+
+    // if (process.env.NEXT_PUBLIC_BUILD_DATE) {
+    //   correoFinal = localStorage.getItem('user') || '';
+    // } else {
+    //   correoFinal = 'juan.navarro@icpna.edu.pe'; // for testing purposes
+    // }
 
     try {
       // Send a POST request to invoke or monitor the pipeline
@@ -41,9 +57,11 @@ const Page = () => {
         body: JSON.stringify({
           pipelineName: pipelineName, // Name of the pipeline to act upon
           action, // Action: either 'run' or 'monitor'
-          userParams: 'juan.navarro@icpna.edu.pe',
+          userParams: correoFinal,
         }),
       });
+
+      console.log(correoFinal);
 
       const data = await response.json(); // Parse the JSON response
 
@@ -72,9 +90,11 @@ const Page = () => {
               data.runningPipelines.map((runId: string) => ({ runId, status: 'Running' }))
             );
             setIsRuningPipeline(true);
+            setUpdateDataSync(true);
 
             return true;
           } else {
+            console.log('No pipelines are running.');
             // If no pipelines are running, show a no running pipelines message
             setIsRuningPipeline(false);
             return false;
@@ -114,6 +134,38 @@ const Page = () => {
     setDataPeriodo(resPerido.data);
   };
 
+  const loadLastSyncData = async () => {
+    try {
+      const res = await fetch(`/api/lastSyncPush`);
+      const data = await res.json();
+      if (!res.ok) {
+        console.log(data?.message);
+        throw new Error(data.error || 'Error al obtener el pipeline');
+      }
+      setLastSync(data.data[0]);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const loadLastSyncDataDetalle = async () => {
+    try {
+      const res = await fetch(`/api/getSyncData`);
+      const data = await res.json();
+      if (!res.ok) {
+        console.log(data?.message);
+        throw new Error(data.error || 'Error al obtener el pipeline');
+      }
+      if (data.data.length == 0) {
+        setDetalleSync([]);
+        return;
+      }
+      setDetalleSync(data.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const loadVerify = async () => {
     let isruning = false;
     setTypeActionPipeline('monitoreo');
@@ -123,6 +175,9 @@ const Page = () => {
         isruning = (await invokePipeline('monitor')) || false;
       }
     } while (isruning);
+    if (updateDataSync) {
+      await loadLastSyncData();
+    }
   };
 
   const invokePipelineRun = async () => {
@@ -134,6 +189,8 @@ const Page = () => {
       (dataPerido?.idPeriodo || '').toString(),
       correo || ''
     );
+
+    setChangePipeline(true);
 
     await invokePipeline('run');
     console.log('ejecutado');
@@ -152,13 +209,20 @@ const Page = () => {
   };
 
   useEffect(() => {
+    loadLastSyncData();
     callPipelineNames();
   }, []);
+
   useEffect(() => {
     loadDataTest();
+    loadLastSyncDataDetalle();
     loadVerify();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pipelineName]);
+
+  useEffect(() => {
+    loadLastSyncData();
+  }, [changePipeline]);
 
   return (
     <LayoutValidation>
@@ -217,6 +281,59 @@ const Page = () => {
                       con el sistema *Inicio*. Si se realizan modificaciones posteriores,
                       deberá volver a ejecutar la sincronización.
                     </p>
+                    {lastSync == null ? (
+                      <>
+                        <h2 className="text-lg font-bold">
+                          Ultimos registros de sincronización no encontrado
+                        </h2>
+                      </>
+                    ) : (
+                      <div className="  min-h-5 my-2 ">
+                        <h2 className="text-lg font-bold">Última Sincronización Iniciada</h2>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex flex-row gap-10 mt-1  text-xs">
+                            <p>
+                              <strong>Fecha:</strong> {lastSync?.fecha || ''}
+                            </p>
+                            <p>
+                              <strong>Hora:</strong> {lastSync?.hora || ''}
+                            </p>
+                            <p>
+                              <strong>Periodo correspondiente:</strong>{' '}
+                              {lastSync?.periodo || ''}
+                            </p>
+                          </div>
+                          <div>
+                            <h3 className="text-xs font-bold">Descargar</h3>
+                            {!changePipeline ? (
+                              <>
+                                {' '}
+                                <button
+                                  className={` mt-2 py-2  px-4 text-white font-semibold  text-[10px] ${
+                                    detalleSync.length == 0
+                                      ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
+                                      : 'bg-blue-600 hover:bg-blue-400 cursor-pointer '
+                                  } `}
+                                  onClick={() => {
+                                    downloadExcelSync(detalleSync);
+                                  }}
+                                >
+                                  Descargar Excel
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                {' '}
+                                <h2 className="text-xs font-bold text-gray-500 mt-2">
+                                  Reinicie para obtener los registros de sincronización
+                                </h2>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <ModalConfirm
                       subtitle={
                         'Esta acción es irreversible. Asegúrese de revisar y confirmar los cambios antes de sincronizarlos con el sistema Inicio.'
