@@ -36,7 +36,7 @@ const Page = () => {
     setPipelineName(data.NamePipelineSync);
   };
   //cambiar para produccion
-  let correoFinal = 'juan.navarro@icpna.edu.pe';
+  const correoFinal = 'juan.navarro@icpna.edu.pe';
   const invokePipeline = async (action: 'run' | 'monitor') => {
     setLoading(true);
     setRunIds([]);
