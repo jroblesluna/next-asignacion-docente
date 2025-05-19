@@ -19,7 +19,7 @@ const Page = () => {
   const [dataVaciaPeriodo, setDataVaciaPeriodo] = useState(false);
   const [lastRun, setLastRun] = useState<PipelineRun | undefined | null>(undefined);
   // cambiar al nombre real del pipeline
-  const pipelineLastName = 'dummyPipeline'; // for testing porpuse
+  const pipelineLastName = 'PL_PROCESAR_ACADEMICO_DELTA'; // for testing porpuse
   const loadDataTest = async () => {
     const resPerido = await periodService.verify();
     if (resPerido.data?.idPeriodo != '-1') {
