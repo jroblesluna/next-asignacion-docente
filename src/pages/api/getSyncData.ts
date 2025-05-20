@@ -21,22 +21,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 AO.uididprograma,
                 FORMAT( AO.fechaejecucion, 'dd-MM-yyyy') AS fecha,
                 FORMAT( AO.fechaejecucion, 'HH:mm:ss') AS hora,
-                AO.usuarioEjecutado,
-                AO.estado,
-                AO.detestado,
-                D.NombreCompletoProfesor,
-                D.NombreSede as NombreSedeProfesor,
-                A.identificadorFisico,
-                A.capacidad as CapacidadAula,
+                S.nombreSede,
                 C.codigoCurso,
+                A.identificadorFisico,
                 H.HorarioInicio,
                 H.HorarioFin,
-                F.NombreAgrupFrecuencia,
-                S.nombreSede
+                D.NombreCompletoProfesor,
+                DD.codigodocente,
+                AO.estado,
+                AO.detestado,
+                AO.usuarioEjecutado,
+                D.NombreSede as NombreSedeProfesor,
+                
+                A.capacidad as CapacidadAula,
+                F.NombreAgrupFrecuencia
+                
             FROM 
                 [dbo].[ad_asignacion_output] AO
             LEFT JOIN ad_docente AS D 
                 ON AO.uididprofesor = D.uuidDocente AND D.periodo = AO.periodo
+           LEFT JOIN [dbo].[dim_docente] AS DD 
+           ON D.uuidDocente = DD.uidIdDocente      
             LEFT JOIN ad_aula AS A 
                 ON A.uidIdAula = AO.uididaula AND A.periodo = AO.periodo
             INNER JOIN ad_curso AS C 

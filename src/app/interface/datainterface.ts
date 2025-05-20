@@ -193,6 +193,7 @@ export interface AsignacionOutputInterface {
   usuarioEjecutado: string;
   estado: string;
   detestado: string;
+  codigodocente: string;
   NombreCompletoProfesor: string | null;
   NombreSedeProfesor: string | null;
   identificadorFisico: string | null;

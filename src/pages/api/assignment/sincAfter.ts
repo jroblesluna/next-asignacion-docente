@@ -112,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
       } while (!resStatusPipeline);
-
+      // actualizar el candado de la tabla ad_programacionAcademica correspondiente al periodo
       if (!resStatusFilePipeline) {
         await pool.request().input('periodo', idPeriodo).query(`
             DECLARE @user VARCHAR(255);
@@ -158,7 +158,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
 `);
 
-        //   actualizar tabla de programacion curso (opcional)
+        //   actualizar tabla de programacion curso
         await pool.request().input('periodo', idPeriodo).query(`
                  MERGE INTO [dbo].[ProgramacionCursos] AS destino
                                   USING (

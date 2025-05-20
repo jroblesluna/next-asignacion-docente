@@ -358,29 +358,48 @@ export const downloadExcelSync = (data: AsignacionOutputInterface[]) => {
   const worksheet: Worksheet = workbook.addWorksheet('Detalle sincronización');
   if (data.length === 0) return;
 
-  // Extraer dinámicamente las claves del primer objeto, excluyendo campos internos si es necesario
-  const excludedKeys = [' Capacidad Aula'];
-  const dataKeys = Object.keys(data[0]).filter((key) => !excludedKeys.includes(key));
-
-  // Crear encabezados legibles
-  const headers = [
-    '#',
-    ...dataKeys.map((key) =>
-      key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())
-    ),
+  const excludedKeys = [
+    'periodo',
+    'uididprograma',
+    'fecha',
+    'hora',
+    'usuarioEjecutado',
+    'NombreAgrupFrecuencia',
+    'NombreSedeProfesor',
+    'CapacidadAula',
+    'HorarioInicio', // Excluido
+    'HorarioFin', // Excluido
   ];
 
-  // Agregar encabezados a la hoja
+  const columnNameMap: Record<string, string> = {
+    codigoCurso: 'Curso',
+    NombreCompletoProfesor: 'Docente',
+    codigodocente: 'Código Docente',
+    estado: 'Estado de Sincronización',
+    Horario: 'Horario',
+    identificadorFisico: 'Aula',
+    nombreSede: 'Sede',
+    detestado: 'Detalles del Estado',
+  };
+
+  const dataKeys = Object.keys(data[0]).filter((key) => !excludedKeys.includes(key));
+
+  // Insertamos "Horario" como nueva columna combinada
+  const keysWithHorario = [...dataKeys];
+  keysWithHorario.splice(3, 0, 'Horario');
+
+  const headers = ['#', ...keysWithHorario.map((key) => columnNameMap[key] || key)];
   worksheet.addRow(headers);
 
-  // Agregar filas de datos
   data.forEach((item, index) => {
     const row: (string | number)[] = [index + 1];
 
-    dataKeys.forEach((key) => {
-      if (key === 'estado') {
+    keysWithHorario.forEach((key) => {
+      if (key === 'Horario') {
+        const horario = `${item.HorarioInicio ?? ''} - ${item.HorarioFin ?? ''}`;
+        row.push(horario.trim());
+      } else if (key === 'estado') {
         const estado = item.estado ? item.estado : '';
-
         row.push(
           estado.toString() === 'true'
             ? 'Sincronizado'
@@ -397,7 +416,7 @@ export const downloadExcelSync = (data: AsignacionOutputInterface[]) => {
     worksheet.addRow(row);
   });
 
-  // Ajustar ancho de columna al contenido más largo
+  // Ajustar ancho de columnas
   worksheet.columns.forEach((column, colIndex) => {
     let maxLength = headers[colIndex]?.length ?? 10;
     column.eachCell?.({ includeEmpty: true }, (cell) => {
@@ -407,7 +426,7 @@ export const downloadExcelSync = (data: AsignacionOutputInterface[]) => {
     column.width = maxLength + 2;
   });
 
-  // Estilizar encabezado
+  // Estilos
   const headerRow = worksheet.getRow(1);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true };
@@ -425,7 +444,6 @@ export const downloadExcelSync = (data: AsignacionOutputInterface[]) => {
     };
   });
 
-  // Bordes para todas las celdas
   worksheet.eachRow((row) => {
     row.eachCell((cell) => {
       cell.border = {
@@ -436,8 +454,6 @@ export const downloadExcelSync = (data: AsignacionOutputInterface[]) => {
       };
     });
   });
-
-  // Generar y descargar el archivo
   workbook.xlsx.writeBuffer().then((buffer) => {
     const blob = new Blob([buffer], { type: 'application/octet-stream' });
     saveAs(blob, `Detalle Sincronización ${data[0].fecha} ${data[0].hora}.xlsx`);
