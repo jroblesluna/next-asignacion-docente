@@ -177,6 +177,7 @@ const Page = () => {
     } while (isruning);
     if (updateDataSync) {
       await loadLastSyncData();
+      await loadLastSyncDataDetalle();
     }
   };
 
@@ -206,6 +207,8 @@ const Page = () => {
       console.log('monitoreando');
       isruning = (await invokePipeline('monitor')) || false;
     } while (isruning);
+
+    await loadLastSyncDataDetalle();
   };
 
   useEffect(() => {
@@ -284,7 +287,7 @@ const Page = () => {
                     {lastSync == null ? (
                       <>
                         <h2 className="text-lg font-bold">
-                          Ultimos registros de sincronización no encontrado
+                          Ultimos registros de sincronización no encontrados
                         </h2>
                       </>
                     ) : (
