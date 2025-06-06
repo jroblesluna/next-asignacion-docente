@@ -35,6 +35,7 @@ type PipelineRun = {
   runId: string;
   status: string;
   runStart: string;
+  runEnd?: string;
 };
 
 export default function LastPipelineRunViewer() {
@@ -42,7 +43,7 @@ export default function LastPipelineRunViewer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const pipelineName = 'PL_SINCRONIZACION_ONPREMISE'; // ← reemplaza por el nombre real
+  const pipelineName = 'PL_PROCESAR_ACADEMICO_DELTA'; // ← reemplaza por el nombre real
 
   useEffect(() => {
     const fetchLastRun = async () => {
@@ -85,6 +86,10 @@ export default function LastPipelineRunViewer() {
         </p>
         <p>
           <strong>Inicio:</strong> {new Date(lastRun.runStart).toLocaleString()}
+        </p>
+        <p>
+          <strong>Fin:</strong>{' '}
+          {(lastRun.runEnd && new Date(lastRun.runEnd).toLocaleString()) || 'No disponible'}
         </p>
       </div>
     </main>

@@ -14,6 +14,14 @@ import { convertirFormatoFecha } from '../utils/managmentDate';
 import assigmentService from '@/services/assigment';
 import { ModalConfirm } from '../components/Modals';
 import { downloadExcelSync } from '../utils/downloadExcel';
+
+type PipelineRun = {
+  runId: string;
+  status: string | undefined;
+  runStart: string;
+  runEnd?: string;
+};
+
 const Page = () => {
   const [dataPerido, setDataPeriodo] = useState<PeriodoAcademico>();
   const [dataVacia, setDataVacia] = useState(false);
@@ -26,10 +34,10 @@ const Page = () => {
   const [pipelineName, setPipelineName] = useState(
     'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME'
   );
-  const [lastSync, setLastSync] = useState<FechaHoraEjecucion | null>(null);
   const [detalleSync, setDetalleSync] = useState<AsignacionOutputInterface[]>([]);
   const [changePipeline, setChangePipeline] = useState(false);
-
+  const [lastRun, setLastRun] = useState<PipelineRun | undefined | null>(undefined);
+  const [loadingLastRun, setLoadingLastRun] = useState(true);
   const callPipelineNames = async () => {
     const res = await fetch('/api/getPipelineName');
     const data = await res.json();
@@ -61,8 +69,6 @@ const Page = () => {
         }),
       });
 
-      console.log(correoFinal);
-
       const data = await response.json(); // Parse the JSON response
 
       if (response.ok) {
@@ -90,8 +96,6 @@ const Page = () => {
               data.runningPipelines.map((runId: string) => ({ runId, status: 'Running' }))
             );
             setIsRuningPipeline(true);
-            setUpdateDataSync(true);
-
             return true;
           } else {
             console.log('No pipelines are running.');
@@ -114,9 +118,38 @@ const Page = () => {
       setIsRuningPipeline(false);
       setFailPipeline(true);
       return false;
-    } finally {
-      setLoading(false);
     }
+  };
+
+  const invokePipelineRun = async () => {
+    setIsRuningPipeline(true);
+    const correo = localStorage.getItem('user');
+    setTypeActionPipeline('Ejecutando');
+
+    await assigmentService.sincronizarTablaOutput(
+      (dataPerido?.idPeriodo || '').toString(),
+      correo || ''
+    );
+
+    await invokePipeline('run');
+    setChangePipeline((prev) => !prev);
+    console.log('ejecutado');
+    let isruning = true;
+
+    assigmentService.sincronizarDespuesTablasAD(
+      (dataPerido?.idPeriodo || '').toString(),
+      correo || ''
+    );
+
+    do {
+      setTypeActionPipeline('monitoreo');
+      console.log('monitoreando');
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      isruning = (await invokePipeline('monitor')) || false;
+    } while (isruning);
+    setLoading(false);
+    setChangePipeline((prev) => !prev);
+    await loadLastSyncDataDetalle();
   };
 
   const loadDataTest = async () => {
@@ -134,21 +167,30 @@ const Page = () => {
     setDataPeriodo(resPerido.data);
   };
 
-  const loadLastSyncData = async () => {
+  const loadLastPipeline = async () => {
     try {
-      const res = await fetch(`/api/lastSyncPush`);
+      const res = await fetch(`/api/lastPipelineRun?pipelineName=${pipelineName}`);
       const data = await res.json();
-      if (!res.ok) {
-        console.log(data?.message);
-        throw new Error(data.error || 'Error al obtener el pipeline');
+      if (!res.ok || data.message == 'No se encontraron ejecuciones de este pipeline') {
+        const emptyPipelineRun: PipelineRun = {
+          runId: '',
+          status: undefined,
+          runStart: '',
+        };
+        setLastRun(emptyPipelineRun);
+        console.log(
+          'Error: No se encontro la ultima fecha de ejecución del pipeline ' + pipelineName
+        );
+        return;
       }
-      setLastSync(data.data[0]);
+      setLastRun(data.lastRun);
     } catch (err) {
       console.log(err);
     }
   };
 
   const loadLastSyncDataDetalle = async () => {
+    setDetalleSync([]);
     try {
       const res = await fetch(`/api/getSyncData`);
       const data = await res.json();
@@ -167,7 +209,7 @@ const Page = () => {
   };
 
   const loadVerify = async () => {
-    let isruning = false;
+    let isruning = true;
     setTypeActionPipeline('monitoreo');
     do {
       if (dataPerido?.estado != 'ACTIVO') {
@@ -175,56 +217,34 @@ const Page = () => {
         isruning = (await invokePipeline('monitor')) || false;
       }
     } while (isruning);
+    setChangePipeline((prev) => !prev);
     if (updateDataSync) {
-      await loadLastSyncData();
       await loadLastSyncDataDetalle();
+    }
+    setLoading(false);
+  };
+
+  const loadLastRun = async () => {
+    if (pipelineName !== 'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME') {
+      await loadLastPipeline();
+      await setLoadingLastRun(false);
     }
   };
 
-  const invokePipelineRun = async () => {
-    setIsRuningPipeline(true);
-    const correo = localStorage.getItem('user');
-    setTypeActionPipeline('Ejecutando');
-
-    await assigmentService.sincronizarTablaOutput(
-      (dataPerido?.idPeriodo || '').toString(),
-      correo || ''
-    );
-
-    setChangePipeline(true);
-
-    await invokePipeline('run');
-    console.log('ejecutado');
-    let isruning = false;
-
-    assigmentService.sincronizarDespuesTablasAD(
-      (dataPerido?.idPeriodo || '').toString(),
-      correo || ''
-    );
-
-    do {
-      setTypeActionPipeline('monitoreo');
-      console.log('monitoreando');
-      isruning = (await invokePipeline('monitor')) || false;
-    } while (isruning);
-
-    await loadLastSyncDataDetalle();
-  };
-
   useEffect(() => {
-    loadLastSyncData();
     callPipelineNames();
   }, []);
 
   useEffect(() => {
     loadDataTest();
+    loadLastRun();
     loadLastSyncDataDetalle();
     loadVerify();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pipelineName]);
 
   useEffect(() => {
-    loadLastSyncData();
+    loadLastRun();
   }, [changePipeline]);
 
   return (
@@ -284,58 +304,76 @@ const Page = () => {
                       con el sistema *Inicio*. Si se realizan modificaciones posteriores,
                       deberá volver a ejecutar la sincronización.
                     </p>
-                    {lastSync == null ? (
-                      <>
-                        <h2 className="text-lg font-bold">
-                          Ultimos registros de sincronización no encontrados
-                        </h2>
-                      </>
-                    ) : (
-                      <div className="  min-h-5 my-2 ">
-                        <h2 className="text-lg font-bold">Última Sincronización Iniciada</h2>
-                        <div className="flex flex-col gap-2">
-                          <div className="flex flex-row gap-10 mt-1  text-xs">
-                            <p>
-                              <strong>Fecha:</strong> {lastSync?.fecha || ''}
-                            </p>
-                            <p>
-                              <strong>Hora:</strong> {lastSync?.hora || ''}
-                            </p>
-                            <p>
-                              <strong>Periodo correspondiente:</strong>{' '}
-                              {lastSync?.periodo || ''}
-                            </p>
-                          </div>
-                          <div>
-                            <h3 className="text-xs font-bold">Descargar</h3>
-                            {!changePipeline ? (
-                              <>
-                                {' '}
-                                <button
-                                  className={` mt-2 py-2  px-4 text-white font-semibold  text-[10px] ${
-                                    detalleSync.length == 0
-                                      ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
-                                      : 'bg-blue-600 hover:bg-blue-400 cursor-pointer '
-                                  } `}
-                                  onClick={() => {
-                                    downloadExcelSync(detalleSync);
-                                  }}
-                                >
-                                  Descargar Excel
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                {' '}
-                                <h2 className="text-xs font-bold text-gray-500 mt-2">
-                                  Reinicie para obtener los registros de sincronización
-                                </h2>
-                              </>
-                            )}
-                          </div>
+                    <div className="  min-h-5 my-2 ">
+                      {!loadingLastRun && (
+                        <>
+                          <h2 className="text-lg font-bold">
+                            Datos del último pipeline de sincronización ejecutado:
+                          </h2>
+
+                          {lastRun?.status !== undefined ? (
+                            <div className="flex flex-row gap-10 mt-1">
+                              <p>
+                                <strong>Estado de Actualización:</strong>{' '}
+                                {lastRun?.status || ''}
+                              </p>
+                              <p>
+                                <strong>Inicio:</strong>{' '}
+                                {lastRun?.runStart
+                                  ? new Date(lastRun?.runStart).toLocaleString()
+                                  : ''}
+                              </p>
+                              <p>
+                                <strong>Fin:</strong>{' '}
+                                {lastRun?.runEnd
+                                  ? new Date(lastRun?.runEnd).toLocaleString()
+                                  : 'cargando...'}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="flex flex-row gap-10 mt-1">
+                              <p>
+                                <strong>
+                                  {'Error: No se encontro la ultima fecha de ejecución del pipeline ' +
+                                    pipelineName}
+                                </strong>
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      <div className="flex flex-col gap-2">
+                        <h3 className="text-xs font-bold mt-2">Descargar</h3>
+                        <div>
+                          {!changePipeline ? (
+                            <>
+                              <button
+                                className={` mt-2 py-2  px-4 text-white font-semibold  text-[10px] ${
+                                  detalleSync.length == 0 ||
+                                  lastRun?.status == 'InProgress' ||
+                                  lastRun?.status == undefined
+                                    ? 'bg-[#7C7C7C] cursor-not-allowed pointer-events-none '
+                                    : 'bg-blue-600 hover:bg-blue-400 cursor-pointer '
+                                } `}
+                                onClick={() => {
+                                  downloadExcelSync(detalleSync);
+                                }}
+                              >
+                                Descargar Excel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {' '}
+                              <h2 className="text-xs font-bold text-gray-500 mt-2">
+                                Cargando datos de sincronización...
+                              </h2>
+                            </>
+                          )}
                         </div>
                       </div>
-                    )}
+                    </div>
 
                     <ModalConfirm
                       subtitle={
@@ -371,7 +409,7 @@ const Page = () => {
                 <div className="w-1/2 min-h-[50vh] max-h-[50vh]   flex flex-col  gap-3 p-2 mt-10 ">
                   <div className="p-6">
                     <h1 className="text-4xl font-bold mb-4 ">Estado de la sincronización</h1>
-                    {loading == true ? (
+                    {loading == true || isRuningPipeline == true ? (
                       <div className="w-[100%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[40vh]">
                         <span className="loading loading-spinner text-primary loading-lg"></span>
                         {typeActionPipeline == 'monitoreo' ? (
@@ -379,7 +417,10 @@ const Page = () => {
                             Sincronización en progreso - Monitoreando pipeline
                           </p>
                         ) : (
-                          <p className="font-bold text-3xl">Sincronización Iniciada</p>
+                          <p className="font-bold text-3xl">
+                            Sincronización iniciada. Por favor, espere mientras se completa la
+                            llamada al pipeline.
+                          </p>
                         )}
                       </div>
                     ) : (
@@ -387,7 +428,7 @@ const Page = () => {
                         <p className="font-bold text-3xl">No hay sincronización en proceso</p>
                       </div>
                     )}
-
+                    {/* 
                     {runIds.length > 0 && (
                       <div className="mt-4">
                         <h2 className="font-semibold">Run IDs:</h2>
@@ -400,7 +441,7 @@ const Page = () => {
                           ))}
                         </ul>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </>

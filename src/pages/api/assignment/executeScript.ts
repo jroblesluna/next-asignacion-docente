@@ -189,14 +189,24 @@ const disponibleEnFecha = (
     return new Date(anio, mes - 1, dia);
   }
 
+  function fechasValidas(...fechas: (string | null | undefined)[]) {
+    return fechas.every((fecha) => typeof fecha === 'string' && fecha.trim() !== '');
+  }
+
   try {
-    const inicio1 = convertirFecha(fechaInicio1);
-    const final1 = convertirFecha(fechaFinal1);
-    const inicio2 = convertirFecha(fechaInicio2);
-    const final2 = convertirFecha(fechaFinal2);
+    if (!fechasValidas(fechaInicio1, fechaFinal1, fechaInicio2, fechaFinal2)) {
+      console.log('No hay fecha disponible');
+      return false;
+    }
+
+    const inicio1 = convertirFecha(fechaInicio1!);
+    const final1 = convertirFecha(fechaFinal1!);
+    const inicio2 = convertirFecha(fechaInicio2!);
+    const final2 = convertirFecha(fechaFinal2!);
+
     return final1 < inicio2 || final2 < inicio1;
   } catch (error) {
-    console.log('No hay fecha disponible');
+    console.log('Error al analizar fechas:', error);
     return false;
   }
 };

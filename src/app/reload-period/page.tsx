@@ -12,6 +12,7 @@ type PipelineRun = {
   runId: string;
   status: string | undefined;
   runStart: string;
+  runEnd?: string;
 };
 
 const Page = () => {
@@ -111,8 +112,14 @@ const Page = () => {
                         <strong>Estado de Actualización:</strong> {lastRun?.status || ''}
                       </p>
                       <p>
-                        <strong>Fecha y hora:</strong>{' '}
-                        {new Date(lastRun?.runStart || '').toLocaleString()}
+                        <strong>Inicio:</strong>{' '}
+                        {lastRun?.runStart ? new Date(lastRun?.runStart).toLocaleString() : ''}
+                      </p>
+                      <p>
+                        <strong>Fin:</strong>{' '}
+                        {lastRun?.runEnd
+                          ? new Date(lastRun?.runEnd).toLocaleString()
+                          : 'cargando...'}
                       </p>
                     </div>
                   ) : (

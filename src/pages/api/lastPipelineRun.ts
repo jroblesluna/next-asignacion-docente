@@ -5,6 +5,7 @@ type PipelineRun = {
   runId: string;
   status: string;
   runStart: string;
+  runEnd?: string;
 };
 
 type QueryResponse = {

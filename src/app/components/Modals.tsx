@@ -217,6 +217,7 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
 }) => {
   const [selectNewTeacher, setSelectNewTeacher] = useState('-1');
   const [selectNewIdTeacher, setNewIdTeacher] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [data, setData] = useState<teacherDisponibility[]>([]);
 
@@ -227,6 +228,7 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
 
   const { assignments, setAssignments, setModifications, period, LastVersionID } = context;
   const correo = localStorage.getItem('user');
+
   const loadData = async () => {
     const res = await teacherService.getDisponibility(period, idRow, LastVersionID);
     setData(res.data);
@@ -242,8 +244,6 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
     );
   };
 
-  // Ejecuta loadData solo cuando el modal esté abierto
-
   useEffect(() => {
     const modal = document.getElementById(idModal) as HTMLDialogElement;
 
@@ -258,6 +258,7 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
             setSelectNewTeacher('-1');
             setNewIdTeacher('');
             setData([]);
+            setSearchTerm(''); // Limpiar búsqueda cuando se abra modal
             loadData();
           }
         }
@@ -265,10 +266,10 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
 
       observer.observe(modal, { attributes: true });
 
-      // Limpia el observer cuando el componente se desmonte
       return () => observer.disconnect();
     }
   }, [idModal]);
+
   const UpdateTeacher = (assignmentId: string, newTeacher: string) => {
     const updatedAssignments = assignments.map((assignment) =>
       assignment.assignmentId === assignmentId
@@ -290,6 +291,11 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
     UpdateTeacher(idRow, newTeacher);
   };
 
+  // Filtrar data según searchTerm, ignorando mayúsculas/minúsculas
+  const filteredData = data.filter((item) =>
+    item.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <>
       <dialog id={idModal} className={'modal overflow-hidden cursor-default select-none'}>
@@ -297,42 +303,56 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
           <div className="modal-action">
             <form method="dialog" className="flex w-full flex-col">
               <div className=" text-center font-bold">LISTA DE DOCENTES DISPONIBLES</div>
-              <div className="w-full mt-5 flex flex-row">
-                <p className="px-4 py-2 border w-[48%] font-bold">Docente</p>
+
+              {/* Input de búsqueda */}
+              <input
+                type="text"
+                placeholder="Buscar docente por nombre..."
+                className="input input-bordered w-full mt-4 mb-2"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+
+              <div className="w-full mt-2 flex flex-row">
+                <p className="px-4 py-2 border w-[52%] font-bold">Docente</p>
                 <p className="px-4 py-2 border w-[10%] font-bold">TC</p>
                 <p className="px-4 py-2 border w-[14%] font-bold">HA</p>
-                <p className="px-4 py-2 border w-[28%] font-bold">SEDE</p>
+                <p className="px-4 py-2 border w-[28%] font-bold"> SEDE</p>
               </div>
 
               <div className="w-full overflow-auto min-h-[350px] max-h-[350px] ">
                 <table className="w-full mt-2">
-                  {data.length === 0 ? (
+                  {filteredData.length === 0 ? (
                     <tbody>
                       <tr>
                         <td
                           colSpan={4}
                           className="w-[90%] flex gap-5 justify-center mx-auto flex-col items-center min-h-[50vh]"
                         >
-                          <span className="loading loading-bars loading-lg"></span>
+                          {data.length === 0 ? (
+                            <span className="loading loading-bars loading-lg"></span>
+                          ) : (
+                            <span>No se encontraron docentes que coincidan</span>
+                          )}
                         </td>
                       </tr>
                     </tbody>
                   ) : (
                     <tbody>
-                      {data.map((item, index) => (
+                      {filteredData.map((item, index) => (
                         <tr
                           key={index}
                           className={
-                            (data[0].id !== -1
+                            (filteredData[0].id !== -1
                               ? 'border w-full cursor-pointer hover:bg-cyan-300'
                               : 'border ') +
                             (selectNewTeacher.toLowerCase() === item.nombre.toLowerCase() &&
-                            data[0].id !== -1
+                            filteredData[0].id !== -1
                               ? ' bg-cyan-400'
                               : '')
                           }
                           onClick={() => {
-                            if (data[0].id !== -1) {
+                            if (filteredData[0].id !== -1) {
                               setSelectNewTeacher(item.nombre);
                               setNewIdTeacher(item.id.toString());
                             }
@@ -376,7 +396,7 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
                   className="bg-primary py-2 text-white font-semibold hover:bg-primary_light w-48 text-center"
                   onClick={() => {
                     const modal = document.getElementById(idModal) as HTMLDialogElement;
-                    if (data[0].id !== -1 && selectNewTeacher !== '-1') {
+                    if (filteredData[0].id !== -1 && selectNewTeacher !== '-1') {
                       onhandleClick(selectNewTeacher, selectNewIdTeacher);
                     }
                     setSelectNewTeacher('-1');

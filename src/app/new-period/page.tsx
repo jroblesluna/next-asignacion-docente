@@ -34,7 +34,7 @@ const Page = () => {
   const [isDataUpdate, setIsDataUpdate] = useState(false);
   const [isUpdateDisponibility, setIsUpdateDisponibility] = useState(false);
   const [pipelineName, setPipelineName] = useState(
-    'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_SYNC_NAME '
+    'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_NAME'
   );
   const [pipelineNameDisponibility, setPipelineNameDisponibility] = useState(
     'process.env.NEXT_PUBLIC_INVOKE_PIPELINE_UPDATE_DIS'
@@ -132,6 +132,7 @@ const Page = () => {
     do {
       setTypeActionPipeline('monitoreo');
       console.log('monitoreando');
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       isruning = (await invokePipeline('monitor', pipelineName || '')) || false;
       if (isruning) {
         aux = true;
@@ -155,6 +156,7 @@ const Page = () => {
     let aux = false;
     do {
       setTypeActionPipeline('monitoreo');
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       console.log('monitoreando');
       isruning = (await invokePipeline('monitor', pipelineNameDisponibility || '')) || false;
       if (isruning) {
@@ -220,6 +222,7 @@ const Page = () => {
     do {
       if (dataPerido?.estado != 'ACTIVO') {
         console.log('monitoreando');
+        await new Promise((resolve) => setTimeout(resolve, 3000));
         isruning = (await invokePipeline('monitor', pipelineName || '')) || false;
         if (isruning) {
           aux = true;
@@ -241,11 +244,6 @@ const Page = () => {
     setDataPeriodo(resPerido.data[0]);
   };
 
-  useEffect(() => {
-    callPipelineNames();
-    loadDataTest();
-  }, []);
-
   const loadDataDocentes = async (id: string) => {
     const resSedesData = await assigmentService.getLocationTac('-1');
     setNombresSedeData(resSedesData.data);
@@ -266,6 +264,11 @@ const Page = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataPerido]);
+
+  useEffect(() => {
+    callPipelineNames();
+    loadDataTest();
+  }, []);
 
   const abrirPeriodo = async (idPeriodo: string) => {
     localStorage.setItem('flagReproceso', 'true');
@@ -330,7 +333,7 @@ const Page = () => {
                               }
                             </h1>
                           )}
-                          {loading == true ? (
+                          {loading == true || isRuningPipeline == true ? (
                             <>
                               {' '}
                               <span className="loading loading-spinner text-primary loading-lg mt-5"></span>
@@ -347,7 +350,8 @@ const Page = () => {
                                   ) : (
                                     <p className="font-bold text-3xl">
                                       Ejecutando Pipeline - Actualizar Disponibilidad de
-                                      Docentes
+                                      Docentes - Por favor, espere mientras se completa la
+                                      llamada al pipeline.
                                     </p>
                                   )}
                                 </>
@@ -429,7 +433,7 @@ const Page = () => {
                         }
                       }}
                     >
-                      Generar asignación docente
+                      Abrir Nuevo Periodo
                     </button>
                   </div>
                 </div>
