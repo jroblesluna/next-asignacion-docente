@@ -3,17 +3,14 @@ import NavBar from '../components/NavBar';
 import { ReturnTitle } from '../components/Titles';
 import { useEffect, useState } from 'react';
 import LayoutValidation from '../LayoutValidation';
-import {
-  AsignacionOutputInterface,
-  FechaHoraEjecucion,
-  PeriodoAcademico,
-} from '../interface/datainterface';
+import { AsignacionOutputInterface, PeriodoAcademico } from '../interface/datainterface';
 import periodService from '@/services/period';
 
 import { convertirFormatoFecha } from '../utils/managmentDate';
 import assigmentService from '@/services/assigment';
 import { ModalConfirm } from '../components/Modals';
 import { downloadExcelSync } from '../utils/downloadExcel';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 type PipelineRun = {
   runId: string;
@@ -48,7 +45,9 @@ const Page = () => {
   const invokePipeline = async (action: 'run' | 'monitor') => {
     setLoading(true);
     setRunIds([]);
-
+    if (runIds.length > 0) {
+      console.log('runIds', runIds);
+    }
     // if (process.env.NEXT_PUBLIC_BUILD_DATE) {
     //   correoFinal = localStorage.getItem('user') || '';
     // } else {
@@ -233,6 +232,7 @@ const Page = () => {
 
   useEffect(() => {
     callPipelineNames();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -245,6 +245,7 @@ const Page = () => {
 
   useEffect(() => {
     loadLastRun();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [changePipeline]);
 
   return (
