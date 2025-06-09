@@ -189,13 +189,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(
         !resStatusFilePipeline
           ? `Sincronización terminada correctamente a las ${getCurrentDateTimeLima()}  para el periodo ${idPeriodo} `
-          : `Error en la sincronización para el periodo ${idPeriodo} `
+          : `Error en la sincronización para el periodo ${idPeriodo}, por favor verifique el resultado del pipeline.`
       );
 
       const subject = 'Sistema de Asignación Docente';
       const plainText = !resStatusFilePipeline
         ? `Sincronización terminada correctamente a las ${getCurrentDateTimeLima()}  para el periodo ${idPeriodo} `
-        : `Error en la sincronización para el periodo ${idPeriodo} `;
+        : `Error en la sincronización para el periodo ${idPeriodo}, por favor verifique el resultado del pipeline. `;
 
       if (correo) {
         await sendEmail(correo as string, subject, plainText);

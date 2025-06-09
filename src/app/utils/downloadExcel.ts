@@ -399,7 +399,8 @@ export const downloadExcelSync = (data: AsignacionOutputInterface[]) => {
         const horario = `${item.HorarioInicio ?? ''} - ${item.HorarioFin ?? ''}`;
         row.push(horario.trim());
       } else if (key === 'estado') {
-        const estado = item.estado ? item.estado : '';
+        const estado = item.estado != null || item.estado !== undefined ? item.estado : '';
+        console.log('Estado:', estado);
         row.push(
           estado.toString() === 'true'
             ? 'Sincronizado'
