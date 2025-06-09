@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 AND PA.idVersion = @LastVersion
             INNER JOIN ad_sede AS S 
                 ON S.idSede = PA.idSede AND S.periodo = AO.periodo
-            ORDER BY AO.Estado ASC ;
+            ORDER BY AO.Estado ASC,  NombreCompletoProfesor ASC;
 `
       );
 
