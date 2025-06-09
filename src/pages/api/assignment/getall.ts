@@ -37,25 +37,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .input('idVersion', selectedVersion).query(`
         IF EXISTS (SELECT 1 FROM [dbo].[ad_frecuencia] WHERE periodo = @id)
         BEGIN
-          SELECT PA.*, D.NombreCompletoProfesor, DD.codigodocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia, 
-          F.NombreAgrupFrecuencia, 
-          A.identificadorFisico, D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-          C.codigoCurso, S.nombreSede, A2.identificadorFisico AS identificadorFisicoinicial
-          FROM [dbo].[ad_programacionAcademica] AS PA  
-          LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = @id
-          LEFT JOIN [dbo].[dim_docente] AS DD ON D.uuidDocente = DD.uidIdDocente 
-          LEFT JOIN ad_aula AS A ON A.idAula = PA.idAula AND A.periodo = @id
-           LEFT JOIN ad_aula AS A2 ON A2.idAula = PA.idAulaInicial AND A2.periodo = @id
-          INNER JOIN ad_curso AS C ON C.idCurso = PA.idCurso AND C.periodo = @id
-          INNER JOIN ad_horario AS H ON H.idHorario = PA.idHorario AND H.periodo = @id
-          INNER JOIN ad_frecuencia AS F ON F.idFrecuencia = PA.idFrecuencia AND F.periodo = @id
-          INNER JOIN ad_sede AS S ON S.idSede = PA.idSede AND S.periodo = @id
-          WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0
-          ORDER BY  S.nombreSede, H.HorarioInicio, H.HorarioFin , C.codigoCurso 
+          SELECT 
+            PA.*, 
+            CASE 
+                WHEN DD.codigodocente IS NOT NULL AND (D.NombreCompletoProfesor IS NULL OR D.NombreCompletoProfesor = '') 
+                THEN 'NO EXISTE NOMBRE EN LA BD' + ' -  CODIGO: ' + DD.codigodocente
+                ELSE D.NombreCompletoProfesor
+              END AS NombreCompletoProfesor,
+              DD.codigodocente, 
+              H.HorarioInicio, 
+              H.HorarioFin, 
+              F.NombreFrecuencia, 
+              F.NombreAgrupFrecuencia, 
+              A.identificadorFisico, 
+              D.idSede AS idSedeAlojada, 
+              D.NombreSede AS nombreSedeAlojada, 
+              C.codigoCurso, 
+              S.nombreSede, 
+              A2.identificadorFisico AS identificadorFisicoinicial
+            FROM [dbo].[ad_programacionAcademica] AS PA  
+            LEFT JOIN ad_docente AS D 
+              ON PA.idDocente = D.idDocente AND D.periodo = @id
+            LEFT JOIN [dbo].[dim_docente] AS DD 
+              ON D.uuidDocente = DD.uidIdDocente 
+            LEFT JOIN ad_aula AS A 
+              ON A.idAula = PA.idAula AND A.periodo = @id
+            LEFT JOIN ad_aula AS A2 
+              ON A2.idAula = PA.idAulaInicial AND A2.periodo = @id
+            INNER JOIN ad_curso AS C 
+              ON C.idCurso = PA.idCurso AND C.periodo = @id
+            INNER JOIN ad_horario AS H 
+              ON H.idHorario = PA.idHorario AND H.periodo = @id
+            INNER JOIN ad_frecuencia AS F 
+              ON F.idFrecuencia = PA.idFrecuencia AND F.periodo = @id
+            INNER JOIN ad_sede AS S 
+              ON S.idSede = PA.idSede AND S.periodo = @id
+            WHERE PA.idPeriodo = @id 
+              AND PA.idVersion = @idVersion 
+              AND PA.vigente = 1 
+              AND PA.cancelado = 0
+ORDER BY S.nombreSede, H.HorarioInicio, H.HorarioFin, C.codigoCurso
+
         END
         ELSE
         BEGIN
-          SELECT PA.*, D.NombreCompletoProfesor, DD.codigodocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,
+          SELECT PA.*, 
+          CASE 
+                WHEN DD.codigodocente IS NOT NULL AND (D.NombreCompletoProfesor IS NULL OR D.NombreCompletoProfesor = '') 
+                THEN 'NO EXISTE NOMBRE EN LA BD'  + ' -  CODIGO: ' + DD.codigodocente
+                ELSE D.NombreCompletoProfesor
+              END AS NombreCompletoProfesor
+              , DD.codigodocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,
           F.NombreAgrupFrecuencia, 
             A.identificadorFisico, D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
             C.codigoCurso, S.nombreSede , A2.identificadorFisico AS identificadorFisicoinicial

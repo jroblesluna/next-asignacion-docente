@@ -91,6 +91,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       let resStatusPipeline = false;
       let resStatusFilePipeline = false;
+
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       do {
         // Esperar 5 segundos antes de ejecutar el siguiente paso
         console.log('Esperando 5 segundos...');
@@ -144,11 +146,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                AND target.idVersion = @IdVersion
             WHEN MATCHED THEN
                 UPDATE SET
-                    target.aulaModificada = CASE 
-                        WHEN ((target.aulaModificada <> 'SISTEMA INICIO' OR  target.aulaModificada IS NULL ) AND target.aulaModificada IS NOT NULL)
-                            THEN @user + ' (SINC)' 
-                        ELSE target.aulaModificada
-                    END,
+                target.aulaModificada = CASE 
+                    WHEN target.aulaModificada IS NOT NULL 
+                         AND target.aulaModificada NOT LIKE '%(SINC)%'
+                        THEN @user + ' (SINC)' 
+                    ELSE target.aulaModificada
+                END,
                     target.idAulaInicial = target.idAula,
                     target.docenteModificado = CASE 
                         WHEN ( (docenteModificado <> 'SISTEMA INICIO' OR  docenteModificado IS NULL ) AND target.idDocente IS NOT NULL)

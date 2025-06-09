@@ -194,6 +194,8 @@ const ReportAssignments = () => {
             ? item.NombreCompletoProfesor || ''
             : item.nombreSedeAlojada !== null
             ? (item.NombreCompletoProfesor || '') + ` (${item.nombreSedeAlojada})`
+            : item.NombreCompletoProfesor != null
+            ? item.NombreCompletoProfesor
             : '-',
         teacherId: item.idDocente !== null ? item.idDocente.toString() : '',
         numberOfStudents: item.matriculados,
