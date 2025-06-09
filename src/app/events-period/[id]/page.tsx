@@ -56,6 +56,26 @@ const Page = () => {
     localStorage.setItem('tipo', 'normal');
   };
 
+  // Agrega estos estados y constantes
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
+
+  // Calcular el rango actual de eventos a mostrar
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentEvents = filteredEvents.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
+
+  // Manejar cambio de página
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
+
   return (
     <LayoutValidation>
       <main className="flex flex-col gap-5 w-full min-h-[100vh] p-8 ">
@@ -160,41 +180,62 @@ const Page = () => {
                       </h1>
                     </div>
                   ) : (
-                    <div className="w-full max-h-[44vh] overflow-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="text-black">
-                            <th className="py-2 uppercase font-inter text-start font-semibold sticky top-0 bg-white">
-                              NOMBRE
-                            </th>
-                            <th className="py-2 uppercase overflow-hidden font-inter text-start font-semibold sticky top-0 bg-white">
-                              DESCRIPCIÓN
-                            </th>
-                            <th className="py-2 uppercase font-inter font-semibold text-start sticky top-0 bg-white">
-                              FECHA
-                            </th>
-                            <th className="py-2 uppercase font-inter font-semibold text-start sticky top-0 bg-white">
-                              HORA
-                            </th>
-                            <th className="py-2 uppercase font-inter font-semibold text-start sticky top-0 bg-white">
-                              ESTADO
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredEvents.map((event, index) => (
-                            <TableEventReport
-                              key={index}
-                              date={event.date}
-                              description={event.description}
-                              name={event.name}
-                              status={event.estado === true ? 'Ejecutado' : 'No iniciado'}
-                              time={event.time}
-                            />
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    <>
+                      <div className="w-full max-h-[44vh] overflow-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="text-black">
+                              <th className="py-2 uppercase font-inter text-start font-semibold sticky top-0 bg-white">
+                                NOMBRE
+                              </th>
+                              <th className="py-2 uppercase font-inter text-start font-semibold sticky top-0 bg-white">
+                                DESCRIPCIÓN
+                              </th>
+                              <th className="py-2 uppercase font-inter text-start font-semibold sticky top-0 bg-white">
+                                FECHA
+                              </th>
+                              <th className="py-2 uppercase font-inter text-start font-semibold sticky top-0 bg-white">
+                                HORA
+                              </th>
+                              <th className="py-2 uppercase font-inter text-start font-semibold sticky top-0 bg-white">
+                                ESTADO
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentEvents.map((event, index) => (
+                              <TableEventReport
+                                key={index}
+                                date={event.date}
+                                description={event.description}
+                                name={event.name}
+                                status={event.estado === true ? 'Ejecutado' : 'No iniciado'}
+                                time={event.time}
+                              />
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="flex justify-center items-center gap-4 mt-4">
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={handlePrevPage}
+                          disabled={currentPage === 1}
+                        >
+                          ← Anterior
+                        </button>
+                        <span className="text-sm">
+                          Página {currentPage} de {totalPages}
+                        </span>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={handleNextPage}
+                          disabled={currentPage === totalPages}
+                        >
+                          Siguiente →
+                        </button>
+                      </div>
+                    </>
                   )}
                 </>
               )}
