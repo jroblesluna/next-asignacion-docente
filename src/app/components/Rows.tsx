@@ -242,7 +242,13 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
       <td className="font-inter text-center py-3">
         {isEditable ? (
           <MultiLevelMenuClassroom
-            classRoom={selectedItem}
+            classRoom={
+              location != 'Virtual'
+                ? selectedItem
+                : selectedItem.includes('V')
+                ? selectedItem
+                : selectedItem + '-CAD'
+            }
             classroomId={classroomId}
             classroomIdInitial={classroomIdInitial}
             location={location}
