@@ -39,7 +39,7 @@ export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = (
               ? selectedItem
               : selectedItemRoomId == classroomIdInitial
               ? selectedItem
-              : 'CAD-' + selectedItem}
+              : selectedItem + '-CAD'}
           </div>
           <ul
             tabIndex={0}

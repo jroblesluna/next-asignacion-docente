@@ -254,7 +254,7 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
               ? selectedItem
               : classroomId == classroomIdInitial
               ? selectedItem
-              : 'CAD-' + selectedItem}
+              : selectedItem + '-CAD'}
           </p>
         )}
       </td>
