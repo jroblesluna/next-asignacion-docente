@@ -90,6 +90,8 @@ const ReportAssignments = () => {
             ? assignment.teacher.toLowerCase().trim().includes(inputValue.toLowerCase())
             : filterOption === 'Aula'
             ? assignment.classroom.toLowerCase().trim().includes(inputValue.toLowerCase())
+            : filterOption === 'Horario'
+            ? assignment.schedule.toLowerCase().trim().includes(inputValue.toLowerCase())
             : true;
 
         return matchesInputValue;
@@ -240,6 +242,7 @@ const ReportAssignments = () => {
               <option value="Profesor">Profesor</option>
               <option value="Curso">Curso</option>
               <option value="Aula">Aula</option>
+              <option value="Horario">Horario</option>
             </select>
 
             <div className="form-control max-w-32 border rounded-lg px-1 ">
