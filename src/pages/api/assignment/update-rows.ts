@@ -78,6 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // DESASIGNAR DOCENTE
       if (idDocente === '-1') {
         if (idCurso != virtualID) {
+          // No es sede virtual, no hay problema
           await pool
             .request()
             .input('id', idPeriodo)
@@ -92,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     `);
         } else {
           if (idSedeAula == virtualID) {
-            // solo se actualiza el docente
+            // solo se actualiza el docente, ya que no es CAD
             await pool
               .request()
               .input('id', idPeriodo)
@@ -106,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
      AND idVersion = @idVersion
  `);
           } else {
-            // quitar el aula tambien
+            // se actualiza el docente y se quita el aula tambien ya que es un aula CAD vinculado a la sede asignado al docente
             await pool
               .request()
               .input('id', idPeriodo)
@@ -123,8 +124,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
       } else {
-        // Modificación de docente Aqui
+        // Modificación de docente
         if (idCurso != virtualID) {
+          //No es sede virtual, no hay problema
           await pool
             .request()
             .input('id', idPeriodo)
@@ -139,8 +141,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           AND idVersion = @idVersion
   `);
         } else {
-          // si el nuevo docente y es de la misma sede del aula , se mantiene sino se quita
-
+          // obteniendo sede del nuevo docente
           const resultIDdocenteSede = await pool
             .request()
             .input('id', idPeriodo)
@@ -150,7 +151,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             );
 
           const idSedeNewDocente = resultIDdocenteSede.recordset[0]?.idSede;
-
+          // si hay  nuevo docente y es de la misma sede del aula  se mantiene
           if (idSedeNewDocente == idSedeAula) {
             await pool
               .request()
@@ -165,6 +166,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   AND uuuidProgramacionAcademica = @uuidFila 
                   AND idVersion = @idVersion `);
           } else {
+            // al no pertencer a la misma sede , se coloca null el idAula
             await pool
               .request()
               .input('id', idPeriodo)

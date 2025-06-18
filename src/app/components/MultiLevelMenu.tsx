@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext } from 'react';
 import { ContextAssignmentReport } from './MyContexts';
 import useHover from '../utils/useHover';
 import {
