@@ -182,15 +182,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       console.log(resultAula.recordset);
 
-      if (resultAula.recordset[0].idAula == null) {
-        AulaActos.push({
-          id: -1,
-          nombre: 'No se pudo Iniciar la busqueda por que el Id aula es null ',
-          capacidad: '',
-          nombreSede: '',
-        });
-        return res.status(200).json({ data: AulaActos });
-      }
+      // if (resultAula.recordset[0].idAula == null) {
+      //   AulaActos.push({
+      //     id: -1,
+      //     nombre: 'No se pudo Iniciar la busqueda por que el Id aula es null ',
+      //     capacidad: '',
+      //     nombreSede: '',
+      //   });
+      //   return res.status(200).json({ data: AulaActos });
+      // }
 
       const resultadoIDVirtual = await pool
         .request()
@@ -218,7 +218,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // DATOS ESTATICOS
       const resultH = await pool.request().input('id', idPeriod).input('version', version)
         .query(`
-               SELECT distinct PA.idHorario, H.HorarioInicio, H.HorarioFin FROM [dbo].[ad_programacionAcademica] AS PA
+           SELECT distinct PA.idHorario, H.HorarioInicio, H.HorarioFin FROM [dbo].[ad_programacionAcademica] AS PA
             INNER JOIN [dbo].[ad_horario] AS H ON H.idHorario=PA.idHorario AND H.periodo=@id
              where PA.idPeriodo=@id and  PA.idVersion =@version  and PA.vigente=1 and PA.cancelado=0
       `);

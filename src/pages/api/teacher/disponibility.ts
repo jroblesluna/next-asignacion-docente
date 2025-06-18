@@ -758,9 +758,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           nombreSede: docente.nombreSede,
         });
 
-        // if (DocentesActos.length > 100) {
+        // if (DocentesActos.length > 5) {
         //   break;
-        // }
+        // } // comentar
       }
 
       if (DocentesActos.length === 0) {

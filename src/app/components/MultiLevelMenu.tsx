@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { ContextAssignmentReport } from './MyContexts';
 import useHover from '../utils/useHover';
 import {
@@ -22,12 +22,9 @@ export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = (
   classroomIdInitial,
   location,
 }) => {
-  const [selectedItem, setSelectedItem] = useState(classRoom);
-  const [selectedItemRoomId, setSelectedItemRoomId] = useState(classroomId);
-
   const setearParametros = (value1: string, value2: string) => {
-    setSelectedItem(value1);
-    setSelectedItemRoomId(value2);
+    console.log(value1);
+    console.log(value2);
   };
   // Context for assignment report
   return (
@@ -36,10 +33,14 @@ export const MultiLevelMenuClassroom: React.FC<MultiLevelMenuClassroomProps> = (
         <div className="relative group dropdown dropdown-right rounded-none">
           <div tabIndex={0} role="button" className="rounded-none">
             {location != 'Virtual'
-              ? selectedItem
-              : selectedItemRoomId == classroomIdInitial
-              ? selectedItem
-              : selectedItem + '-CAD'}
+              ? classRoom
+              : classRoom == '' || classRoom == 'S/A'
+              ? 'S/A'
+              : classroomId == classroomIdInitial
+              ? classRoom
+              : classRoom.includes('CAD')
+              ? classRoom
+              : classRoom + '-CAD'}
           </div>
           <ul
             tabIndex={0}
@@ -105,12 +106,19 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
             ...assignment,
             teacher: newTeacher,
             isTeacherClosed: newTeacher !== '-' ? correo : null,
+            classroom:
+              assignment.location == 'Virtual' && !assignment.classroom.includes('V')
+                ? ''
+                : assignment.classroom,
+            isRoomClosed:
+              assignment.location == 'Virtual' && !assignment.classroom.includes('V')
+                ? assignment.isRoomClosed
+                : null,
           }
         : assignment
     );
 
     setModifications((prevModifications) => [...prevModifications, assignmentId]);
-
     setAssignments([...updatedAssignments]);
   };
 
@@ -127,6 +135,7 @@ export const MultiLevelMenuTeacher: React.FC<MultiLevelMenuTeacherProps> = ({
   const onhandleRemove = () => {
     if (location == 'Virtual') {
       setFuntion();
+      // desasignar el aula si es virtual y
     }
     setSelectedItem('-');
     uploadRowTeacher('-1');

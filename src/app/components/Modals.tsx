@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from 'react';
 import { ContextAssignmentReport } from './MyContexts';
 import teacherService from '@/services/teacher';
 import assigmentService from '@/services/assigment';
+import { extraerPalabraEntreParentesis } from '../utils/other';
 
 interface ModalProps {
   linkTo: string;
@@ -277,6 +278,16 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
             ...assignment,
             teacher: newTeacher,
             isTeacherClosed: newTeacher !== '-' ? correo : null,
+            classroom:
+              extraerPalabraEntreParentesis(assignment.teacher) ==
+              extraerPalabraEntreParentesis(newTeacher)
+                ? assignment.classroom
+                : '',
+            isRoomClosed:
+              extraerPalabraEntreParentesis(assignment.teacher) ==
+              extraerPalabraEntreParentesis(newTeacher)
+                ? assignment.isRoomClosed
+                : null,
           }
         : assignment
     );
@@ -346,14 +357,14 @@ export const ModalFormTeacher: React.FC<ModalFormTeacherProps> = ({
                             (filteredData[0].id !== -1
                               ? 'border w-full cursor-pointer hover:bg-cyan-300'
                               : 'border ') +
-                            (selectNewTeacher.toLowerCase() === item.nombre.toLowerCase() &&
-                            filteredData[0].id !== -1
+                            (filteredData[0].id !== -1 &&
+                            selectNewIdTeacher === item.id.toString()
                               ? ' bg-cyan-400'
                               : '')
                           }
                           onClick={() => {
                             if (filteredData[0].id !== -1) {
-                              setSelectNewTeacher(item.nombre);
+                              setSelectNewTeacher(item.nombre + ' (' + item.nombreSede + ')');
                               setNewIdTeacher(item.id.toString());
                             }
                           }}
@@ -543,14 +554,13 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
                             (data[0].id !== -1
                               ? 'border w-full cursor-pointer hover:bg-cyan-300'
                               : 'border ') +
-                            (selectNewTeacher.toLowerCase() === item.nombre.toLowerCase() &&
-                            data[0].id !== -1
+                            (data[0].id !== -1 && selectNewIdTeacher === item.id.toString()
                               ? ' bg-cyan-400'
                               : '')
                           }
                           onClick={() => {
                             if (data[0].id !== -1) {
-                              setSelectNewTeacher(item.nombre);
+                              setSelectNewTeacher(item.nombre + ' (' + item.nombreSede + ')');
                               setNewIdTeacher(item.id.toString());
                             }
                           }}
@@ -568,7 +578,6 @@ export const ModalFormTeacherCompatibility: React.FC<ModalFormTeacherProps> = ({
 
               <div className="flex flex-col text-xs gap-2 mt-5">
                 <p className="font-bold">
-                  {' '}
                   Leyenda - Docentes que dictan el curso y estan disponibles
                 </p>
                 <div className="flex flex-row gap-4">

@@ -168,10 +168,9 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
   teacherId,
   isEditable,
 }) => {
-  const [selectedItem, setSelectedItem] = useState(classroom);
-
   const cambiarAlIdentificadorInicial = () => {
-    setSelectedItem(identificadorFisicoinicial);
+    console.log('DELETE: ' + identificadorFisicoinicial);
+    console.log('DELETE: ' + classroom);
   };
 
   return (
@@ -244,10 +243,14 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
           <MultiLevelMenuClassroom
             classRoom={
               location != 'Virtual'
-                ? selectedItem
-                : selectedItem.includes('V')
-                ? selectedItem
-                : selectedItem + '-CAD'
+                ? classroom
+                : classroom == '' || classroom == '-'
+                ? 'S/A'
+                : classroom.includes('V')
+                ? classroom
+                : classroom.includes('CAD')
+                ? classroom
+                : classroom + '-CAD'
             }
             classroomId={classroomId}
             classroomIdInitial={classroomIdInitial}
@@ -257,10 +260,14 @@ export const ReportAsigmnentTable: React.FC<ReportAsigmnentTableInterface> = ({
         ) : (
           <p>
             {location != 'Virtual'
-              ? selectedItem
+              ? classroom
+              : classroomId == '' || classroom == '-'
+              ? 'S/A'
               : classroomId == classroomIdInitial
-              ? selectedItem
-              : selectedItem + '-CAD'}
+              ? classroom
+              : classroom.includes('CAD')
+              ? classroom
+              : classroom + '-CAD'}
           </p>
         )}
       </td>
@@ -345,7 +352,7 @@ interface TeacherAssignment {
 import { timeDaily, timeSunday, timeWeekend } from '../constants/data';
 import { isTimeInRange, containsDaysOfWeek } from '../utils/managmentTime';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 export const TableTacReport: React.FC<TeacherAssignment> = ({
   classSchedule,
   location,
