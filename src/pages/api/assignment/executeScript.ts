@@ -2201,9 +2201,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const plainText =
         `Algoritmo de asignación docente terminado  a las ${getCurrentDateTimeLima()} para el periodo ` +
         periodo +
-        ' y la versión ' +
+        ' , versión ' +
         version +
-        '\n' +
+        'y el tipo ' +
+        tipo;
+      '\n' +
         (problems
           ? 'Problemas detectados: Pipeline de sincranización falló, el algoritmo continuo con los datos no actualizados '
           : '');
