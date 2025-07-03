@@ -2204,8 +2204,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ' , versión ' +
         version +
         'y el tipo ' +
-        tipo;
-      '\n' +
+        tipo +
+        '\n' +
         (problems
           ? 'Problemas detectados: Pipeline de sincranización falló, el algoritmo continuo con los datos no actualizados '
           : '');
