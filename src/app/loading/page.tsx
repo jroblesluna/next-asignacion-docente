@@ -36,18 +36,17 @@ function Page() {
         await new Promise((resolve) => setTimeout(resolve, 3000));
         const dataPeriodo = await periodService.getById(p);
 
-        if (dataPeriodo == null) {
+        if (dataPeriodo == null || dataPeriodo == undefined) {
           console.log('Información del periodo no encontrado');
           alert('Información del periodo no encontrado');
           break;
         }
 
-        if (dataPeriodo[0]?.estado == 'ACTIVO') {
+        if (dataPeriodo.data[0].estado == 'ACTIVO') {
           isruning = false;
         }
       } while (isruning);
       setIsLoadingComplete(true);
-      alert('Proceso de asignación terminado');
     } else {
       alert('Ya hay un procesamiento en ejecución. Por favor intentelo mas tarde.');
       localStorage.setItem('flagReproceso', 'false');
@@ -105,7 +104,7 @@ function Page() {
             />
 
             <p className="text-5xl font-bold leading-tight  mx-auto w-[70%] ">
-              {'La asignación docente se ha completado, por favor revisar el estado de la carga en su correo: ' +
+              {'La asignación de docentes se ha completado. Por favor, revise el estado de la carga en su correo electrónico: ' +
                 localStorage.getItem('user')}
             </p>
             <Link
