@@ -2203,7 +2203,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         periodo +
         ' , versión ' +
         version +
-        'y el tipo ' +
+        ' y el tipo ' +
         tipo +
         '\n' +
         (problems
