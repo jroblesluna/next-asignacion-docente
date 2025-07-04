@@ -22,6 +22,7 @@ function Page() {
       localStorage.setItem('newPeriod', 'false');
       const res = await assigmentService.execute(p, correo, addEvents, tipo);
       setIsLoadingComplete(res.data);
+      alert('Proceso de asignación terminado');
     } else {
       alert('Ya hay un procesamiento en ejecución. Por favor intentelo mas tarde.');
       localStorage.setItem('flagReproceso', 'false');
