@@ -25,6 +25,7 @@ const assigmentService = {
           idPeriod,
           idVersion,
         },
+        timeout: 0,
       });
       return data;
     } catch (error) {
@@ -70,6 +71,7 @@ const assigmentService = {
           addEvents,
           tipo,
         },
+        timeout: 0, // Sin límite de tiempo de espera
       });
       return data;
     } catch (error) {
@@ -203,6 +205,7 @@ const assigmentService = {
           idPeriodo,
           correo,
         },
+        timeout: 0, // Tiempo de espera indefinido
       });
 
       if (!data.data) {
@@ -224,6 +227,7 @@ const assigmentService = {
           uuidSlot,
           version,
         },
+        timeout: 0, // Tiempo de espera indefinido
       });
       return data;
     } catch (error) {
@@ -234,10 +238,16 @@ const assigmentService = {
 
   sincronizarDespuesTablasAD: async (idPeriodo: string, correo: string) => {
     try {
-      const { data } = await axios.post(`${BASE_URL}/sincAfter`, {
-        idPeriodo,
-        correo,
-      });
+      const { data } = await axios.post(
+        `${BASE_URL}/sincAfter`,
+        {
+          idPeriodo,
+          correo,
+        },
+        {
+          timeout: 0, // Tiempo de espera indefinido
+        }
+      );
 
       if (!data.data) {
         alert(data.message);
