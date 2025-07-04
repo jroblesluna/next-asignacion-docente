@@ -34,7 +34,7 @@ function Page() {
       do {
         console.log('monitoreando');
         await new Promise((resolve) => setTimeout(resolve, 3000));
-        let dataPeriodo = await periodService.getById(p);
+        const dataPeriodo = await periodService.getById(p);
 
         if (dataPeriodo == null) {
           console.log('Información del periodo no encontrado');
