@@ -347,18 +347,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const baseUrl = `${protocol}://${host}`;
 
     console.log(baseUrl);
+    const { periodo, correo, addEvents, tipo } = req.query;
+    /*Conexión a la base de datos */
+    const pool = await connectToDatabase();
 
     try {
-      /*Conexión a la base de datos */
-      const pool = await connectToDatabase();
-
       /* Parámetros requeridos para el funcionamiento del algoritmo de asignación docente:
    - periodo: código del periodo para realizar la asignación.
    - correo: dirección de correo del usuario que solicitó la generación.
    - addeventos: indica si se deben añadir los eventos a la asignación.
    - tipo: especifica el tipo de asignación a realizar. */
-
-      const { periodo, correo, addEvents, tipo } = req.query;
 
       /* Acceso a las variables de entorno que afectan la asignación. */
       const MAX_HORAS_FT = parseInt(process.env.MAX_HORAS_FT || '48', 10);
@@ -2220,6 +2218,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     } catch (error) {
       console.error('Error en la API:', error);
+      const subject = 'Sistema de Asignación Docente';
+      const plainText =
+        `Algoritmo de asignación docente ha fallado  a las ${getCurrentDateTimeLima()} para el periodo ` +
+        periodo +
+        ' y el tipo ' +
+        tipo +
+        '\n' +
+        ', por favor contacte al equipo de TI. ERROR: ' +
+        error;
+
+      if (correo) {
+        await sendEmail(correo as string, subject, plainText);
+      }
+
+      await pool
+        .request()
+        .input('id', periodo)
+        .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
+
       return res.status(500).json({ message: 'Error en la consulta', error });
     }
   } else {

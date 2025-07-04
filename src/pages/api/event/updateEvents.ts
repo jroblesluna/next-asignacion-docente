@@ -29,6 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .request()
       .query(`SELECT TOP 1 * FROM ad_periodo WHERE estado in ( 'ACTIVO' ) `);
 
+    console.log('Buscando nuevos periodos');
+    await pool.request().execute('ad_actualizarPeriodos');
+    // colocar el borrado
+    console.log('borrando data pasada por lote de 500');
+    await pool.request().execute('ad_borrarDataPasada');
     if (resultActivo.recordset.length == 0) {
       return res.status(200).json({
         message: 'Período activos no encontrado, nada que actualizar ',
@@ -40,8 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .request()
       .input('periodo', sql.Int, Number(resultActivo.recordset[0].idPeriodo))
       .execute('ad_actualizarEventos');
-
-    await pool.request().execute('ad_actualizarPeriodos');
 
     return res.status(200).json({
       message:

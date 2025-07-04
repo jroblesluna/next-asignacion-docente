@@ -45,30 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      if (estado == 'CERRADO') {
-        console.log('CERRANDO PERIODO Y  BORRANDO VERSIONES ');
-
-        await pool
-          .request()
-          .input('id', id)
-          .input('estado', estado)
-          .query('UPDATE ad_periodo SET estado = @estado WHERE idPeriodo = @id');
-
-        await pool
-          .request()
-          .input('id', id)
-          .query(
-            ` DECLARE @LastVersion INT;
-            SELECT @LastVersion = MAX(idVersion)
-            FROM [dbo].[ad_programacionAcademica]
-            WHERE idPeriodo = @id;
-            
-            DELETE FROM [dbo].[ad_programacionAcademica]
-            WHERE idPeriodo = @id
-              AND idVersion <> @LastVersion;`
-          );
-      }
-
       // Actualizar el estado del periodo
       await pool
         .request()
