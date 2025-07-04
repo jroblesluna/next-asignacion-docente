@@ -20,8 +20,33 @@ function Page() {
     if (resPerido.data.estado == 'ACTIVO' || newPeriod === 'true') {
       setIsSafeClosed(true);
       localStorage.setItem('newPeriod', 'false');
-      const res = await assigmentService.execute(p, correo, addEvents, tipo);
-      setIsLoadingComplete(res.data);
+
+      assigmentService.execute(p, correo, addEvents, tipo);
+      setIsLoadingComplete(false);
+
+      // esperar 20 segundos
+      console.log('monitoreando');
+      await new Promise((resolve) => setTimeout(resolve, 20000));
+      // monitorear
+
+      let isruning = true;
+
+      do {
+        console.log('monitoreando');
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        let dataPeriodo = await periodService.getById(p);
+
+        if (dataPeriodo == null) {
+          console.log('Información del periodo no encontrado');
+          alert('Información del periodo no encontrado');
+          break;
+        }
+
+        if (dataPeriodo[0]?.estado == 'ACTIVO') {
+          isruning = false;
+        }
+      } while (isruning);
+      setIsLoadingComplete(true);
       alert('Proceso de asignación terminado');
     } else {
       alert('Ya hay un procesamiento en ejecución. Por favor intentelo mas tarde.');
@@ -80,7 +105,8 @@ function Page() {
             />
 
             <p className="text-5xl font-bold leading-tight  mx-auto w-[70%] ">
-              La asignación docente se ha completado exitosamente.
+              {'La asignación docente se ha completado, por favor revisar el estado de la carga en su correo: ' +
+                localStorage.getItem('user')}
             </p>
             <Link
               className="bg-secundary py-2 px-10 text-white font-semibold hover:bg-secundary_ligth mx-auto mt-5"
