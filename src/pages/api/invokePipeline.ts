@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        lastUpdatedAfter: new Date(new Date().getTime() - 60 * 60 * 1000).toISOString(), // Check past hour
+        lastUpdatedAfter: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // Check past 3 hours
         lastUpdatedBefore: new Date().toISOString(),
         filters: [{ operand: 'PipelineName', operator: 'Equals', values: [pipelineName] }],
       }),

@@ -2237,6 +2237,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .input('id', periodo)
         .query(`UPDATE [dbo].[ad_periodo] SET estado='ACTIVO'  where idPeriodo=@id`);
 
+      // Limpiar el registro de Avance Algoritmo
+      await sql.query`UPDATE ad_avanceAlgoritmo
+                                    SET idSede = null,
+                                        escenario = null,
+                                        idSlot = null,
+                                        idVersion=null,
+                                        correo=null,
+                                        slotsRecorridos =0,
+                                        totalSlots =null
+                                    WHERE idPeriodo = ${periodo};`;
+      // Actualizar tabla pivote
+
+      await sql.query`UPDATE ad_pivoteAsignacion
+              SET flagVigente = 0
+              WHERE idPeriodo = ${periodo};`;
+
+      console.log('Error en la consulta', error);
+
       return res.status(500).json({ message: 'Error en la consulta', error });
     }
   } else {

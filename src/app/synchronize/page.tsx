@@ -41,8 +41,10 @@ const Page = () => {
     setPipelineName(data.NamePipelineSync);
   };
   //cambiar para produccion
-  const correoFinal = 'juan.navarro@icpna.edu.pe';
   const invokePipeline = async (action: 'run' | 'monitor') => {
+    const user = localStorage.getItem('user') || '';
+    const email = user.includes('@icpna.edu.pe') ? user : 'juan.navarro@icpna.edu.pe';
+
     setLoading(true);
     setRunIds([]);
     if (runIds.length > 0) {
@@ -64,7 +66,7 @@ const Page = () => {
         body: JSON.stringify({
           pipelineName: pipelineName, // Name of the pipeline to act upon
           action, // Action: either 'run' or 'monitor'
-          userParams: correoFinal,
+          userParams: email,
         }),
       });
 
