@@ -753,7 +753,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 F.NombreFrecuencia, 
                                 F.NombreAgrupFrecuencia,
                                 FORMAT(CONVERT(DATETIME, PC.inicioClase), 'dd-MM-yyyy') AS InicioClase,
-                                FORMAT(CONVERT(DATETIME, PC.finalClase), 'dd-MM-yyyy') AS FinClase
+                                FORMAT(CONVERT(DATETIME, PC.finalClase), 'dd-MM-yyyy') AS FinClase,
+								                PC.docenteModificado
                                 FROM 
                                  [dbo].[ad_programacionAcademica] AS PC
                                 INNER JOIN 
@@ -787,15 +788,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     .query(
                       `SELECT top 1 * FROM [dbo].[LibroPorDocente] where DocenteID = @idDocente and CursoID= @idCurso`
                     );
-                  /* Verifica si el docente tiene la capacidad de enseñar el curso; si no es así, se desasigna. */
 
-                  if (resultDictaCurso.recordset.length === 0) {
+                  /* Verifica si el docente tiene la capacidad para dictar el curso; de no ser así, 
+                  se procede con la desasignación, salvo que la asignación haya sido modificada intencionalmente o provenga del sistema de inicio.
+                   */
+
+                  if (
+                    resultDictaCurso.recordset.length === 0 &&
+                    (claseDocente.docenteModificado == null ||
+                      claseDocente.docenteModificado == '')
+                  ) {
                     console.log(
                       'Desasignar Slot ' +
                         claseDocente.uuuidProgramacionAcademica +
                         ' del docente:  ' +
                         docenteAnalisis.idDocente
                     );
+
                     await pool
                       .request()
                       .input('id', periodo)
@@ -896,8 +905,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     }
                   }
                 }
-                /* Verifica si se ha cambiado los horarios bloqueados para ese docente. */
-                if (docenteAnalisis.cambioHorarioBloqueado) {
+                /* Verifica si se ha cambiado los horarios bloqueados para ese docente.*/
+                if (
+                  docenteAnalisis.cambioHorarioBloqueado &&
+                  (claseDocente.docenteModificado == null ||
+                    claseDocente.docenteModificado == '')
+                ) {
                   console.log(
                     'Analisando cambioHorarioBloqueado para el docente ' +
                       docenteAnalisis.idDocente
