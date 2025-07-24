@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         WITH DocenteData AS (
               SELECT  D.uuidDocente,D.NombreCompletoProfesor, DD1.codigodocente, D.NombreSede,  TC.TipoJornada , PA.* ,
              H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
-              (H.MinutosReal * aux.NumDias) as minutosCurso ,D.AntiguedadMeses , ISNULL(DD.EstadoDisponible, 1) AS EstadoDisponible ,  
+              (H.MinutosReal * F.CantDiasMensual) as minutosCurso ,D.AntiguedadMeses , ISNULL(DD.EstadoDisponible, 1) AS EstadoDisponible ,  
 							ISNULL(DD.NombreEvento, '-') AS eventoIndisponible 
             FROM [dbo].[ad_docente] AS D 
             LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
@@ -56,16 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 								[dbo].[disponibilidad_docente] AS DD ON DD.DocenteID = D.iddocente AND DD.PeriodoAcademico = @id
             LEFT JOIN [dbo].[ad_curso] as C
              ON C.idCurso= PA.idCurso AND C.periodo=@id
-              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
-              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
-               WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase AND PA.idPeriodo = aux.PeriodoAcademico) 
-               ELSE 
-               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND PA.idPeriodo = aux.Periodo AND PA.idPeriodo = aux.PeriodoAcademico)  
-                END AS NumDias 
-                ) AS aux    
             WHERE D.periodo=@id  AND D.dictaClase=1    and (D.vigente =1   or  (PA.idDocente is not null AND PA.vigente=1 and PA.cancelado=0) ))   
-					  
             SELECT *
             FROM DocenteData
             ORDER BY  AntiguedadMeses DESC,EstadoDisponible asc;
@@ -74,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         BEGIN
                     SELECT D.uuidDocente, D.NombreCompletoProfesor, DD1.codigodocente, D.NombreSede,  TC.TipoJornada , PA.* ,
                      H.HorarioInicio, H.HorarioFin ,F.NombreFrecuencia, F.NombreAgrupFrecuencia, C.codigoCurso,
-                    (H.MinutosReal  * aux.NumDias) as minutosCurso , D.AntiguedadMeses
+                    (H.MinutosReal  * F.CantDiasMensual) as minutosCurso , D.AntiguedadMeses
                     FROM [dbo].[ad_docente] AS D 
                     LEFT JOIN [dbo].[ad_programacionAcademica] AS PA  
                     ON D.idDocente =PA.idDocente AND PA.idPeriodo=@id AND PA.idVersion=@idVersion  and PA.vigente=1 and PA.cancelado=0
@@ -87,14 +78,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                      ON F.idFrecuencia= PA.idFrecuencia AND F.periodo=1
                     LEFT JOIN [dbo].[ad_curso] as C
                      ON C.idCurso= PA.idCurso AND C.periodo=1
-                      OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
-              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
-               WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase AND PA.idPeriodo = aux.PeriodoAcademico) 
-               ELSE 
-               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND PA.idPeriodo = aux.Periodo AND PA.idPeriodo = aux.PeriodoAcademico)  
-                END AS NumDias 
-                ) AS aux 
                       WHERE D.periodo=1   AND D.dictaClase=1    and (D.vigente =1   or  (PA.idDocente is not null AND PA.vigente=1 and PA.cancelado=0) )
              ORDER BY D.AntiguedadMeses DESC  
         END

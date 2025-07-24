@@ -1341,8 +1341,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                       SELECT DISTINCT P.*,
                        FORMAT(CONVERT(DATETIME, p.inicioClase), 'dd-MM-yyyy') AS InicioClase,
                        FORMAT(CONVERT(DATETIME, p.finalClase), 'dd-MM-yyyy') AS FinClase,
-                        H.HorarioInicio, H.HorarioFin, H.MinutosReal  , aux.NumDias,
-                        (H.MinutosReal  * aux.NumDias) AS minutosTotales,   F.NombreFrecuencia, F.NombreAgrupFrecuencia,
+                        H.HorarioInicio, H.HorarioFin, H.MinutosReal  , F.CantDiasMensual,
+                        (H.MinutosReal  * F.CantDiasMensual) AS minutosTotales,   F.NombreFrecuencia, F.NombreAgrupFrecuencia,
                          (F.CantidadDiasSemanales * H.MinutosReal ) AS  minutosTotalesSemanales,
                          (SELECT COUNT(*)
                          FROM [dbo].[ad_programacionAcademica] AS PC
@@ -1360,15 +1360,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                       ON P.idFrecuencia = F.idFrecuencia AND F.periodo=@id
                   LEFT JOIN [dbo].[ad_curso] as C
                ON C.idCurso= P.idCurso AND C.periodo=@id
-              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
-              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
-               WHERE P.uidIdIntensidadFase = aux.uididintensidadfase AND P.idPeriodo = aux.PeriodoAcademico) 
-               ELSE 
-               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE P.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND P.idPeriodo = aux.Periodo AND P.idPeriodo = aux.PeriodoAcademico)  
-                END AS NumDias 
-                ) AS aux    
-
+             
                     WHERE
                     P.cancelado=0
                     AND P.vigente = 1
@@ -1534,7 +1526,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                   SELECT
                                       D.idDocente,
                                       D.idSede,
-                                     	ISNULL( SUM(H.MinutosReal * aux.NumDias),0) AS MinutosAsignados,
+                                     	ISNULL( SUM(H.MinutosReal * F.CantDiasMensual),0) AS MinutosAsignados,
                                       TC.TipoJornada,
                                       TC.HoraSemana,
                                      ISNULL (
@@ -1548,7 +1540,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                                  AND flagVigente = 1
                                                  AND idDocente = P.idDocente
                                               ), 0
-                                          ) + ISNULL(SUM(H.MinutosReal * aux.NumDias), 0)
+                                          ) + ISNULL(SUM(H.MinutosReal * F.CantDiasMensual), 0)
                                       ) / CAST((TC.HoraSemana * 60 * 4) AS DECIMAL(10, 2)) * 100 ,0)   AS Media
                                   
                                   FROM   [dbo].[ad_docente] AS D 
@@ -1571,14 +1563,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                       AND F.periodo = @id
                                       LEFT JOIN [dbo].[ad_curso] as C
                                   ON C.idCurso= P.idCurso AND C.periodo=@id
-              OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
-              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
-               WHERE P.uidIdIntensidadFase = aux.uididintensidadfase AND P.idPeriodo = aux.PeriodoAcademico) 
-               ELSE 
-               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE P.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND P.idPeriodo = aux.Periodo AND P.idPeriodo = aux.PeriodoAcademico)  
-                END AS NumDias 
-                ) AS aux    
+                          
                                   WHERE
                                       D.vigente = 1	
                                       AND D.idSede <> @virtualID
@@ -1687,7 +1672,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   Number(cursosXsede.minutosTotalesSemanales) >
                 (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 60
               ) {
-                console.log('continue - P7.1 - SEMANAL');
+                console.log('continue - Horas maximas - SEMANAL');
                 continue;
               }
 
@@ -1695,7 +1680,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 Number(docente.totalTiempo) + Number(cursosXsede.minutosTotales) >
                 (docente.TipoJornada == 'FT' ? MAX_HORAS_FT : MAX_HORAS_PT) * 4 * 60
               ) {
-                console.log('continue - P7.1 -MENSUAL');
+                console.log('continue - Horas maximas -MENSUAL');
                 continue;
               }
 
@@ -1723,7 +1708,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 );
 
                 if (!respuesta) {
-                  console.log('continue - P7.2');
+                  console.log('continue - no  disponible');
                   continue;
                 }
               }
@@ -1748,7 +1733,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 );
 
                 if (!respuesta) {
-                  console.log('continue - P7.3');
+                  console.log('continue - horario bloqueado');
                   continue;
                 }
               }
@@ -1847,7 +1832,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 );
 
                 if (!respuesta) {
-                  console.log('continue P-7.4');
+                  console.log('continue clase solapada');
                   continue;
                 }
               }
@@ -1985,20 +1970,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                               d.TipoJornada,
                               d.HoraSemana,
                               SUM(ISNULL(t1.tiempoCurso, 0)) + ISNULL((
-                                  SELECT SUM(H.MinutosReal  * aux.NumDias)
+                                  SELECT SUM(H.MinutosReal  * F.CantDiasMensual)
                                   FROM [dbo].[ad_programacionAcademica] t2
                                   INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                                   
                                    LEFT JOIN [dbo].[ad_curso] as C
                                                  ON C.idCurso= t2.idCurso AND C.periodo=@id
-                                                OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
-                                                (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
-                                                 WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
-                                                 ELSE 
-                                                 (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
-                                                	AND t2.idPeriodo = aux.Periodo AND t2.idPeriodo = aux.PeriodoAcademico)  
-                                                  END AS NumDias 
-                                                  ) AS aux    
+                                   INNER JOIN [dbo].[ad_frecuencia] AS F
+                                  ON t2.idFrecuencia = F.idFrecuencia AND F.periodo = @id            
                                   WHERE
                                       t2.idDocente = d.idDocente
                                       AND t2.idPeriodo = @id
@@ -2066,20 +2045,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                   d.TipoJornada,
                                   d.HoraSemana,
                                   SUM(ISNULL(t1.tiempoCurso, 0)) + ISNULL((
-                                      SELECT SUM(H.MinutosReal * aux.NumDias)
+                                      SELECT SUM(H.MinutosReal * F.CantDiasMensual)
                                       FROM [dbo].[ad_programacionAcademica] t2
                                       INNER JOIN [dbo].[ad_horario] H ON t2.idHorario = H.idHorario AND H.periodo=@id
                                       
                                        LEFT JOIN [dbo].[ad_curso] as C
                                        ON C.idCurso= t2.idCurso AND C.periodo=@id
-                                      OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
-                                      (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
-                                       WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase AND t2.idPeriodo = aux.PeriodoAcademico) 
-                                       ELSE 
-                                       (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE t2.uidIdIntensidadFase = aux.uididintensidadfase 
-                                      	AND t2.idPeriodo = aux.Periodo AND t2.idPeriodo = aux.PeriodoAcademico)  
-                                        END AS NumDias 
-                                        ) AS aux    
+                                      INNER JOIN [dbo].[ad_frecuencia] AS F
+                                      ON t2.idFrecuencia = F.idFrecuencia AND F.periodo = @id
                                       WHERE
                                           t2.idDocente = d.idDocente
                                           AND t2.idPeriodo = @id

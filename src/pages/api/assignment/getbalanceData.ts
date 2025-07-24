@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         BEGIN
           SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,  F.NombreAgrupFrecuencia,
            D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-           S.nombreSede , (H.MinutosReal * aux.NumDias) as minutosCurso  , (H.MinutosReal  * aux.NumDias)/(27*60.0) as carga
+           S.nombreSede , (H.MinutosReal *  F.CantDiasMensual) as minutosCurso  , (H.MinutosReal  *  F.CantDiasMensual)/(27*60.0) as carga
           FROM [dbo].[ad_programacionAcademica] AS PA  
           LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = @id
           INNER JOIN ad_horario AS H ON H.idHorario = PA.idHorario AND H.periodo = @id
@@ -45,14 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           INNER JOIN ad_sede AS S ON S.idSede = PA.idSede AND S.periodo = @id
           LEFT JOIN [dbo].[ad_curso] as C
              ON C.idCurso= PA.idCurso AND C.periodo=@id
-		 OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
-              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
-               WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase AND PA.idPeriodo = aux.PeriodoAcademico) 
-               ELSE 
-               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND PA.idPeriodo = aux.Periodo AND PA.idPeriodo = aux.PeriodoAcademico)  
-                END AS NumDias 
-                ) AS aux 
           WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 AND PA.cancelado = 0 
           and S.nombreSede <> 'VECOR'
 		  ORDER BY F.NombreFrecuencia ,H.HorarioInicio
@@ -61,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         BEGIN
          SELECT  D.idDocente, H.HorarioInicio, H.HorarioFin, F.NombreFrecuencia,   F.NombreAgrupFrecuencia,
            D.idSede AS idSedeAlojada, D.NombreSede AS nombreSedeAlojada,
-           S.nombreSede , (H.MinutosReal  * aux.NumDias) as minutosCurso  , (H.MinutosReal  * aux.NumDias)/(27*60.0) as carga
+           S.nombreSede , (H.MinutosReal  *  F.CantDiasMensual) as minutosCurso  , (H.MinutosReal  *  F.CantDiasMensual)/(27*60.0) as carga
           FROM [dbo].[ad_programacionAcademica] AS PA  
           LEFT JOIN ad_docente AS D ON PA.idDocente = D.idDocente AND D.periodo = 1
           INNER JOIN ad_horario AS H ON H.idHorario = PA.idHorario AND H.periodo = 1
@@ -69,22 +61,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           INNER JOIN ad_sede AS S ON S.idSede = PA.idSede AND S.periodo = 1
           LEFT JOIN [dbo].[ad_curso] as C
              ON C.idCurso= PA.idCurso AND C.periodo=1
-		   OUTER APPLY ( SELECT CASE WHEN C.DuracionClase = 1 THEN 
-              (SELECT SUM(aux.NumDias) FROM [dbo].[aux_intensidad_fase] AS aux
-               WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase AND PA.idPeriodo = aux.PeriodoAcademico) 
-               ELSE 
-               (SELECT TOP 1 aux.NumDias FROM [dbo].[aux_intensidad_fase] AS aux WHERE PA.uidIdIntensidadFase = aux.uididintensidadfase 
-              	AND PA.idPeriodo = aux.Periodo AND PA.idPeriodo = aux.PeriodoAcademico)  
-                END AS NumDias 
-                ) AS aux 
           WHERE PA.idPeriodo = @id AND PA.idVersion = @idVersion AND PA.vigente = 1 
           AND PA.cancelado = 0  and S.nombreSede <> 'VECOR'
 		  ORDER BY  F.NombreFrecuencia ,H.HorarioInicio
         END
       `);
 
-    const responseMessage =
-      'data de balance  del periodo ${idPeriod}, última versión encontrada correctamente';
+    const responseMessage = `data de balance  del periodo ${idPeriod}, última versión encontrada correctamente `;
 
     return res.status(200).json({
       message: responseMessage,

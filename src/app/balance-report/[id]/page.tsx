@@ -16,6 +16,7 @@ import {
 import assigmentService from '@/services/assigment';
 import { exportBalance } from '@/app/utils/downloadExcel';
 import { ordenarSedes } from '@/app/utils/managmentWords';
+import { roundToNearestQuarter } from '@/app/utils/other';
 const Page = () => {
   const { id } = useParams() as { id: string };
   const [timeStart, setTimeStart] = useState<string>('06:00');
@@ -332,7 +333,7 @@ const Page = () => {
                             balancaDatarray.reduce(
                               (acc: number, itemBalance: balanceDataInterface) =>
                                 itemBalance.nombreSedeAlojada === item.NombreSede
-                                  ? acc + itemBalance.carga
+                                  ? acc + roundToNearestQuarter(itemBalance.carga)
                                   : acc,
                               0
                             ) /

@@ -353,6 +353,7 @@ import { timeDaily, timeSunday, timeWeekend } from '../constants/data';
 import { isTimeInRange, containsDaysOfWeek } from '../utils/managmentTime';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { roundToNearestQuarter } from '../utils/other';
 export const TableTacReport: React.FC<TeacherAssignment> = ({
   classSchedule,
   location,
@@ -430,10 +431,12 @@ export const TableTacReport: React.FC<TeacherAssignment> = ({
         {classSchedule.length}
       </td>
       <td className="py-2 uppercase font-inter border text-center min-w-24">
-        {(
-          classSchedule.reduce((total, num) => total + num.minutosCurso, 0) /
-          (27 * 60)
-        ).toFixed(2)}
+        {roundToNearestQuarter(
+          Number(
+            (classSchedule.reduce((total, num) => total + num.minutosCurso, 0) / (27 * 60)) // usuario princial dio este valor
+              .toFixed(3)
+          )
+        )}
       </td>
     </tr>
   );

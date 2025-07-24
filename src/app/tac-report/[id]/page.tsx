@@ -20,7 +20,7 @@ import { downloadExcelTac } from '@/app/utils/downloadExcel';
 import periodService from '@/services/period';
 import { convertirFecha, convertirFormatoFecha } from '@/app/utils/managmentDate';
 import versionService from '@/services/version';
-import { getCookie } from '@/app/utils/other';
+import { getCookie, roundToNearestQuarter } from '@/app/utils/other';
 import teacherService from '@/services/teacher';
 import { convertToCustomAcronym } from '@/app/utils/managmentWords';
 
@@ -179,11 +179,17 @@ const Page = () => {
           selectedSings === 'ninguna' ||
           (selectedSings !== 'ninguna' && selectedNumberCompare !== 'ninguna'
             ? evaluateExpression(
-                Number(
-                  (
-                    rowTac.classSchedule.reduce((total, num) => total + num.minutosCurso, 0) /
-                    (27 * 60)
-                  ).toFixed(2)
+                roundToNearestQuarter(
+                  Number(
+                    (
+                      rowTac.classSchedule.reduce(
+                        (total, num) => total + num.minutosCurso,
+                        0
+                      ) /
+                      (27 * 60)
+                    ) // usuario princial dio este valor
+                      .toFixed(3)
+                  )
                 ),
                 selectedNumberCompare,
                 selectedSings

@@ -11,6 +11,7 @@ import {
 } from '../interface/datainterface';
 import { timeDaily, timeSunday, timeWeekend } from '../constants/data';
 import { containsDaysOfWeek, isTimeInRange } from './managmentTime';
+import { roundToNearestQuarter } from './other';
 
 export const handleDownload = (
   data: ProgramacionAcademica[],
@@ -165,9 +166,10 @@ export const downloadExcelTac = (data: tacData[], ID: string) => {
     });
 
     const totalClasses = classSchedule.length;
-    const totalClasesCompletas = Number(
-      (classSchedule.reduce((total, num) => total + num.minutosCurso, 0) / (27 * 60)).toFixed(
-        2
+    const totalClasesCompletas = roundToNearestQuarter(
+      Number(
+        (classSchedule.reduce((total, num) => total + num.minutosCurso, 0) / (27 * 60)) // usuario princial dio este valor
+          .toFixed(3)
       )
     );
 
@@ -293,7 +295,10 @@ export const exportBalance = (
     '',
     ...ratiosData.map((item) => {
       const cargaMod = balancaDatarray.reduce(
-        (acc, row) => (row.nombreSedeAlojada === item.NombreSede ? acc + row.carga : acc),
+        (acc, row) =>
+          row.nombreSedeAlojada === item.NombreSede
+            ? acc + roundToNearestQuarter(row.carga)
+            : acc,
         0
       );
       const denom = item.FT + item.PT / 3;
