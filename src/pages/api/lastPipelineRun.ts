@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing pipelineName in query' });
   }
 
-  const tenantID = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT!;
+  const tenantID = process.env.NEXT_PUBLIC_AZURE_WEBAPP_ID_TENANT;
   const subscriptionId = process.env.NEXT_PUBLIC_AZURE_SUBSCRIPTION_ID!;
   const applicationID = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_APP_ID!;
   const csValue = process.env.NEXT_PUBLIC_INVOKE_PIPELINE_APP_CS!;
@@ -54,6 +54,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const bearerToken = authResult.accessToken;
 
+    const now = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+
     const queryResponse = await fetch(pipelineRunUrl, {
       method: 'POST',
       headers: {
@@ -61,7 +65,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        lastUpdatedBefore: new Date().toISOString(),
+        lastUpdatedAfter: yesterday.toISOString(), // hace 24h ya
+        lastUpdatedBefore: now.toISOString(), // ahora mismo
         filters: [{ operand: 'PipelineName', operator: 'Equals', values: [pipelineName] }],
       }),
     });
@@ -74,9 +79,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .json({ message: 'No se encontraron ejecuciones de este pipeline' });
     }
 
-    const sorted = queryData.value.sort(
-      (a, b) => new Date(b.runStart).getTime() - new Date(a.runStart).getTime()
-    );
+    const sorted = queryData.value.sort((a, b) => {
+      return new Date(b.runStart).getTime() - new Date(a.runStart).getTime();
+    });
 
     const lastRun = sorted[0];
 

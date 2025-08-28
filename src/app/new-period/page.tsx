@@ -132,7 +132,7 @@ const Page = () => {
     do {
       setTypeActionPipeline('monitoreo');
       console.log('monitoreando');
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       isruning = (await invokePipeline('monitor', pipelineName || '')) || false;
       if (isruning) {
         aux = true;
@@ -151,12 +151,13 @@ const Page = () => {
     setIsRuningPipeline(true);
 
     await invokePipeline('run', pipelineNameDisponibility || '');
-    console.log('ejecutado');
+    console.log('ejecutando');
     let isruning = false;
     let aux = false;
+
     do {
       setTypeActionPipeline('monitoreo');
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       console.log('monitoreando');
       isruning = (await invokePipeline('monitor', pipelineNameDisponibility || '')) || false;
       if (isruning) {

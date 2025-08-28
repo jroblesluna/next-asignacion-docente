@@ -145,7 +145,7 @@ const Page = () => {
     do {
       setTypeActionPipeline('monitoreo');
       console.log('monitoreando');
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       isruning = (await invokePipeline('monitor')) || false;
     } while (isruning);
     setLoading(false);
